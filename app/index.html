@@ -24,10 +24,14 @@ stlite.mount(
     files: {
 "streamlit_app.py": `""" This script implements a Streamlit App """
 import streamlit as st
-from beet import DataPack, ResourcePack
+from weld import run_weld
 from zipfile import ZipFile
+from pathlib import Path
+import time
 
-st.write('<h1 style="text-align: center; color: #1b48c4;">Weld (beta)</h1>', unsafe_allow_html=True)
+st.set_page_config(page_title="Smithed • Weld", page_icon="random")
+
+st.write('<h1 style="text-align: center; color: #104db4;">Weld (beta)</h1>', unsafe_allow_html=True)
 
 
 st.write(
@@ -41,36 +45,46 @@ st.write(
 )
 st.warning("⚠️ This tool is in **heavy beta** and should be used with caution.\\n\\nPlease forward all feedback to our [Discord](https://discord.com)!")
 
-def upload_flow(label, pack_type, st):
-    packs = st.file_uploader(f"Upload {label}", accept_multiple_files=True)
-    col1, col2 = st.columns(2)
+def upload_flow(label, pack_type, tab):
+    progress = tab.container()
+    packs = tab.file_uploader(f"Upload {label}", accept_multiple_files=True, type="zip")
+    col1, col2 = tab.columns(2)
+    t0 = time.perf_counter()
+    path = None
     if col1.button("Build Packs", disabled=not packs, key=f"build-{label}"):
-        root_pack = pack_type()
-        for pack in packs:
-            to_merge = pack_type(zipfile=ZipFile(pack))
-            root_pack.merge(to_merge)
+        progress.info(f"Building {len(packs)} packs!")
+        with run_weld((ZipFile(pack) for pack in packs), pack_type=pack_type) as ctx:
+            if pack_type == "data_pack":
+                path = ctx.data.save(path="output", zipped=True, overwrite=True)
+            else:
+                path = ctx.assets.save(path="output", zipped=True, overwrite=True)
         
-        path = root_pack.save(path="output", zipped=True, overwrite=True)
-
+        t1 = time.perf_counter()
+        progress.success(f"Merged in {t1 - t0: 0.2f}s")
         with path.open(mode="rb") as f:
-            st.download_button(
+            col2.download_button(
                 "Download Merged",
                 f,
                 file_name="merged-pack.zip"
             )
     else:
         col2.button("Download Merged Packs", disabled=True, key=f"download-{label}")
+    
+    if not packs:
+        progress.info("Waiting for uploaded packs")
+    elif path is None:
+        progress.success("Ready to Build!")
 
 data_col, resource_col = st.tabs(["Data Packs", "Resource Packs"])
-upload_flow("Data Packs", DataPack, data_col)
-upload_flow("Resource Packs", ResourcePack, resource_col)
+upload_flow("Data Packs", "data_pack", data_col)
+upload_flow("Resource Packs", "resource_pack", resource_col)
 
 st.write("---")
 
 col1, col2 = st.columns(2, gap="medium")
 col1.markdown(
     """
-    <h4 style="text-align: center; color: #1b48c4;">Built with ♥️ by Smithed</h4>
+    <h4 style="text-align: center; color: #104db4;">Built with ♥️ by Smithed</h4>
     Smithed is a open-source ecosystem to support data and resource pack creators. Check us out at <a href="https://smithed.dev">here</a>!
     <br><br>
     Check out our <a href="https://wiki.smithed.dev/weld">documentation</a> to learn more about weld!
