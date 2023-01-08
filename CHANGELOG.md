@@ -2,6 +2,9 @@
 
 <!--next-version-placeholder-->
 
+## v0.4.0 (2023-01-08)
+
+
 ## v0.3.0 (2023-01-08)
 ### Feature
 * Redid everything ([`92dc2db`](https://github.com/Smithed-MC/smithed-python/commit/92dc2db7f98598246addb8f33cbed6754eb96fea))
