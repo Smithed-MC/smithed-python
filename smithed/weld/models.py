@@ -1,8 +1,19 @@
+import logging
 from typing import Annotated, Any, Iterable, Literal
 
 from beet import ListOption
 from jsonpath_ng import parse
-from pydantic import BaseModel, Field, root_validator, validator
+from pydantic import BaseModel as PydanticBaseModel
+from pydantic import Field, root_validator, validator
+
+logger = logging.getLogger(__name__)
+
+
+class BaseModel(PydanticBaseModel):
+    class Config:
+        json_encoders = {
+            set: lambda v: list(v),
+        }
 
 
 class ConditionPackCheck(BaseModel):
@@ -33,25 +44,29 @@ SmithedSource = SmithedReferenceSource | SmithedValueSource
 
 class SmithedBaseRule(BaseModel):
     target: str
-    source: SmithedSource = Field(..., discriminator="type")
     conditions: list[SmithedCondition] = []
 
+class SmithedAdditiveRule(SmithedBaseRule):
+    source: SmithedSource = Field(..., discriminator="type")
 
-class SmithedMergeRule(SmithedBaseRule):
+class SmithedMergeRule(SmithedAdditiveRule):
     type: Literal["smithed:merge"]
 
-
-class SmithedAppendRule(SmithedBaseRule):
+class SmithedAppendRule(SmithedAdditiveRule):
     type: Literal["smithed:append"]
 
-
-class SmithedPrependRule(SmithedBaseRule):
+class SmithedPrependRule(SmithedAdditiveRule):
     type: Literal["smithed:prepend"]
 
-
-class SmithedInsertRule(SmithedBaseRule):
+class SmithedInsertRule(SmithedAdditiveRule):
     type: Literal["smithed:insert"]
     index: int
+
+class SmithedReplaceRule(SmithedAdditiveRule):
+    type: Literal["smithed:replace"]
+
+class SmithedRemoveRule(SmithedBaseRule):
+    type: Literal["smithed:remove"]
 
 
 SmithedRule = Annotated[
@@ -83,11 +98,20 @@ class SmithedJsonFile(BaseModel, extra="allow"):
     @root_validator
     def convert_type(cls, values: dict[str, ListOption[SmithedModel]]):
         for model in values["smithed"].entries():
-            for rule in model.rules:
-                match rule.source:
-                    case SmithedReferenceSource(path=path):
+            model.rules = list(cls.convert_rules(model.rules, values))
+
+        return values
+    
+    @classmethod
+    def convert_rules(cls, rules: list[SmithedRule], values: dict[str, Any]):
+        for rule in rules:
+            match rule.source:
+                case SmithedReferenceSource(path=path):
+                    try:
                         rule.source = SmithedValueSource(
                             value=parse(path).find(values).pop(0).value
                         )
-
-        return values
+                    except IndexError:
+                        logger.warn(f"Source Reference Path: {path} was not found. Deleting Rule.")
+                        continue
+            yield rule

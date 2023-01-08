@@ -16,53 +16,44 @@
 
 ### minecraft
 
-`@loot_table minecraft:entities/zombie`
+`@loot_table(strip_final_newline) minecraft:entities/zombie`
 
 ```json
 {
   "type": "minecraft:entity",
   "pools": [
     {
-      "bonus_rolls": 0.0,
+      "rolls": 1,
+      "bonus_rolls": 0,
       "entries": [
         {
           "type": "minecraft:item",
+          "name": "minecraft:rotten_flesh",
           "functions": [
             {
-              "add": false,
+              "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "max": 2.0,
-                "min": 0.0
+                "min": 0,
+                "max": 2
               },
-              "function": "minecraft:set_count"
+              "add": false
             },
             {
+              "function": "minecraft:looting_enchant",
               "count": {
                 "type": "minecraft:uniform",
-                "max": 1.0,
-                "min": 0.0
-              },
-              "function": "minecraft:looting_enchant"
+                "min": 0,
+                "max": 1
+              }
             }
-          ],
-          "name": "minecraft:rotten_flesh"
+          ]
         }
-      ],
-      "rolls": 1.0
+      ]
     },
     {
-      "bonus_rolls": 0.0,
-      "conditions": [
-        {
-          "condition": "minecraft:killed_by_player"
-        },
-        {
-          "chance": 0.025,
-          "condition": "minecraft:random_chance_with_looting",
-          "looting_multiplier": 0.01
-        }
-      ],
+      "rolls": 1,
+      "bonus_rolls": 0,
       "entries": [
         {
           "type": "minecraft:item",
@@ -74,8 +65,10 @@
         },
         {
           "type": "minecraft:item",
+          "name": "minecraft:potato",
           "functions": [
             {
+              "function": "minecraft:furnace_smelt",
               "conditions": [
                 {
                   "condition": "minecraft:entity_properties",
@@ -86,20 +79,19 @@
                     }
                   }
                 }
-              ],
-              "function": "minecraft:furnace_smelt"
+              ]
             }
-          ],
-          "name": "minecraft:potato"
+          ]
         }
       ],
-      "rolls": 1.0
-    },
-    {
-      "entries": [
+      "conditions": [
         {
-          "type": "minecraft:loot_table",
-          "name": "fake.vanilla:zombie"
+          "condition": "minecraft:killed_by_player"
+        },
+        {
+          "condition": "minecraft:random_chance_with_looting",
+          "chance": 0.025,
+          "looting_multiplier": 0.01
         }
       ]
     },
@@ -110,15 +102,24 @@
           "name": "rx.playerdb:zombie"
         }
       ]
-    },
-    {
-      "entries": [
-        {
-          "type": "minecraft:loot_table",
-          "name": "smithed.actionbar:zombie"
+    }
+  ],
+  "__smithed__": {
+    "rules": [
+      {
+        "type": "smithed:append",
+        "target": "pools",
+        "source": {
+          "type": "smithed:reference",
+          "path": "pools[2]"
         }
+      }
+    ],
+    "priority": {
+      "after": [
+        "vanilla"
       ]
     }
-  ]
+  }
 }
 ```

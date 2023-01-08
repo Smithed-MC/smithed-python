@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>stlite app</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.22.1/build/stlite.css"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.22.1/build/stlite.js"></script>
+    <script>
+stlite.mount(
+  {
+    requirements: ["smithed"],
+    entrypoint: "streamlit_app.py",
+    files: {
+"streamlit_app.py": `""" This script implements a Streamlit App """
+import streamlit as st
+from beet import DataPack, ResourcePack
+from zipfile import ZipFile
+
+st.write('<h1 style="text-align: center; color: #1b48c4;">Weld (beta)</h1>', unsafe_allow_html=True)
+
+
+st.write(
+    "Merge all your data and resource packs!"
+    " This tool will intelligently merge your packs to produce an easy to use zip."
+    " It will also handle the following conflict types:\\n"
+    " - Tag files will merge exactly the same as vanilla\\n"
+    " - Lang files will extend each other\n"
+    " - Model files will extend and sort overrides with \`custom_model_data\` defined\\n"
+    " - (Future) Custom \`__smithed__\` definitions will apply (see [vanilla-overides](https://wiki.smithed.dev/conventions/vanilla-overrides))\\n"
+)
+st.warning("⚠️ This tool is in **heavy beta** and should be used with caution.\\n\\nPlease forward all feedback to our [Discord](https://discord.com)!")
+
+def upload_flow(label, pack_type, st):
+    packs = st.file_uploader(f"Upload {label}", accept_multiple_files=True)
+    col1, col2 = st.columns(2)
+    if col1.button("Build Packs", disabled=not packs, key=f"build-{label}"):
+        root_pack = pack_type()
+        for pack in packs:
+            to_merge = pack_type(zipfile=ZipFile(pack))
+            root_pack.merge(to_merge)
+        
+        path = root_pack.save(path="output", zipped=True, overwrite=True)
+
+        with path.open(mode="rb") as f:
+            st.download_button(
+                "Download Merged",
+                f,
+                file_name="merged-pack.zip"
+            )
+    else:
+        col2.button("Download Merged Packs", disabled=True, key=f"download-{label}")
+
+data_col, resource_col = st.tabs(["Data Packs", "Resource Packs"])
+upload_flow("Data Packs", DataPack, data_col)
+upload_flow("Resource Packs", ResourcePack, resource_col)
+
+st.write("---")
+
+col1, col2 = st.columns(2, gap="medium")
+col1.markdown(
+    """
+    <h4 style="text-align: center; color: #1b48c4;">Built with ♥️ by Smithed</h4>
+    Smithed is a open-source ecosystem to support data and resource pack creators. Check us out at <a href="https://smithed.dev">here</a>!
+    <br><br>
+    Check out our <a href="https://wiki.smithed.dev/weld">documentation</a> to learn more about weld!
+    """,
+    unsafe_allow_html=True,
+)
+
+col2.markdown(
+    """
+    <iframe
+     src="https://discord.com/widget?id=511303648119226382&amp;theme=dark"
+     title="Discord Embed"
+     sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
+     style="width: 325px; height: 400px; border: 2px solid white; border-radius: 16px;">
+    </iframe>
+    """,
+    unsafe_allow_html=True
+)
+`,
+
+},
+  },
+  document.getElementById("root")
+)
+
+    </script>
+  </body>
+  <!-- Generated from stlite sharing (https://edit.share.stlite.net/), and the source version is 7726516fbcb130235545a87bf20dc8924d77a34a  # 7726516fbcb130235545a87bf20dc8924d77a34a is available on GitHub Actions: https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables -->
+</html>
