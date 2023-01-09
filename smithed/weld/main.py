@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from functools import partial
 from importlib import resources
 from typing import Iterable, Literal
 from zipfile import ZipFile
@@ -25,41 +26,60 @@ def run_weld(
             "output": "dist",
         }
         for pack_type in pack_types:
-            config[pack_type] = {
-                "zipped": True,
-                "description": DESCRIPTION,
-                "name": "welded-pack",
-            },
+            config[pack_type] = (
+                {
+                    "zipped": True,
+                    "description": DESCRIPTION,
+                    "name": "welded-pack",
+                },
+            )
 
     with run_beet(config, directory=directory) as ctx:
-        # ctx.require("weld.setup")
-        for pack in packs:
-            for pack_type in pack_types:
-                match pack:
-                    case str(name):
-                        ctx.require(
-                            subproject(
-                                {
-                                    pack_type: {"load": name},
-                                    "pipeline": ["weld.print_pack_name"],
-                                }
-                            )
-                        )
-                    case ZipFile() as file:
-                        if pack_type == "data_pack":
-                            ctx.data.load(file)
-                        else:
-                            ctx.assets.load(file)
+        ctx.require(partial(load_packs, packs=packs, pack_types=pack_types))
 
         yield ctx
 
 
-def output_fabric_mod(ctx: Context):
+def load_packs(
+    ctx: Context,
+    packs: Iterable[str] | Iterable[ZipFile],
+    pack_types: list[Literal["data_pack", "resource_pack"]],
+):
+    # ctx.require("weld.setup")
+    ctx.meta["weld"] = {"packs": packs}
+    for pack in packs:
+        for pack_type in pack_types:
+            match pack:
+                case str(name):
+                    ctx.require(
+                        subproject(
+                            {
+                                pack_type: {"load": name},
+                                "pipeline": ["weld.print_pack_name"],
+                            }
+                        )
+                    )
+                case ZipFile() as file:
+                    if pack_type == "data_pack":
+                        ctx.data.load(file)
+                    else:
+                        ctx.assets.load(file)
+
+        if len(pack_types) > 1:
+            ctx.require(add_fabric_mod_json)
+
+
+def add_fabric_mod_json(ctx: Context):
     with ctx.override():
-        ctx.data.extra["fabric.mod.json"] = JsonFile(FABRIC_MOD_TEMPLATE.render(
-            packs=
-        ))
-        
+        ctx.data.extra["fabric.mod.json"] = JsonFile(
+            FABRIC_MOD_TEMPLATE.render(
+                packs=(packs := ctx.meta["weld"]["packs"]),
+                pack_names=[
+                    pack if type(pack) is str else pack.filename for pack in packs
+                ],
+                mc_version=ctx.minecraft_version,
+            )
+        )
 
 
 def print_pack_name(ctx: Context):

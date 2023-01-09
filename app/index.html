@@ -47,6 +47,8 @@ st.warning("⚠️ This tool is in **heavy beta** and should be used with cautio
 
 def upload_flow(label, pack_type, tab):
     progress = tab.container()
+    if pack_type == "all":
+        tab.warning("🧪 This feature is experimental, use with caution!")
     packs = tab.file_uploader(f"Upload {label}", accept_multiple_files=True, type="zip")
     col1, col2 = tab.columns(2)
     t0 = time.perf_counter()
@@ -87,7 +89,7 @@ data_col, resource_col, combined_col = st.tabs([
 ])
 upload_flow("Data Packs", "data_pack", data_col)
 upload_flow("Resource Packs", "resource_pack", resource_col)
-upload_flow("All Packs", "all", combined_col)
+upload_flow("Any Packs", "all", combined_col)
 
 st.write("---")
 
