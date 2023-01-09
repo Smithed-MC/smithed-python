@@ -26,13 +26,11 @@ def run_weld(
             "output": "dist",
         }
         for pack_type in pack_types:
-            config[pack_type] = (
-                {
-                    "zipped": True,
-                    "description": DESCRIPTION,
-                    "name": "welded-pack",
-                },
-            )
+            config[pack_type] = {
+                "zipped": True,
+                "description": DESCRIPTION,
+                "name": "welded-pack",
+            }
 
     with run_beet(config, directory=directory) as ctx:
         ctx.require(partial(load_packs, packs=packs, pack_types=pack_types))
