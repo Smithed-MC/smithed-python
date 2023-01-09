@@ -26,6 +26,9 @@ pytest = "^7.2.0"
 pytest-insta = "^0.2.0"
 lectern = "^0.26.0"
 
+[tool.poetry.group.app.dependencies]
+streamlit = "^1.16.0"
+
 [tool.black]
 include = '\.pyi?$'
 
