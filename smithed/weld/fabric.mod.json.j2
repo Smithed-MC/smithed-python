@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "welded_{{ hash(tuple(packs)) }}",
+  "version": "0.0.0",
+
+  "name": "Welded Pack",
+  "description": "Included Packs: {{ ', '.join(packs) }}",
+  "authors": [
+    "Weld"
+  ],
+  "contact": {
+    "homepage": "https://smithed-mc.github.io/smithed-python/",
+    "sources": "https://smithed-mc.github.io/smithed-python/"
+  },
+
+  "license": "NA",
+  "icon": "icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": []
+  },
+  "mixins": [],
+
+  "depends": {
+    "fabricloader": ">=0.14.7",
+    "fabric": "*",
+    "minecraft": ">={{ mc_version }}"
+  }
+}

@@ -53,31 +53,41 @@ def upload_flow(label, pack_type, tab):
     path = None
     if col1.button("Build Packs", disabled=not packs, key=f"build-{label}"):
         progress.info(f"Building {len(packs)} packs!")
-        with run_weld((ZipFile(pack) for pack in packs), pack_type=pack_type) as ctx:
-            if pack_type == "data_pack":
-                path = ctx.data.save(path="output", zipped=True, overwrite=True)
-            else:
-                path = ctx.assets.save(path="output", zipped=True, overwrite=True)
+        pack_types = ["data_pack", "resource_pack"] if pack_type == "all" else [pack_type]
+        with run_weld((ZipFile(pack) for pack in packs), pack_types=pack_types) as ctx:
+            match pack_type:
+                case "data_pack":
+                    path = ctx.data.save(path="output", zipped=True, overwrite=True)
+                case "resource_pack":
+                    path = ctx.assets.save(path="output", zipped=True, overwrite=True)
+                case "all":
+                    with ZipFile("output.jar", "w") as jar:
+                        ctx.data.dump(jar)
+                        ctx.assets.dump(jar)
+                        path = Path(jar.filename)
         
         t1 = time.perf_counter()
         progress.success(f"Merged in {t1 - t0: 0.2f}s")
-        with path.open(mode="rb") as f:
+        with path.open(mode="rb") as file:
             col2.download_button(
-                "Download Merged",
-                f,
-                file_name="merged-pack.zip"
+                "Download Welded Packs",
+                file,
+                file_name="welded-pack.zip" if pack_type != "both" else "welded-mod.jar"
             )
     else:
-        col2.button("Download Merged Packs", disabled=True, key=f"download-{label}")
+        col2.button("Download Welded Packs", disabled=True, key=f"download-{label}")
     
     if not packs:
         progress.info("Waiting for uploaded packs")
     elif path is None:
         progress.success("Ready to Build!")
 
-data_col, resource_col = st.tabs(["Data Packs", "Resource Packs"])
+data_col, resource_col, combined_col = st.tabs([
+    "Data Packs", "Resource Packs", "Combined (Fabric Jar)"
+])
 upload_flow("Data Packs", "data_pack", data_col)
 upload_flow("Resource Packs", "resource_pack", resource_col)
+upload_flow("All Packs", "all", combined_col)
 
 st.write("---")
 
