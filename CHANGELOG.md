@@ -2,6 +2,9 @@
 
 <!--next-version-placeholder-->
 
+## v0.6.1 (2023-01-09)
+
+
 ## v0.6.0 (2023-01-09)
 ### Feature
 * Fix bug ([`c27732a`](https://github.com/Smithed-MC/smithed-python/commit/c27732a84d02a720ad34ee3decc2cfe189b7f322))
