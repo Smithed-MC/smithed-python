@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.0 (2023-01-09)
+### Feature
+* Move app source to `weld` package ([`f59da76`](https://github.com/Smithed-MC/smithed-python/commit/f59da7613ac2c89e72753152e82edcd853097eb5))
+
 ## v0.6.1 (2023-01-09)
 
 
