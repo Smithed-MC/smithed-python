@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.2 (2023-01-09)
+### Fix
+* App not reloading ([`16c1b4d`](https://github.com/Smithed-MC/smithed-python/commit/16c1b4d660cb68fd3397e79c9f67ea89623585b0))
+* Mistake with app/index.html ([`69e9a92`](https://github.com/Smithed-MC/smithed-python/commit/69e9a92b0710a2ad4cfb466e514ebe9f30eb155a))
+
 ## v0.7.1 (2023-01-09)
 
 
