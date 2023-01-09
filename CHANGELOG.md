@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.6.0 (2023-01-09)
+### Feature
+* Fix bug ([`c27732a`](https://github.com/Smithed-MC/smithed-python/commit/c27732a84d02a720ad34ee3decc2cfe189b7f322))
+
 ## v0.5.0 (2023-01-09)
 ### Feature
 * Implement experiemental fabric output feature ([`403052e`](https://github.com/Smithed-MC/smithed-python/commit/403052ee8669de9c1503d4e6e64f7e86caee59cc))
