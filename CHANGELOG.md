@@ -2,6 +2,9 @@
 
 <!--next-version-placeholder-->
 
+## v0.9.1 (2023-02-01)
+
+
 ## v0.9.0 (2023-02-01)
 ### Fix
 * Add versioning to weld ([`8372224`](https://github.com/Smithed-MC/smithed-python/commit/8372224d38a74d13c99027c49910d2051997c15d))
