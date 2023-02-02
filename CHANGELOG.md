@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.8.0 (2023-02-01)
+### Feature
+* Add atlas support ([`35355f3`](https://github.com/Smithed-MC/smithed-python/commit/35355f314162991ee1584ba0279c7ad3b8174e1e))
+
 ## v0.7.2 (2023-01-09)
 ### Fix
 * App not reloading ([`16c1b4d`](https://github.com/Smithed-MC/smithed-python/commit/16c1b4d660cb68fd3397e79c9f67ea89623585b0))
