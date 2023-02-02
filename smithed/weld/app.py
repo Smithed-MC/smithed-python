@@ -76,12 +76,12 @@ def upload_flow(label, pack_type: str, tab: DeltaGenerator):
 
 
 def main():
-    # import smithed
+    import weld
 
     st.set_page_config(page_title="Smithed • Weld", page_icon="random")
 
     st.write(
-        f'<h1 style="text-align: center; color: #104db4;">Weld v0.7.3</h1>',
+        f'<h1 style="text-align: center; color: #104db4;">Weld v{weld.__version__}</h1>',
         unsafe_allow_html=True,
     )
 

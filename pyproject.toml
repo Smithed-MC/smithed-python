@@ -47,7 +47,7 @@ commands = "weld.commands"
 [tool.semantic_release]
 branch = "main"
 upload_to_pypi = true
-version_variable = ["smithed/__init__.py:__version__"]
+version_variable = ["smithed/__init__.py:__version__", "smithed/weld/__init__.py:__version__"]
 version_toml = "pyproject.toml:tool.poetry.version"
 major_on_zero = false
 build_command = "poetry build"
