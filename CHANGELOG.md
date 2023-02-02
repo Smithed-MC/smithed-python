@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v0.9.0 (2023-02-01)
+### Fix
+* Add versioning to weld ([`8372224`](https://github.com/Smithed-MC/smithed-python/commit/8372224d38a74d13c99027c49910d2051997c15d))
+* Use correct package ([`a82f18c`](https://github.com/Smithed-MC/smithed-python/commit/a82f18cb57aaf9c3807e5fc8dcd47fad61f511ce))
+
 ## v0.8.0 (2023-02-01)
 ### Feature
 * Add atlas support ([`35355f3`](https://github.com/Smithed-MC/smithed-python/commit/35355f314162991ee1584ba0279c7ad3b8174e1e))
