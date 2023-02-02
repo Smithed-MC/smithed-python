@@ -19,10 +19,16 @@
     <script>
 stlite.mount(
   {
-    requirements: ["smithed"],
+    requirements: ["https://cdn.discordapp.com/attachments/647493416355364864/1070539056376729681/smithed-0.7.2-py3-none-any.whl", "pyodide_http"],
     entrypoint: "streamlit_app.py",
     files: {
-        "streamlit_app.py": `from weld import app; app.main()`,
+        "streamlit_app.py": `
+import pyodide_http
+pyodide_http.patch_all()
+
+from weld import app
+app.main()
+`,
     },
   },
   document.getElementById("root")

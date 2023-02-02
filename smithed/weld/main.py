@@ -8,6 +8,8 @@ from beet import Context, JsonFile, ProjectConfig, run_beet, subproject
 from beet.core.utils import FileSystemPath, JsonDict
 from jinja2 import Template
 
+from .latest_snapshot import latest_snapshot
+
 DESCRIPTION = "Merged by Smithed Weld"
 FABRIC_MOD_TEMPLATE = Template(
     (resources.files("weld") / "fabric.mod.json.j2").read_text()
@@ -33,6 +35,7 @@ def run_weld(
             }
 
     with run_beet(config, directory=directory) as ctx:
+        ctx.require(latest_snapshot)
         ctx.require(partial(load_packs, packs=list(packs), pack_types=pack_types))
 
         yield ctx

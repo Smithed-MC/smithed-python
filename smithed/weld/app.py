@@ -8,41 +8,40 @@ from streamlit.delta_generator import DeltaGenerator
 from weld import run_weld
 
 
-def main():
-    st.set_page_config(page_title="Smithed • Weld", page_icon="random")
+def validate_zips(packs: list[ZipFile]):
+    for pack in packs:
+        try:
+            with pack.open("pack.mcmeta") as meta:
+                print(meta.read(), "\n")
+        except FileNotFoundError:
+            return f"`pack.mcmeta` not found in pack {pack.filename}"
 
-    st.write(
-        '<h1 style="text-align: center; color: #104db4;">Weld (beta)</h1>',
-        unsafe_allow_html=True,
-    )
+    return False
 
-    st.write(
-        "Merge all your data and resource packs!"
-        " This tool will intelligently merge your packs to produce an easy to use zip."
-        " It will also handle the following conflict types:\n"
-        " - Tag files will merge exactly the same as vanilla\n"
-        " - Lang files will extend each other\n"
-        " - Model files will extend and sort overrides with `custom_model_data` defined\n"
-        " - (Future) Custom `__smithed__` definitions will apply (see [vanilla-overides](https://wiki.smithed.dev/conventions/vanilla-overrides))\n"
-    )
-    st.warning(
-        "⚠️ This tool is in **heavy beta** and should be used with caution.\n\nPlease forward all feedback to our [Discord](https://discord.com)!"
-    )
 
-    def upload_flow(label, pack_type: str, tab: DeltaGenerator):
-        progress = tab.container()
-        if pack_type == "all":
-            tab.warning("🧪 This feature is experimental, use with caution!")
-        packs: list[BytesIO] = tab.file_uploader(f"Upload {label}", accept_multiple_files=True, type="zip")  # type: ignore
-        col1, col2 = tab.columns(2)
-        t0 = time.perf_counter()
-        path = None
-        if col1.button("Build Packs", disabled=not packs, key=f"build-{label}"):
-            progress.info(f"Building {len(packs)} packs!")
-            pack_types = (
-                ["data_pack", "resource_pack"] if pack_type == "all" else [pack_type]
-            )
-            with run_weld((ZipFile(pack) for pack in packs), pack_types=pack_types) as ctx:  # type: ignore
+def upload_flow(label, pack_type: str, tab: DeltaGenerator):
+    progress = tab.container()
+    if pack_type == "all":
+        tab.warning(
+            "🧪 This feature is experimental, *please* use with caution!\n"
+            "Note: The resulting `.jar` is purely for convenience and does not represent"
+            " an optimized fabric mod. Compatibility with other mods is based on the data"
+            " and resource packs provided."
+        )
+    packs: list[BytesIO] = tab.file_uploader(f"Upload {label}", accept_multiple_files=True, type="zip")  # type: ignore
+    col1, col2 = tab.columns(2)
+    t0 = time.perf_counter()
+    path = None
+    if col1.button("Build Packs", disabled=not packs, key=f"build-{label}"):
+        progress.info(f"Building {len(packs)} packs!")
+        pack_types = (
+            ["data_pack", "resource_pack"] if pack_type == "all" else [pack_type]
+        )
+        zips = list(ZipFile(pack) for pack in packs)
+        if error := validate_zips(zips):
+            st.error(error)
+        else:
+            with run_weld(zips, pack_types=pack_types) as ctx:  # type: ignore
                 match pack_type:
                     case "data_pack":
                         path = ctx.data.save(path="output", zipped=True, overwrite=True)
@@ -67,13 +66,38 @@ def main():
                         if pack_type != "all"
                         else "welded-mod.jar",
                     )
-        else:
-            col2.button("Download Welded Packs", disabled=True, key=f"download-{label}")
+    else:
+        col2.button("Download Welded Packs", disabled=True, key=f"download-{label}")
 
-        if not packs:
-            progress.info("Waiting for uploaded packs")
-        elif path is None:
-            progress.success("Ready to Build!")
+    if not packs:
+        progress.info("Waiting for uploaded packs")
+    elif path is None:
+        progress.success("Ready to Build!")
+
+
+def main():
+    # import smithed
+
+    st.set_page_config(page_title="Smithed • Weld", page_icon="random")
+
+    st.write(
+        f'<h1 style="text-align: center; color: #104db4;">Weld v0.7.3</h1>',
+        unsafe_allow_html=True,
+    )
+
+    st.write(
+        "Merge all your data and resource packs!"
+        " This tool will intelligently merge your packs to produce an easy to use zip."
+        " It will also handle the following conflict types:\n"
+        " - Tag files will merge exactly the same as vanilla\n"
+        " - Asset files will merge exactly the same as vanilla\n"
+        " - Lang files will extend each other\n"
+        " - Model files will extend and sort overrides with `custom_model_data` defined\n"
+        " - (Future) Custom `__smithed__` definitions will apply (see [vanilla-overides](https://wiki.smithed.dev/conventions/vanilla-overrides))\n"
+    )
+    st.warning(
+        "⚠️ This tool is in **heavy beta** and should be used with caution.\n\nPlease forward all feedback to our [Discord](https://discord.com)!"
+    )
 
     data_col, resource_col, combined_col = st.tabs(
         ["Data Packs", "Resource Packs", "Combined (Fabric Jar)"]
