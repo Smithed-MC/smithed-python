@@ -1,10 +1,10 @@
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from functools import partial
 from importlib import resources
 from typing import Iterable, Literal
 from zipfile import ZipFile
 
-from beet import Context, JsonFile, ProjectConfig, run_beet, subproject
+from beet import Context, JsonFile, PluginError, ProjectConfig, run_beet, subproject
 from beet.core.utils import FileSystemPath, JsonDict
 from jinja2 import Template
 
@@ -35,7 +35,9 @@ def run_weld(
             }
 
     with run_beet(config, directory=directory) as ctx:
-        ctx.require(latest_snapshot)
+        with suppress(PluginError):
+            ctx.require(latest_snapshot)
+            print("・ Latest snapshot plugin activated ・")
         ctx.require(partial(load_packs, packs=list(packs), pack_types=pack_types))
 
         yield ctx
@@ -66,13 +68,15 @@ def load_packs(
                         ctx.assets.load(file)
 
     if len(pack_types) > 1:
-        JsonFile(FABRIC_MOD_TEMPLATE.render(
-            pack_hash=hash(tuple(packs)),
-            pack_names=[
-                pack.filename if type(pack) is ZipFile else pack for pack in packs
-            ],
-            mc_version=ctx.minecraft_version,
-        ))
+        JsonFile(
+            FABRIC_MOD_TEMPLATE.render(
+                pack_hash=hash(tuple(packs)),
+                pack_names=[
+                    pack.filename if type(pack) is ZipFile else pack for pack in packs
+                ],
+                mc_version=ctx.minecraft_version,
+            )
+        )
         ctx.require(partial(add_fabric_mod_json, packs=packs))
 
 
