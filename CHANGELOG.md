@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.9.2 (2023-02-15)
+### Fix
+* Disable latest snapshot if it fails ([`c72432f`](https://github.com/Smithed-MC/smithed-python/commit/c72432fcf83e0cf3aa4beb55356bdbeb21cda823))
+
 ## v0.9.1 (2023-02-01)
 
 
