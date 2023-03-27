@@ -32,6 +32,12 @@ lectern = "^0.26.0"
 [tool.poetry.group.app.dependencies]
 streamlit = "^1.16.0"
 
+[tool.poe.tasks]
+format = "black smithed examples tests"
+check = "black smithed examples tests --check"
+develop = "mudkip develop"
+test = "pytest"
+
 [tool.black]
 include = '\.pyi?$'
 
