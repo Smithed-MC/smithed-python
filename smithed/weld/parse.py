@@ -1,13 +1,15 @@
-from tokenstream import Token, TokenStream
 from typing import Any
+
+from tokenstream import Token, TokenStream
 
 JsonDict = dict[str, Any]
 
 
-
 def parse(raw: str):
     stream = TokenStream(raw)
-    with stream.syntax(key=r"\w+", separator=r"\.", open=r"\[", close=r"\]", index=r"\[\d+\]"):
+    with stream.syntax(
+        key=r"\w+", separator=r"\.", open=r"\[", close=r"\]", index=r"\[\d+\]"
+    ):
         for token in stream.collect():
             match token:
                 case Token(type="open"):
@@ -25,12 +27,13 @@ def get(path: str, obj: JsonDict):
                 current = current[value]
     return current
 
+
 def set(path: str, obj: JsonDict, value: Any):
     current = obj
     for token in parse(path):
         match token:
             case Token(type=type, value=str(value)) if type != "separator":
                 if value not in current:
-                    current = [None] * (int(value) + 1) if 
+                    current = [None] * (int(value) + 1)
                 current = current[value]
     return current
