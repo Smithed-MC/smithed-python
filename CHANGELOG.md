@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v0.9.3 (2023-03-27)
+### Fix
+* Force release ([`1829d6d`](https://github.com/Smithed-MC/smithed-python/commit/1829d6dd2cd0d43aadfafcad7aeca2cace64f981))
+* Disable tests for now on CI ([`24bbd16`](https://github.com/Smithed-MC/smithed-python/commit/24bbd1648690927c5bf3a05d5e5f1b18f85dff07))
+* Full test verbosity ([`80c1293`](https://github.com/Smithed-MC/smithed-python/commit/80c1293a71d41ad54ef6ffb3dcddba845ae2d437))
+* Update beet and deps + add github action ([`11ab749`](https://github.com/Smithed-MC/smithed-python/commit/11ab7493166b8c5fa92574466d89e3aec9cc60af))
+
 ## v0.9.2 (2023-02-15)
 ### Fix
 * Disable latest snapshot if it fails ([`c72432f`](https://github.com/Smithed-MC/smithed-python/commit/c72432fcf83e0cf3aa4beb55356bdbeb21cda823))
