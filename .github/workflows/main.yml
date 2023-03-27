@@ -69,10 +69,10 @@ jobs:
 
     - name: Install dependencies
       if: steps.cache-venv.outputs.cache-hit != 'true'
-      run: poetry install --all-extras
+      run: poetry install
 
     - name: Run unit tests
-      run: poetry poe test
+      run: poetry poe test -v
 
     # ---------------------------------------------
     # -----          Release Package          -----
