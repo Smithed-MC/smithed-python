@@ -9,12 +9,16 @@ __all__ = [
 ]
 
 
-from beet import Context
-from mecha import CommandTree, Mecha, delegate
+from typing import ClassVar
 
-COMMANDS_URL = (
-    "https://raw.githubusercontent.com/misode/mcmeta/summary/commands/data.json"
-)
+from beet import Context, JsonFile
+
+
+class DamageType(JsonFile):
+    """Class representing a damage type."""
+
+    scope: ClassVar[tuple[str, ...]] = ("damage_type",)
+    extension: ClassVar[str] = ".json"
 
 
 def beet_default(ctx: Context):
@@ -28,9 +32,4 @@ def latest_snapshot(ctx: Context):
     on the require list.
     """
 
-    mc = ctx.inject(Mecha)
-
-    path = ctx.cache["latest_commands"].download(COMMANDS_URL)
-    mc.spec.add_commands(CommandTree.parse_file(path))
-
-    mc.spec.parsers["command:argument:minecraft:gamemode"] = delegate("gamemode")
+    ctx.data.extend_namespace += [DamageType]

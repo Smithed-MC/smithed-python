@@ -56,6 +56,7 @@ def load_packs(
                     ctx.require(
                         subproject(
                             {
+                                "require": ["weld.latest_snapshot"],
                                 pack_type: {"load": name},
                                 "pipeline": ["weld.print_pack_name"],
                             }
