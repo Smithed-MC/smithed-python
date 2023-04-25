@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.10.0 (2023-04-24)
+### Feature
+* Adjust for newest snapshot ([`d4778de`](https://github.com/Smithed-MC/smithed-python/commit/d4778de31526f6b4f56bbe3818ae9362bbf8dac9))
+
 ## v0.9.3 (2023-03-27)
 ### Fix
 * Force release ([`1829d6d`](https://github.com/Smithed-MC/smithed-python/commit/1829d6dd2cd0d43aadfafcad7aeca2cace64f981))
