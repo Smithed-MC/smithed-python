@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.11.0 (2023-04-25)
+### Feature
+* Upgrade `beet` and add `unknown_files` plugin ([`8ceb8c6`](https://github.com/Smithed-MC/smithed-python/commit/8ceb8c6db2ad3828e0a86c2c14490639bfc21ae0))
+
 ## v0.10.0 (2023-04-24)
 ### Feature
 * Adjust for newest snapshot ([`d4778de`](https://github.com/Smithed-MC/smithed-python/commit/d4778de31526f6b4f56bbe3818ae9362bbf8dac9))
