@@ -8,8 +8,6 @@ from beet import Context, JsonFile, PluginError, ProjectConfig, run_beet, subpro
 from beet.core.utils import FileSystemPath, JsonDict
 from jinja2 import Template
 
-from .latest_snapshot import latest_snapshot
-
 DESCRIPTION = "Merged by Smithed Weld"
 FABRIC_MOD_TEMPLATE = Template(
     (resources.files("weld") / "fabric.mod.json.j2").read_text()
@@ -35,9 +33,6 @@ def run_weld(
             }
 
     with run_beet(config, directory=directory) as ctx:
-        with suppress(PluginError):
-            ctx.require(latest_snapshot)
-            print("・ Latest snapshot plugin activated ・")
         ctx.require(partial(load_packs, packs=list(packs), pack_types=pack_types))
 
         yield ctx
@@ -56,7 +51,7 @@ def load_packs(
                     ctx.require(
                         subproject(
                             {
-                                "require": ["weld.latest_snapshot"],
+                                "require": ["beet.contrib.unknown_files"],
                                 pack_type: {"load": name},
                                 "pipeline": ["weld.print_pack_name"],
                             }
