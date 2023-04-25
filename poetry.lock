@@ -167,6 +167,22 @@ files = [
 ]
 
 [[package]]
+name = "bolt"
+version = "0.33.0"
+description = "Supercharge Minecraft commands with Python"
+category = "main"
+optional = false
+python-versions = ">=3.10,<4.0"
+files = [
+    {file = "bolt-0.33.0-py3-none-any.whl", hash = "sha256:bf7153ff8b93a4d24dab5c63cf77b2a3c98d282bc9067a22d5b2fa87c2ce403c"},
+    {file = "bolt-0.33.0.tar.gz", hash = "sha256:de8f7d490aa13a7778dc14dbb7a0f940766a0649fb861dd8200438e378d674a6"},
+]
+
+[package.dependencies]
+beet = ">=0.86.0"
+mecha = ">=0.69.0"
+
+[[package]]
 name = "cachetools"
 version = "5.2.1"
 description = "Extensible memoizing collections and decorators"
@@ -825,19 +841,19 @@ files = [
 
 [[package]]
 name = "mecha"
-version = "0.59.2"
+version = "0.69.0"
 description = "A powerful Minecraft command library"
 category = "main"
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "mecha-0.59.2-py3-none-any.whl", hash = "sha256:a595c779183fe6260d019ef1904e3dfb99a0ad6a072f55491dfcc522aa3b9f7c"},
-    {file = "mecha-0.59.2.tar.gz", hash = "sha256:ce6e50c7df9cc9acb207a66e1f755c8602532b390296943a0457522a8ff792f0"},
+    {file = "mecha-0.69.0-py3-none-any.whl", hash = "sha256:b6ecdf2be13457a7d08dfabe955312085c5d53b0eb46360e825a6ca745e06073"},
+    {file = "mecha-0.69.0.tar.gz", hash = "sha256:5b59b569ab89d8c608e7eb6e8b50c71fa0648496248428e2ca1be58be321f6b6"},
 ]
 
 [package.dependencies]
-beet = ">=0.79.0"
-tokenstream = ">=1.4.2,<2.0.0"
+beet = ">=0.86.0"
+tokenstream = ">=1.5.0,<2.0.0"
 
 [[package]]
 name = "more-itertools"
@@ -1739,14 +1755,14 @@ snowflake = ["snowflake-snowpark-python"]
 
 [[package]]
 name = "tokenstream"
-version = "1.4.2"
+version = "1.5.0"
 description = "A versatile token stream for handwritten parsers"
 category = "main"
 optional = false
-python-versions = ">=3.8,<4.0"
+python-versions = ">=3.10,<4.0"
 files = [
-    {file = "tokenstream-1.4.2-py3-none-any.whl", hash = "sha256:e4979949e3ca8ab68fe9e924005e668da5b262892c370daf043d767e8e509e4b"},
-    {file = "tokenstream-1.4.2.tar.gz", hash = "sha256:f106b0bd0ae629847485e8ddfc9ac3c479c6c2d8c9db164f9b666e9fda6608cf"},
+    {file = "tokenstream-1.5.0-py3-none-any.whl", hash = "sha256:adf5805f3e734c863a535c5cfc31fed4bd831647b1f51d1aab69e5a81eb63b8e"},
+    {file = "tokenstream-1.5.0.tar.gz", hash = "sha256:3cb57c810f2fd1e57653c8270251a3df47656ef04f07eb3d4fc442f64f9ff0c0"},
 ]
 
 [[package]]
@@ -2102,4 +2118,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "76485e8f47f3d0da1530cb3e14dc3fb2b845b13bf44da5d870d302d8c3df9efe"
+content-hash = "c9ba48c50fc30d990370611a2a2b21a5e90222da9f1f31dd656e37a1ebc700cd"
