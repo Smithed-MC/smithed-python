@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.11.1 (2023-04-25)
+### Fix
+* Bump mecha, bolt ([`44adc8b`](https://github.com/Smithed-MC/smithed-python/commit/44adc8b5c58fd147abd4011154c28a93dae9688d))
+
 ## v0.11.0 (2023-04-25)
 ### Feature
 * Upgrade `beet` and add `unknown_files` plugin ([`8ceb8c6`](https://github.com/Smithed-MC/smithed-python/commit/8ceb8c6db2ad3828e0a86c2c14490639bfc21ae0))
