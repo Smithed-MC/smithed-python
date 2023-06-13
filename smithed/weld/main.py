@@ -33,6 +33,7 @@ def run_weld(
             }
 
     with run_beet(config, directory=directory) as ctx:
+        ctx.require("beet.contrib.model_merging")
         ctx.require(partial(load_packs, packs=list(packs), pack_types=pack_types))
 
         yield ctx
