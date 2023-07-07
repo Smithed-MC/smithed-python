@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v0.12.0 (2023-07-07)
+### Feature
+* Add manual streamlit option `streamlit run app/main.py` ([`6fc26f9`](https://github.com/Smithed-MC/smithed-python/commit/6fc26f9d301018312d0dc3f7695a9f558c70ba27))
+
+### Fix
+* Bump ver ([`e19f1d5`](https://github.com/Smithed-MC/smithed-python/commit/e19f1d564b085379cee7b64f65e428ecd3f960ef))
+
 ## v0.11.2 (2023-06-13)
 ### Fix
 * Update deps, include explicit model merging ([`2312515`](https://github.com/Smithed-MC/smithed-python/commit/23125157be27cadc6a335c21a9379d9cab99e1f0))
