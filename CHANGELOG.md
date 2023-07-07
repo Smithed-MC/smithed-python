@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.11.2 (2023-06-13)
+### Fix
+* Update deps, include explicit model merging ([`2312515`](https://github.com/Smithed-MC/smithed-python/commit/23125157be27cadc6a335c21a9379d9cab99e1f0))
+* Update stlite to latest ([`f8b2d1a`](https://github.com/Smithed-MC/smithed-python/commit/f8b2d1a19a13ccfa935711fd1a22d7ea8a6be95d))
+* Add altair as weld app dep ([`ef2bf45`](https://github.com/Smithed-MC/smithed-python/commit/ef2bf45500c630f6e9805d999f2c0f1a4f8ed6d9))
+
 ## v0.11.1 (2023-04-25)
 ### Fix
 * Bump mecha, bolt ([`44adc8b`](https://github.com/Smithed-MC/smithed-python/commit/44adc8b5c58fd147abd4011154c28a93dae9688d))
