@@ -8,6 +8,8 @@ from beet import Context, JsonFile, PluginError, ProjectConfig, run_beet, subpro
 from beet.core.utils import FileSystemPath, JsonDict
 from jinja2 import Template
 
+from . import merge_policies
+
 DESCRIPTION = "Merged by Smithed Weld"
 FABRIC_MOD_TEMPLATE = Template(
     (resources.files("weld") / "fabric.mod.json.j2").read_text()
@@ -20,6 +22,7 @@ def run_weld(
     config: FileSystemPath | ProjectConfig | JsonDict = {},
     directory: FileSystemPath | None = None,
     pack_types: list[Literal["data_pack", "resource_pack"]] = ["data_pack"],
+    use_overrides: bool = False
 ):
     if type(config) is dict:
         config |= {
@@ -34,7 +37,14 @@ def run_weld(
 
     with run_beet(config, directory=directory) as ctx:
         ctx.require("beet.contrib.model_merging")
+
+        if use_overrides:
+            ctx.require(merge_policies.setup)
+
         ctx.require(partial(load_packs, packs=list(packs), pack_types=pack_types))
+
+        if use_overrides:
+            ctx.require(merge_policies.beet_default)
 
         yield ctx
 
@@ -59,9 +69,12 @@ def load_packs(
                         )
                     )
                 case ZipFile() as file:
+                    default_id = ''.join(file.filename.split('\\')[-1].split('.')[:-1])
                     if pack_type == "data_pack":
+                        ctx.data.mcmeta.data.setdefault("id", default_id)
                         ctx.data.load(file)
                     else:
+                        ctx.assets.mcmeta.data.setdefault("id", default_id)
                         ctx.assets.load(file)
 
     if len(pack_types) > 1:

@@ -52,7 +52,7 @@ class ConflictsHandler:
     ):
         if (
             not path.startswith("minecraft:")
-            or not path == "minecraft:blocks/yellow_shulker_box"
+            or path == "minecraft:blocks/yellow_shulker_box"
         ):
             return False
         smithed_current = SmithedJsonFile.parse_obj(current.data)
