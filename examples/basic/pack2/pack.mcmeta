@@ -1,3 +1,7 @@
 {
-    "id": "smithed:actionbar"
+    "id": "smithed.actionbar",
+    "pack": {
+        "format": 18,
+        "description": "Smithed's Actionbar Pack"
+    }
 }

@@ -1,16 +1,10 @@
 import json
-import time
-from argparse import ArgumentParser
-from ensurepip import bootstrap
 from glob import glob
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Any
 
 import click
-import mecha
-from beet import Context, Project, ProjectConfig, run_beet
-from beet.core.utils import FileSystemPath
+from beet import Project
 from beet.toolchain.cli import beet, message_fence
 from beet.toolchain.commands import build
 
@@ -39,7 +33,7 @@ def weld(
         click.echo(click.style("Need at least one pack to weld", fg="red"))
         return -1
 
-    with message_fence(f"Welding packs:\n - " + "\n - ".join(packs)):
+    with message_fence("Welding packs:\n - " + "\n - ".join(packs)):
         config = bootstrap_config(packs)
 
         if Path("beet.yaml").exists():
@@ -59,4 +53,3 @@ def expand_globs(packs: tuple[str]):
 
 # weld_command = beet.command()(weld)
 # weld_alias = click.command()(weld)
-
