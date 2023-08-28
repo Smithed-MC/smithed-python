@@ -31,6 +31,7 @@ devtools = ">=0.10.0"
 pytest = "^7.2.0"
 pytest-insta = ">=0.2.0"
 lectern = ">=0.26.0"
+ipython = "^8.14.0"
 
 [tool.poetry.group.app.dependencies]
 streamlit = "^1.16.0"
@@ -48,10 +49,10 @@ include = '\.pyi?$'
 profile = "black"
 
 [tool.poetry.scripts]
-weld = 'weld.commands:weld'
+weld = 'weld.toolchain.cli:app'
 
 [tool.poetry.plugins.beet]
-commands = "weld.commands"
+commands = "weld.toolchain.cli"
 
 [tool.semantic_release]
 branch = "main"

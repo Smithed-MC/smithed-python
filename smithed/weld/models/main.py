@@ -3,8 +3,7 @@ from typing import Any
 
 from beet import ListOption
 from jsonpath_ng import parse
-from pydantic import Field, root_validator
-from validators import validator
+from pydantic import Field, root_validator, validator
 
 from .base import BaseModel
 from .priority import Priority, PrioritySentinel

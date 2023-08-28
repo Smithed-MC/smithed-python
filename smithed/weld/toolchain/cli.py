@@ -1,55 +1,58 @@
-import json
+import logging
+from collections.abc import Sequence
 from glob import glob
-from pathlib import Path
-from tempfile import NamedTemporaryFile
 
-import click
-from beet import Project
-from beet.toolchain.cli import beet, message_fence
-from beet.toolchain.commands import build
+import typer
+from rich.logging import RichHandler
+from rich.progress import Progress
+from rich.rule import Rule
 
-pass_project = click.make_pass_decorator(Project)  # type: ignore
+from smithed.theming import console, print
+
+from .main import run_weld
+
+logging.basicConfig(
+    level="INFO",
+    format="%(message)s",
+    datefmt="[%X]",
+    handlers=[RichHandler(console=console, rich_tracebacks=True)],
+)
 
 
-@beet.command()
-@pass_project
-@click.pass_context
-@click.argument("packs", nargs=-1)
-@click.option("-l", "--link", metavar="WORLD", help="Link the project to a world")
-def weld(
-    ctx: click.Context,
-    project: Project,
-    packs: tuple[str],
-    link: str | None,
-):
+app = typer.Typer(
+    help="🔧 Weld multiple data and resource packs into a single zip!",
+)
+
+
+@app.command()
+def weld(packs: list[str]):
     """Weld data and resource packs together with all data and assets in one zip.
 
     See https://wiki.smithed.dev/weld more info!
     """
 
-    packs = tuple(expand_globs(packs))
+    print(Rule("[bold][accent] Weld [/bold][italic]by Smithed"))
+    print()
+    packs = list(expand_globs(packs))
 
     if len(packs) < 2:
-        click.echo(click.style("Need at least one pack to weld", fg="red"))
-        return -1
+        print("[error]:boom: Need at least one pack to weld")
+        raise typer.Exit(-1)
 
-    with message_fence("Welding packs:\n - " + "\n - ".join(packs)):
-        config = bootstrap_config(packs)
+    with Progress(console=console) as progress:
+        progress.add_task("[bold][accent_light]Welding", total=None)
 
-        if Path("beet.yaml").exists():
-            config["extend"] = "beet.yaml"  # TODO: JANK
+        with run_weld(packs) as ctx:
+            ctx.data.save("tacos.zip")
 
-        with NamedTemporaryFile("w+", suffix=".json") as fp:
-            json.dump(config, fp, indent=2)
-            fp.read()  # still avoids bugs
-            project.config_path = fp.name
-            return ctx.invoke(build, link=link)
+    print()
+    print(Rule("[success]✔️ Done"))
 
 
-def expand_globs(packs: tuple[str]):
+def expand_globs(packs: Sequence[str]):
     for pack in packs:
         yield from glob(pack)
 
 
-# weld_command = beet.command()(weld)
-# weld_alias = click.command()(weld)
+if __name__ == "__main__":
+    typer.run(weld)

@@ -49,8 +49,6 @@ class RemoveRule(BaseRule):
 
 
 Rule = Annotated[
-    MergeRule | AppendRule | PrependRule | InsertRule
-    # | ReplaceRule
-    | RemoveRule,
+    MergeRule | AppendRule | PrependRule | InsertRule | ReplaceRule | RemoveRule,
     Field(..., discriminator="type"),
 ]

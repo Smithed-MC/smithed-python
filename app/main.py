@@ -1,3 +1,3 @@
-from weld import app
+from weld import streamlit_app
 
-app.main()
+streamlit_app.main()

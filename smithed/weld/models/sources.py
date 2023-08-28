@@ -1,6 +1,4 @@
-from typing import Literal
-
-from smithed.type import JsonType
+from typing import Any, Literal
 
 from .base import BaseModel
 
@@ -12,7 +10,7 @@ class ReferenceSource(BaseModel):
 
 class ValueSource(BaseModel):
     type: Literal["value", "smithed:value"] = "smithed:value"
-    value: JsonType
+    value: Any
 
 
 Source = ValueSource | ReferenceSource

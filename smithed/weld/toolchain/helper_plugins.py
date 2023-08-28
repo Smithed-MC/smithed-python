@@ -4,6 +4,10 @@ from zipfile import ZipFile
 from beet import Context, JsonFile
 from jinja2 import Template
 
+from logging import Logger
+
+logger = Logger(__name__)
+
 FABRIC_MOD_TEMPLATE = Template(
     (resources.files("weld") / "resources" / "fabric.mod.json.j2").read_text()
 )
@@ -15,9 +19,9 @@ def print_pack_name(ctx: Context):
     if not ctx.data and not ctx.assets:
         return
 
-    print(
-        f"Merging {'data' if ctx.data else 'resource'} pack:"
-        f" {ctx.data.name or ctx.assets.name or 'Unknown'}"
+    logger.info(
+        f"[dark_gray]Merging {'data' if ctx.data else 'resource'}pack:[/dark_gray]"
+        f"[foreground] {ctx.data.name or ctx.assets.name or 'Unknown'}[/foreground]"
     )
 
 
