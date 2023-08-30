@@ -1,0 +1,21 @@
+type: 'minecraft:entity'
+random_sequence: 'minecraft:entities/zombie'
+
+pools:
+  - rolls: 1
+    entries:
+      - type: 'minecraft:item'
+        name: 'minecraft:merge_dict'
+        functions:
+        - function: "merge_list"
+          count:
+            min: 0.0
+            max: 1.0
+
+__smithed__:
+  rules:
+    - type: weld:merge
+      target: pools[0]
+      source:
+        type: smithed:reference
+        path: pools[0]

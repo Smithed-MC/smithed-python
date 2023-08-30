@@ -1,0 +1,14 @@
+type: 'minecraft:entity'
+random_sequence: 'minecraft:entities/zombie'
+
+pools:
+  - rolls: 1
+    entries:
+      - type: 'minecraft:item'
+        name: 'minecraft:merge'
+        count: 1
+
+__smithed__:
+  rules:
+    - type: weld:remove
+      target: pools[0].entries[0].functions[0]

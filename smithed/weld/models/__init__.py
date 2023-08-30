@@ -1,5 +1,5 @@
 from .conditions import Condition
-from .main import SmithedJsonFile, SmithedModel
+from .main import SmithedJsonFile, SmithedModel, deserialize
 from .priority import Priority
 from .rules import (
     AdditiveRule,
@@ -14,6 +14,7 @@ from .rules import (
 from .sources import ReferenceSource, Source, ValueSource
 
 __all__ = [
+    "deserialize",
     "AdditiveRule",
     "MergeRule",
     "AppendRule",

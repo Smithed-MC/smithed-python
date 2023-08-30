@@ -20,6 +20,7 @@ def deserialize(model: BaseModel, defaults: bool = True):
 
 class SmithedModel(BaseModel, extra="forbid"):
     id: str = ""
+    version: int = 1
     rules: list[Rule]
     priority: Priority | None = None
 

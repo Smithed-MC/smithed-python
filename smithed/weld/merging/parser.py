@@ -26,7 +26,7 @@ class TraverseResult(NamedTuple):
     key: Any
 
 
-def parse(raw: str, convert_index: bool = False):
+def parse(raw: str, convert_index: bool):
     stream = TokenStream(raw)
     return handle_stream(stream, convert_index)
 
@@ -75,10 +75,10 @@ def parse_filter(stream: TokenStream):
     return Filter(key=key, value=stream.expect_any("string", "number").value)
 
 
-def traverse(obj: JsonDict, path: str):
+def traverse(obj: JsonDict, path: str, convert_index: bool = False):
     current = obj
     parent = current
-    parser = parse(path)
+    parser = parse(path, convert_index)
     last_token = None
 
     for token in parser:
@@ -111,7 +111,7 @@ def traverse(obj: JsonDict, path: str):
                 for item in current:
                     if not isinstance(item, dict):
                         raise ValueError
-                    if item[key] == value:
+                    if key in item and item[key] == value:
                         parent = current
                         current = item
                         break
@@ -126,12 +126,12 @@ def traverse(obj: JsonDict, path: str):
     )
 
 
-def get(obj: JsonDict, path: str):
-    return traverse(obj, path).current
+def get(obj: JsonDict, path: str, convert_index: bool = False):
+    return traverse(obj, path, convert_index).current
 
 
 def append(obj: JsonDict, path: str, value: JsonType):
-    parent, current, key = traverse(obj, path)
+    parent, current, key = traverse(obj, path, True)
     if isinstance(current, list):
         current.append(value)
     elif not current:
@@ -139,7 +139,7 @@ def append(obj: JsonDict, path: str, value: JsonType):
 
 
 def prepend(obj: JsonDict, path: str, value: JsonType):
-    parent, current, key = traverse(obj, path)
+    parent, current, key = traverse(obj, path, True)
     if isinstance(current, list):
         current.insert(0, value)
     elif not current:
@@ -147,7 +147,7 @@ def prepend(obj: JsonDict, path: str, value: JsonType):
 
 
 def insert(obj: JsonDict, path: str, index: int, value: JsonType):
-    parent, current, key = traverse(obj, path)
+    parent, current, key = traverse(obj, path, True)
     if isinstance(current, list):
         current.insert(index, value)
     elif not current:
@@ -155,24 +155,35 @@ def insert(obj: JsonDict, path: str, index: int, value: JsonType):
 
 
 def remove(obj: JsonDict, path: str):
-    parent, _, key = traverse(obj, path)
+    parent, _, key = traverse(obj, path, True)
     if isinstance(parent, list):
-        parent.remove(key)
+        del parent[int(key)]
     else:
         del parent[key]
 
 
 def merge(obj: JsonDict, path: str, value: JsonType):
-    parent, current, key = traverse(obj, path)
-    if isinstance(current, dict) and isinstance(value, dict):
-        current.update(value)
-    elif isinstance(current, list) and isinstance(value, list):
-        current.extend(value)
-    else:
-        logger.warn("Deprecated. Use `smithed:replace` instead.")
-        replace(obj, path, value)
+    parent, current, key = traverse(obj, path, True)
+
+    def _merge(parent: JsonDict | JsonList, original: JsonType, to_merge: JsonType, key: str):
+        if isinstance(original, dict) and isinstance(to_merge, dict):
+            for new_key, val in to_merge.items():
+                if og_val := original.get(new_key, False):
+                    parent = original
+                    _merge(parent, og_val, val, new_key)
+                else:
+                    original[new_key] = val
+
+        elif isinstance(original, list) and isinstance(to_merge, list):
+            original.extend(to_merge)
+
+        else:
+            # logger.warn("Deprecated. Use `smithed:replace` instead.")
+            parent[key] = to_merge
+
+    _merge(parent, current, value, key)
 
 
 def replace(obj: JsonDict, path: str, value: JsonType):
-    parent, _, key = traverse(obj, path)
+    parent, _, key = traverse(obj, path, True)
     parent[key] = value

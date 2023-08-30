@@ -10,32 +10,32 @@
     "pack_format": 15,
     "description": ""
   },
-  "id": "rx:playerdb"
+  "id": "pack.replace"
 }
 ```
 
 ### minecraft
 
-`@loot_table minecraft:entities/zombie`
+`@loot_table minecraft:entities/enderman`
 
 ```json
 {
   "pools": [
     {
-      "bonus_rolls": 0.0,
+      "rolls": 1,
       "entries": [
         {
           "type": "minecraft:item",
+          "name": "minecraft:prepend"
+        }
+      ]
+    },
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "replace",
           "functions": [
-            {
-              "add": false,
-              "count": {
-                "type": "minecraft:uniform",
-                "max": 2.0,
-                "min": 0.0
-              },
-              "function": "minecraft:set_count"
-            },
             {
               "count": {
                 "type": "minecraft:uniform",
@@ -45,151 +45,164 @@
               "function": "minecraft:looting_enchant"
             }
           ],
-          "name": "minecraft:rotten_flesh"
-        }
-      ],
-      "rolls": 1.0
-    },
-    {
-      "bonus_rolls": 0.0,
-      "conditions": [
-        {
-          "condition": "minecraft:killed_by_player"
-        },
-        {
-          "chance": 0.025,
-          "condition": "minecraft:random_chance_with_looting",
-          "looting_multiplier": 0.01
-        }
-      ],
-      "entries": [
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:iron_ingot"
+          "name": "minecraft:ender_pearl"
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:carrot"
-        },
-        {
-          "type": "minecraft:item",
+          "name": "minecraft:merge_dict",
           "functions": [
             {
-              "conditions": [
-                {
-                  "condition": "minecraft:entity_properties",
-                  "entity": "this",
-                  "predicate": {
-                    "flags": {
-                      "is_on_fire": true
-                    }
-                  }
-                }
-              ],
-              "function": "minecraft:furnace_smelt"
+              "function": "merge_list",
+              "count": {
+                "min": 0.0,
+                "max": 1.0
+              }
             }
-          ],
-          "name": "minecraft:potato"
+          ]
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     },
     {
+      "rolls": 1,
       "entries": [
         {
-          "type": "minecraft:loot_table",
-          "name": "fake.vanilla:zombie"
+          "type": "minecraft:item",
+          "name": "minecraft:insert"
         }
       ]
     },
     {
+      "rolls": 1,
       "entries": [
         {
-          "type": "minecraft:loot_table",
-          "name": "rx.playerdb:zombie"
-        }
-      ]
-    },
-    {
-      "entries": [
-        {
-          "type": "minecraft:loot_table",
-          "name": "smithed.actionbar:zombie"
+          "type": "minecraft:item",
+          "name": "minecraft:append"
         }
       ]
     }
   ],
-  "random_sequence": "minecraft:entities/zombie",
+  "random_sequence": "minecraft:entities/enderman",
   "type": "minecraft:entity",
   "__smithed__": [
     {
-      "id": "smithed.actionbar",
+      "id": "pack.remove",
       "rules": [
         {
-          "target": "pools",
-          "priority": {
-            "after": [
-              "rx:playerdb"
-            ]
-          },
-          "source": {
-            "value": {
-              "entries": [
-                {
-                  "type": "minecraft:loot_table",
-                  "name": "smithed.actionbar:zombie"
-                }
-              ]
-            }
-          },
-          "type": "smithed:append"
+          "type": "weld:remove",
+          "target": "pools[0].entries[0].functions[0]",
+          "priority": {}
         }
       ]
     },
     {
-      "id": "vanilla",
+      "id": "pack.insert",
       "rules": [
         {
+          "type": "weld:insert",
           "target": "pools",
           "priority": {},
           "source": {
             "value": {
+              "rolls": 1,
               "entries": [
                 {
-                  "type": "minecraft:loot_table",
-                  "name": "fake.vanilla:zombie"
+                  "type": "minecraft:item",
+                  "name": "minecraft:insert"
                 }
               ]
             }
           },
-          "type": "smithed:append"
+          "index": 1
         }
       ]
     },
     {
-      "id": "rx:playerdb",
+      "id": "pack.merge",
       "rules": [
         {
-          "target": "pools",
-          "priority": {
-            "after": [
-              "vanilla"
-            ]
-          },
+          "type": "weld:merge",
+          "target": "pools[0]",
+          "priority": {},
           "source": {
             "value": {
+              "rolls": 1,
               "entries": [
                 {
-                  "type": "minecraft:loot_table",
-                  "name": "rx.playerdb:zombie"
+                  "type": "minecraft:item",
+                  "name": "minecraft:merge_dict",
+                  "functions": [
+                    {
+                      "function": "merge_list",
+                      "count": {
+                        "min": 0.0,
+                        "max": 1.0
+                      }
+                    }
+                  ]
                 }
               ]
             }
-          },
-          "type": "smithed:append"
+          }
         }
       ],
       "priority": {}
+    },
+    {
+      "id": "pack.append",
+      "rules": [
+        {
+          "type": "weld:append",
+          "target": "pools",
+          "priority": {},
+          "source": {
+            "value": {
+              "rolls": 1,
+              "entries": [
+                {
+                  "type": "minecraft:item",
+                  "name": "minecraft:append"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "pack.prepend",
+      "rules": [
+        {
+          "type": "prepend",
+          "target": "pools",
+          "priority": {},
+          "source": {
+            "value": {
+              "rolls": 1,
+              "entries": [
+                {
+                  "type": "minecraft:item",
+                  "name": "minecraft:prepend"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "priority": {}
+    },
+    {
+      "id": "pack.replace",
+      "rules": [
+        {
+          "type": "weld:replace",
+          "target": "pools[0].entries[0].type",
+          "priority": {},
+          "source": {
+            "value": "replace"
+          }
+        }
+      ]
     }
   ]
 }

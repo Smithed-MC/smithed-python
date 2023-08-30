@@ -1,3 +1,16 @@
+"""This is the main logic for weld's custom merging logic.
+
+It uses the beet's merge policies to implement a conflict handler that registers
+ conflicts, merging all `__smithed__` into a base file (whether it's vanilla or not).
+ In a later invocation, it then processes all of the registered conflicts, determines
+ the ordering via the priority and stage system, and applies each defined rule onto
+ the base file.
+
+ TODO: Likely refactor into multiple files, I can see each file handling being it's own
+  class since several methods based on each file are passing similar parameters with
+  each other.
+"""
+
 import json
 import logging
 from collections import defaultdict
@@ -13,9 +26,7 @@ from pydantic import ValidationError
 
 from smithed.type import JsonDict, JsonTypeT
 
-from ..models import SmithedJsonFile
-from ..models.main import deserialize
-from ..models.rules import (
+from ..models import (
     AppendRule,
     InsertRule,
     MergeRule,
@@ -23,8 +34,10 @@ from ..models.rules import (
     RemoveRule,
     ReplaceRule,
     Rule,
+    SmithedJsonFile,
+    ValueSource,
+    deserialize,
 )
-from ..models.sources import ValueSource
 from .errors import PriorityError
 from .parser import append, get, insert, merge, prepend, remove, replace
 
@@ -126,9 +139,7 @@ class ConflictsHandler:
         try:
             return SmithedJsonFile.parse_obj(file.data)
         except ValidationError:
-            logger.error(
-                "Failed to parse smithed file: %s", file.source_path, exc_info=True
-            )
+            logger.error("Failed to parse smithed file ", exc_info=True)
             return False
 
     def grab_vanilla(self, path: str, json_file_type: type[NamespaceFile]) -> JsonDict:
@@ -161,8 +172,6 @@ class ConflictsHandler:
                 temp = processed["__smithed__"]
                 del processed["__smithed__"]
                 processed["__smithed__"] = temp
-
-                logger.info(processed["pools"], extra={"markup": True, "highlight": True})
 
                 namespace_file[path].data = processed  # type: ignore
 
@@ -310,9 +319,11 @@ class ConflictsHandler:
 
         # Handle whether the target path exists or not
         try:
-            get(raw, rule.target)
+            get(raw, rule.target, True)
         except ValueError:
-            logger.warn(f"Target Path: {rule.target} was not found. Ignoring...")
+            logger.warn(
+                f"Target Path: {rule.target} was not found. Ignoring...", exc_info=True
+            )
             return False
 
         # Apply each rule's logic
@@ -329,7 +340,7 @@ class ConflictsHandler:
             case InsertRule(source=ValueSource(value=value), index=index):
                 insert(raw, rule.target, index, value)
 
-            case ReplaceRule(value=value):
+            case ReplaceRule(source=ValueSource(value=value)):
                 replace(raw, rule.target, value)
 
             case RemoveRule():

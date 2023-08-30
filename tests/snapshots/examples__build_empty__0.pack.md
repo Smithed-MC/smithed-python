@@ -49,6 +49,7 @@
       "id": "tacos",
       "rules": [
         {
+          "type": "weld:append",
           "target": "pools",
           "priority": {},
           "source": {
@@ -62,8 +63,7 @@
                 }
               ]
             }
-          },
-          "type": "smithed:append"
+          }
         }
       ]
     },
@@ -71,6 +71,7 @@
       "id": "tcc",
       "rules": [
         {
+          "type": "weld:append",
           "target": "pools",
           "priority": {},
           "source": {
@@ -84,8 +85,7 @@
                 }
               ]
             }
-          },
-          "type": "smithed:append"
+          }
         }
       ]
     }

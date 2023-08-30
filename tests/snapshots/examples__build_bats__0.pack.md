@@ -107,6 +107,7 @@
       "id": "tcc",
       "rules": [
         {
+          "type": "weld:append",
           "target": "pools",
           "priority": {},
           "source": {
@@ -128,8 +129,7 @@
                 }
               ]
             }
-          },
-          "type": "smithed:append"
+          }
         }
       ]
     },
@@ -137,6 +137,7 @@
       "id": "gm4_bat_grenades",
       "rules": [
         {
+          "type": "weld:append",
           "target": "pools",
           "priority": {},
           "source": {
@@ -158,10 +159,10 @@
                 }
               ]
             }
-          },
-          "type": "smithed:append"
+          }
         },
         {
+          "type": "weld:append",
           "target": "pools",
           "priority": {},
           "source": {
@@ -225,8 +226,7 @@
                 }
               ]
             }
-          },
-          "type": "smithed:append"
+          }
         }
       ]
     }

@@ -20,6 +20,8 @@
 
 ```json
 {
+  "random_sequence": "minecraft:entities/zombie",
+  "type": "minecraft:entity",
   "pools": [
     {
       "bonus_rolls": 0.0,
@@ -122,13 +124,12 @@
       ]
     }
   ],
-  "random_sequence": "minecraft:entities/zombie",
-  "type": "minecraft:entity",
   "__smithed__": [
     {
       "id": "pack.a",
       "rules": [
         {
+          "type": "weld:append",
           "target": "pools",
           "priority": {
             "after": [
@@ -146,8 +147,7 @@
                 }
               ]
             }
-          },
-          "type": "smithed:append"
+          }
         }
       ]
     },
@@ -155,6 +155,7 @@
       "id": "pack.b",
       "rules": [
         {
+          "type": "weld:append",
           "target": "pools",
           "priority": {
             "after": [
@@ -171,8 +172,7 @@
                 }
               ]
             }
-          },
-          "type": "smithed:append"
+          }
         }
       ]
     },
@@ -180,6 +180,7 @@
       "id": "pack.library",
       "rules": [
         {
+          "type": "weld:append",
           "target": "pools",
           "priority": {},
           "source": {
@@ -192,8 +193,7 @@
                 }
               ]
             }
-          },
-          "type": "smithed:append"
+          }
         }
       ]
     }
