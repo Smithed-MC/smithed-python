@@ -181,7 +181,7 @@ def merge(obj: JsonDict, path: str, value: JsonType):
 
         else:
             # logger.warn("Deprecated. Use `smithed:replace` instead.")
-            parent[key] = to_merge
+            parent[key] = to_merge  # TODO: this might error !!
 
     _merge(parent, current, value, key)
 
