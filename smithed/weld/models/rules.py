@@ -7,7 +7,7 @@ from pydantic import Field
 
 from .base import BaseModel
 from .conditions import Condition
-from .priority import Priority, PrioritySentinel
+from .priority import Priority
 from .sources import Source
 
 logger = logging.getLogger(__name__)
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class BaseRule(BaseModel):
     target: str
     conditions: list[Condition] = []
-    priority: Priority = PrioritySentinel
+    priority: Priority | None = None
 
 
 class AdditiveRule(BaseRule):

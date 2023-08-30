@@ -1,32 +1,40 @@
+import json
 import logging
 from typing import Any
 
 from beet import ListOption
-from jsonpath_ng import parse
 from pydantic import Field, root_validator, validator
+from weld.merging.parser import get
 
 from .base import BaseModel
-from .priority import Priority, PrioritySentinel
+from .priority import Priority
 from .rules import AdditiveRule, Rule
 from .sources import ReferenceSource, ValueSource
 
 logger = logging.getLogger(__name__)
 
 
+def deserialize(model: BaseModel, defaults: bool = True):
+    return json.loads(model.json(by_alias=True, exclude_defaults=not defaults))
+
+
 class SmithedModel(BaseModel, extra="forbid"):
     id: str = ""
     rules: list[Rule]
-    priority: Priority = Priority()
+    priority: Priority | None = None
 
-    @validator("priority")
+    @validator("priority", always=True)
     def push_down_priorities(cls, value: Priority, values: dict[str, list[Rule]]):
         """Push down top-level priority to every rule.
 
         If a rule has a priority defined, it will not be overwritten.
         """
 
+        if value is None:
+            return Priority()
+
         for rule in values["rules"]:
-            if rule.priority is PrioritySentinel:
+            if rule.priority is None:
                 rule.priority = value
 
 
@@ -40,8 +48,9 @@ class SmithedJsonFile(BaseModel, extra="allow"):
 
     @root_validator
     def convert_type(cls, values: dict[str, ListOption[SmithedModel]]):
-        for model in values["smithed"].entries():
-            model.rules = list(cls.convert_rules(model.rules, values))
+        if smithed := values.get("smithed"):
+            for model in smithed.entries():
+                model.rules = list(cls.convert_rules(model.rules, values))
 
         return values
 
@@ -55,10 +64,8 @@ class SmithedJsonFile(BaseModel, extra="allow"):
             match isinstance(rule, AdditiveRule) and rule.source:
                 case ReferenceSource(path=path):
                     try:
-                        rule.source = ValueSource(
-                            value=parse(path).find(values).pop(0).value
-                        )
-                    except IndexError:
+                        rule.source = ValueSource(value=get(values, path))
+                    except ValueError:
                         logger.warn(
                             f"Source Reference Path: {path} was not found, deleting."
                         )
