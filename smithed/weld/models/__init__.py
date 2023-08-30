@@ -1,4 +1,4 @@
-from .conditions import Condition
+from .conditions import Condition, ConditionInverted, ConditionPackCheck
 from .main import SmithedJsonFile, SmithedModel, deserialize
 from .priority import Priority
 from .rules import (
@@ -24,6 +24,8 @@ __all__ = [
     "RemoveRule",
     "Rule",
     "Condition",
+    "ConditionInverted",
+    "ConditionPackCheck",
     "Priority",
     "ReferenceSource",
     "ValueSource",

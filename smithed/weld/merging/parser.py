@@ -165,7 +165,9 @@ def remove(obj: JsonDict, path: str):
 def merge(obj: JsonDict, path: str, value: JsonType):
     parent, current, key = traverse(obj, path, True)
 
-    def _merge(parent: JsonDict | JsonList, original: JsonType, to_merge: JsonType, key: str):
+    def _merge(
+        parent: JsonDict | JsonList, original: JsonType, to_merge: JsonType, key: str
+    ):
         if isinstance(original, dict) and isinstance(to_merge, dict):
             for new_key, val in to_merge.items():
                 if og_val := original.get(new_key, False):

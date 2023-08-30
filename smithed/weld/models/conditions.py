@@ -1,16 +1,18 @@
-from typing import Literal
+from typing import Literal, Union
 
 from .base import BaseModel
 
+Condition = Union["ConditionPackCheck", "ConditionInverted"]
+
 
 class ConditionPackCheck(BaseModel):
-    type: Literal["pack_check", "smithed:pack_check"]
+    type: Literal["pack_check", "weld:pack_check", "smithed:pack_check"]
     id: str
 
 
 class ConditionInverted(BaseModel):
-    type: Literal["inverted", "smithed:inverted"]
-    condition: "Condition"
+    type: Literal["inverted", "weld:inverted", "smithed:inverted"]
+    conditions: list["Condition"]
 
 
-Condition = ConditionPackCheck | ConditionInverted
+ConditionInverted.update_forward_refs()

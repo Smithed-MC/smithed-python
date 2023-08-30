@@ -159,7 +159,8 @@
           "target": "pools",
           "priority": {
             "after": [
-              "pack.library"
+              "pack.library",
+              "non-existing-pack"
             ]
           },
           "source": {

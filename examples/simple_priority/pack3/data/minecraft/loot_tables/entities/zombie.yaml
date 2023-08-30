@@ -42,7 +42,7 @@ pools:
         name: 'minecraft:cobblestone'
 
 __smithed__:
-  priority: {after: ["pack.library"], before: ["pack.a"]}
+  priority: {after: ["pack.library", "non-existing-pack"], before: ["pack.a"]}
   rules:
     - type: smithed:append
       target: pools

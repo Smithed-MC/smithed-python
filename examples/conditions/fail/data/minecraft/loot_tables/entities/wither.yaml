@@ -1,0 +1,20 @@
+---
+type: minecraft:entity
+
+pools:
+- rolls: 1
+  bonus_rolls: 0
+  entries:
+  - type: minecraft:item
+    name: minecraft:fail1
+
+__smithed__:
+  rules:
+  - type: smithed:append
+    target: pools
+    source:
+      type: smithed:reference
+      path: pools[0]
+    conditions:
+    - type: "weld:pack_check"
+      id: "non-existing-pack"

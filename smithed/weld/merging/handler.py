@@ -28,6 +28,9 @@ from smithed.type import JsonDict, JsonTypeT
 
 from ..models import (
     AppendRule,
+    Condition,
+    ConditionInverted,
+    ConditionPackCheck,
     InsertRule,
     MergeRule,
     PrependRule,
@@ -220,7 +223,21 @@ class ConflictsHandler:
             case other:
                 return other
 
-    def pre_process_priorities(self, file: SmithedJsonFile):
+    def pre_process_condition(
+        self, rules: dict[str, Rule], condition: Condition
+    ) -> bool:
+        """Returns true if all conditions satisfy their criteria."""
+
+        match condition:
+            case ConditionPackCheck(id=id):
+                return id in rules
+            case ConditionInverted(conditions=conditions):
+                return not all(
+                    self.pre_process_condition(rules, condition)
+                    for condition in conditions
+                )
+
+    def pre_process_rules(self, file: SmithedJsonFile):
         """Gathers models by id. Pre-processes models for ease of use.
 
         Converts each 'before' priority into 'after' (as it's easier to resolve).
@@ -230,7 +247,16 @@ class ConflictsHandler:
         rules = {
             model.id: rule for model in file.smithed.entries() for rule in model.rules
         }
+        removed_ids: set[str] = set()
         for current_id, rule in rules.items():
+            if not all(
+                self.pre_process_condition(rules, condition)
+                for condition in rule.conditions
+            ):
+                logging.info("Skipping rule from %s due to conditions", current_id)
+                removed_ids.add(current_id)
+                continue
+
             assert rule.priority is not None
             if before := rule.priority.before.entries():
                 for id in before:
@@ -243,12 +269,12 @@ class ConflictsHandler:
                         other_rule.priority.after.entries().append(current_id)
                 before.clear()
 
-        return rules
+        return {id: rule for id, rule in rules.items() if id not in removed_ids}
 
     def resolve_priorities(self, file: SmithedJsonFile):
         """Resolves priorities for each stage."""
 
-        pre_processed_rules = self.pre_process_priorities(file)
+        pre_processed_rules = self.pre_process_rules(file)
         rules: dict[str, Rule] = {}
 
         for stage in PRIORITY_STAGES:
@@ -265,7 +291,7 @@ class ConflictsHandler:
         stage: str,
         pre_processed_rules: dict[str, Rule],
         current: str,
-        rules: dict[str, Rule],
+        processed: dict[str, Rule],
         processing: list[str],
     ):
         """Resolves priorities within a specific stage.
@@ -278,14 +304,6 @@ class ConflictsHandler:
         current_rule = pre_processed_rules[current]
 
         assert current_rule.priority is not None
-        if stage != current_rule.priority.stage:
-            raise PriorityError(
-                f"Cannot resolve priority for rule during stage `{stage}`.\n"
-                "Packs must only depend on packs in `before` or `after` that are in"
-                " the same stage. You likely shouldn't specify both `stage`"
-                " AND `before/after` unless you know what you are doing."
-            )
-
         if after := current_rule.priority.after.entries():
             for id in after:
                 if id in processing:
@@ -296,18 +314,26 @@ class ConflictsHandler:
                         + " -> ".join(f"`{id}`" for id in processing)
                         + f" -> `{id}`"
                     )
+                if stage != current_rule.priority.stage and id not in processed:
+                    raise PriorityError(
+                        f"Cannot resolve priority for rule during stage `{stage}`."
+                        "\nPacks must only depend on packs in `before` or `after`"
+                        " thah are in the same stage. You likely shouldn't specify"
+                        " both `stage` AND `before/after` unless you know what"
+                        " you are doing."
+                    )
                 elif id in pre_processed_rules:
                     processing.append(id)
                     self.resolve_stage(
-                        stage, pre_processed_rules, id, rules, processing
+                        stage, pre_processed_rules, id, processed, processing
                     )
                     processing.remove(id)
                 else:
                     logger.warn(f"Priority: {id} was not found. Ignoring Rule.")
 
         # dict insertion order for the win
-        if current not in rules:
-            rules[current] = pre_processed_rules[current]
+        if current not in processed:
+            processed[current] = pre_processed_rules[current]
 
     def apply_rule(
         self, raw: JsonDict, current: str, rule: Rule

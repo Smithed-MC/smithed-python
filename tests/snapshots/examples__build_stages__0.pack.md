@@ -1,0 +1,170 @@
+# Lectern snapshot
+
+## Data pack
+
+`@data_pack pack.mcmeta`
+
+```json
+{
+  "pack": {
+    "pack_format": 15,
+    "description": ""
+  },
+  "id": "pack.early"
+}
+```
+
+### minecraft
+
+`@loot_table minecraft:entities/wither`
+
+```json
+{
+  "type": "minecraft:entity",
+  "random_sequence": "minecraft:entities/wither",
+  "pools": [
+    {
+      "rolls": 1,
+      "bonus_rolls": 0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:early"
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "bonus_rolls": 0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:pack1"
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "bonus_rolls": 0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:pack2"
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "bonus_rolls": 0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:late"
+        }
+      ]
+    }
+  ],
+  "__smithed__": [
+    {
+      "id": "pack2",
+      "rules": [
+        {
+          "type": "weld:append",
+          "target": "pools",
+          "priority": {
+            "after": [
+              "pack1"
+            ]
+          },
+          "source": {
+            "value": {
+              "rolls": 1,
+              "bonus_rolls": 0,
+              "entries": [
+                {
+                  "type": "minecraft:item",
+                  "name": "minecraft:pack2"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "priority": {}
+    },
+    {
+      "id": "pack.late",
+      "rules": [
+        {
+          "type": "weld:append",
+          "target": "pools",
+          "priority": {
+            "stage": "late"
+          },
+          "source": {
+            "value": {
+              "rolls": 1,
+              "bonus_rolls": 0,
+              "entries": [
+                {
+                  "type": "minecraft:item",
+                  "name": "minecraft:late"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "priority": {}
+    },
+    {
+      "id": "pack1",
+      "rules": [
+        {
+          "type": "weld:append",
+          "target": "pools",
+          "priority": {},
+          "source": {
+            "value": {
+              "rolls": 1,
+              "bonus_rolls": 0,
+              "entries": [
+                {
+                  "type": "minecraft:item",
+                  "name": "minecraft:pack1"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "priority": {}
+    },
+    {
+      "id": "pack.early",
+      "rules": [
+        {
+          "type": "weld:append",
+          "target": "pools",
+          "priority": {
+            "stage": "early"
+          },
+          "source": {
+            "value": {
+              "rolls": 1,
+              "bonus_rolls": 0,
+              "entries": [
+                {
+                  "type": "minecraft:item",
+                  "name": "minecraft:early"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "priority": {}
+    }
+  ]
+}
+```

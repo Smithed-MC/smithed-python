@@ -20,6 +20,7 @@
 
 ```json
 {
+  "random_sequence": "minecraft:entities/enderman",
   "pools": [
     {
       "rolls": 1,
@@ -34,7 +35,7 @@
       "bonus_rolls": 0.0,
       "entries": [
         {
-          "type": "replace",
+          "type": "weld:replace",
           "functions": [
             {
               "count": {
@@ -82,7 +83,6 @@
       ]
     }
   ],
-  "random_sequence": "minecraft:entities/enderman",
   "type": "minecraft:entity",
   "__smithed__": [
     {
@@ -199,7 +199,7 @@
           "target": "pools[0].entries[0].type",
           "priority": {},
           "source": {
-            "value": "replace"
+            "value": "weld:replace"
           }
         }
       ]
