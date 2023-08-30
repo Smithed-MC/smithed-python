@@ -59,6 +59,7 @@ class ConflictsHandler:
         default_factory=lambda: defaultdict(set)
     )
     vanilla: set[str] = field(default_factory=set)
+    overrides: set[str] = field(default_factory=set)
 
     def __call__(
         self, pack: DataPack, path: str, current: JsonFile, conflict: JsonFile, /
@@ -66,6 +67,9 @@ class ConflictsHandler:
         """Register conflicts.."""
 
         logger.debug(f"Registering conflict: {path!r}")
+        if path in self.overrides:
+            logger.debug("Skipping due to override")
+            return True
 
         # Parse the files and handle validation errors. We need to ensure that `current`
         #  is left with a valid file. If a file has an incorrect `smithed` definition.
@@ -86,6 +90,22 @@ class ConflictsHandler:
             return True
 
         current_entries = smithed_current.smithed.entries()
+
+        if len(current_entries) > 0 and current_entries[0].override:
+            logger.critical(
+                f"Overriding base file at `{path}` with {current_entries[0].id}"
+            )
+            self.overrides.add(path)
+            return True
+
+        conflict_entries = smithed_conflict.smithed.entries()
+        if len(conflict_entries) > 0 and conflict_entries[0].override:
+            logger.critical(
+                f"Overriding base file at `{path}` with {conflict_entries[0].id}"
+            )
+            self.overrides.add(path)
+            current.data = conflict.data
+            return True
 
         # Cache paths for latest use
         json_file_type = cast(type[NamespaceFile], type(current))

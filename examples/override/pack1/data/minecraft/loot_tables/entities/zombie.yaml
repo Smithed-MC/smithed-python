@@ -1,0 +1,12 @@
+type: 'minecraft:entity'
+random_sequence: 'minecraft:entities/zombie'
+
+pools:
+  - rolls: 1
+    entries:
+      - type: 'minecraft:item'
+        name: 'minecraft:banana'
+        count: "2 million and a half"
+
+__smithed__:
+  override: true
