@@ -13,6 +13,8 @@ from weld import run_weld
 
 from .model import WebApp
 
+icon = "https://github.com/Smithed-MC/smithed-python/blob/feat/weld-but-good/smithed/weld/resources/icon.png?raw=true"
+
 # logging.basicConfig(format="%(levelname)-8s %(message)s")
 
 webapp = WebApp.parse_obj(
@@ -96,7 +98,7 @@ def upload_flow(ui: DeltaGenerator):
 
 
 def main():
-    st.set_page_config(page_title="Weld", page_icon="hammer", layout="wide")
+    st.set_page_config(page_title="Weld", page_icon=icon, layout="wide")
 
     st.sidebar.title("Special Merging Rules")
     st.sidebar.write(webapp.conflicts)
