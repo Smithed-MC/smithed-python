@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.13.1 (2023-08-31)
+
+### Fix
+
+* Patch __init__.py ([`7d3b0ad`](https://github.com/Smithed-MC/smithed-python/commit/7d3b0ad4d5b6c8b959ced05a7ad2a547e6df1a73))
+
 ## v0.13.0 (2023-08-31)
 
 ### Feature
