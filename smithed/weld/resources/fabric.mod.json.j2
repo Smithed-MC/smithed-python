@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "welded_{{ pack_hash }}",
+  "version": "0.0.0",
+
+  "name": "Welded Pack",
+  "description": "Included Packs: {{ pack_names }}",
+  "authors": [
+    "Weld"
+  ],
+  "contact": {
+    "homepage": "https://weld.smithed.dev/",
+    "sources": "https://weld.smithed.dev/"
+  },
+
+  "license": "NA",
+  "icon": "icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": []
+  },
+  "mixins": [],
+
+  "depends": {
+    "fabricloader": ">=0.14.7",
+    "fabric": "*",
+    "minecraft": ">={{ mc_version }}"
+  }
+}

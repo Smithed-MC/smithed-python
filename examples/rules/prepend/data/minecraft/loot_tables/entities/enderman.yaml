@@ -1,0 +1,16 @@
+type: 'minecraft:entity'
+random_sequence: 'minecraft:entities/zombie'
+
+pools:
+  - rolls: 1
+    entries:
+      - type: 'minecraft:item'
+        name: 'minecraft:prepend'
+
+__smithed__:
+  rules:
+    - type: prepend
+      target: pools
+      source:
+        type: smithed:reference
+        path: pools[0]

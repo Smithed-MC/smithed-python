@@ -1,0 +1,18 @@
+---
+type: minecraft:entity
+
+pools:
+- rolls: 1
+  bonus_rolls: 0
+  entries:
+  - type: minecraft:item
+    name: minecraft:pack2
+
+__smithed__:
+  priority: {after: "pack1"}
+  rules:
+  - type: smithed:append
+    target: pools
+    source:
+      type: smithed:reference
+      path: pools[0]

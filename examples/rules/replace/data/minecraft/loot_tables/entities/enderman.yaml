@@ -1,0 +1,10 @@
+type: 'minecraft:entity'
+random_sequence: 'minecraft:entities/zombie'
+
+__smithed__:
+  rules:
+    - type: weld:replace
+      target: pools[0].entries[0].type
+      source:
+        type: "weld:value"
+        value: weld:replace
