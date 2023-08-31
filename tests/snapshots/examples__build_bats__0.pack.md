@@ -10,7 +10,7 @@
     "pack_format": 15,
     "description": ""
   },
-  "id": "gm4_bat_grenades"
+  "id": "tcc"
 }
 ```
 
@@ -23,24 +23,6 @@
   "random_sequence": "minecraft:entities/bat",
   "type": "minecraft:entity",
   "pools": [
-    {
-      "rolls": 1,
-      "entries": [
-        {
-          "type": "loot_table",
-          "name": "tcc:items/bat_wing",
-          "functions": [
-            {
-              "function": "set_count",
-              "count": {
-                "min": 1,
-                "max": 2
-              }
-            }
-          ]
-        }
-      ]
-    },
     {
       "rolls": 1,
       "entries": [
@@ -100,39 +82,27 @@
           "weight": 5
         }
       ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "loot_table",
+          "name": "tcc:items/bat_wing",
+          "functions": [
+            {
+              "function": "set_count",
+              "count": {
+                "min": 1,
+                "max": 2
+              }
+            }
+          ]
+        }
+      ]
     }
   ],
   "__smithed__": [
-    {
-      "id": "tcc",
-      "rules": [
-        {
-          "type": "weld:append",
-          "target": "pools",
-          "priority": {},
-          "source": {
-            "value": {
-              "rolls": 1,
-              "entries": [
-                {
-                  "type": "loot_table",
-                  "name": "tcc:items/bat_wing",
-                  "functions": [
-                    {
-                      "function": "set_count",
-                      "count": {
-                        "min": 1,
-                        "max": 2
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
     {
       "id": "gm4_bat_grenades",
       "rules": [
@@ -223,6 +193,36 @@
                 {
                   "type": "empty",
                   "weight": 5
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "tcc",
+      "rules": [
+        {
+          "type": "weld:append",
+          "target": "pools",
+          "priority": {},
+          "source": {
+            "value": {
+              "rolls": 1,
+              "entries": [
+                {
+                  "type": "loot_table",
+                  "name": "tcc:items/bat_wing",
+                  "functions": [
+                    {
+                      "function": "set_count",
+                      "count": {
+                        "min": 1,
+                        "max": 2
+                      }
+                    }
+                  ]
                 }
               ]
             }

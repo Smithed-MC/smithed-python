@@ -4,6 +4,4 @@ JsonType = int | str | float | bool | None | list["JsonType"] | dict[str, "JsonT
 JsonDict = dict[str, "JsonType"]
 JsonList = list["JsonType"]
 
-JsonTypeT = TypeVar(
-    "JsonTypeT", bound=JsonType
-)
+JsonTypeT = TypeVar("JsonTypeT", bound=JsonType)

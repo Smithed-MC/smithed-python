@@ -10,7 +10,7 @@
     "pack_format": 15,
     "description": ""
   },
-  "id": "main"
+  "id": "pass"
 }
 ```
 
@@ -29,7 +29,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:pass"
+          "name": "minecraft:main"
         }
       ]
     },
@@ -39,7 +39,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:main"
+          "name": "minecraft:pass"
         }
       ]
     }
@@ -66,34 +66,6 @@
                 {
                   "type": "minecraft:item",
                   "name": "minecraft:fail1"
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "id": "pass",
-      "rules": [
-        {
-          "type": "weld:append",
-          "target": "pools",
-          "conditions": [
-            {
-              "type": "weld:pack_check",
-              "id": "main"
-            }
-          ],
-          "priority": {},
-          "source": {
-            "value": {
-              "rolls": 1,
-              "bonus_rolls": 0,
-              "entries": [
-                {
-                  "type": "minecraft:item",
-                  "name": "minecraft:pass"
                 }
               ]
             }
@@ -132,8 +104,7 @@
             }
           }
         }
-      ],
-      "priority": {}
+      ]
     },
     {
       "id": "main",
@@ -150,6 +121,35 @@
                 {
                   "type": "minecraft:item",
                   "name": "minecraft:main"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "priority": {}
+    },
+    {
+      "id": "pass",
+      "rules": [
+        {
+          "type": "weld:append",
+          "target": "pools",
+          "conditions": [
+            {
+              "type": "weld:pack_check",
+              "id": "main"
+            }
+          ],
+          "priority": {},
+          "source": {
+            "value": {
+              "rolls": 1,
+              "bonus_rolls": 0,
+              "entries": [
+                {
+                  "type": "minecraft:item",
+                  "name": "minecraft:pass"
                 }
               ]
             }

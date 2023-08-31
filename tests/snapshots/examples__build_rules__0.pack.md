@@ -21,6 +21,7 @@
 ```json
 {
   "random_sequence": "minecraft:entities/enderman",
+  "type": "minecraft:entity",
   "pools": [
     {
       "rolls": 1,
@@ -83,15 +84,25 @@
       ]
     }
   ],
-  "type": "minecraft:entity",
   "__smithed__": [
     {
-      "id": "pack.remove",
+      "id": "pack.append",
       "rules": [
         {
-          "type": "weld:remove",
-          "target": "pools[0].entries[0].functions[0]",
-          "priority": {}
+          "type": "weld:append",
+          "target": "pools",
+          "priority": {},
+          "source": {
+            "value": {
+              "rolls": 1,
+              "entries": [
+                {
+                  "type": "minecraft:item",
+                  "name": "minecraft:append"
+                }
+              ]
+            }
+          }
         }
       ]
     },
@@ -149,27 +160,6 @@
       "priority": {}
     },
     {
-      "id": "pack.append",
-      "rules": [
-        {
-          "type": "weld:append",
-          "target": "pools",
-          "priority": {},
-          "source": {
-            "value": {
-              "rolls": 1,
-              "entries": [
-                {
-                  "type": "minecraft:item",
-                  "name": "minecraft:append"
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
       "id": "pack.prepend",
       "rules": [
         {
@@ -187,6 +177,16 @@
               ]
             }
           }
+        }
+      ]
+    },
+    {
+      "id": "pack.remove",
+      "rules": [
+        {
+          "type": "weld:remove",
+          "target": "pools[0].entries[0].functions[0]",
+          "priority": {}
         }
       ],
       "priority": {}

@@ -7,10 +7,11 @@
 ```json
 {
   "pack": {
-    "pack_format": 15,
-    "description": ""
+    "format": 18,
+    "description": "Smithed's Actionbar Pack",
+    "pack_format": 15
   },
-  "id": "tcc"
+  "id": "tacos"
 }
 ```
 
@@ -29,7 +30,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:tacos"
+          "name": "minecraft:netherite_upgrade_smithing_template"
         }
       ]
     },
@@ -39,34 +40,12 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:netherite_upgrade_smithing_template"
+          "name": "minecraft:tacos"
         }
       ]
     }
   ],
   "__smithed__": [
-    {
-      "id": "tacos",
-      "rules": [
-        {
-          "type": "weld:append",
-          "target": "pools",
-          "priority": {},
-          "source": {
-            "value": {
-              "rolls": 1,
-              "bonus_rolls": 0,
-              "entries": [
-                {
-                  "type": "minecraft:item",
-                  "name": "minecraft:tacos"
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
     {
       "id": "tcc",
       "rules": [
@@ -82,6 +61,28 @@
                 {
                   "type": "minecraft:item",
                   "name": "minecraft:netherite_upgrade_smithing_template"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "tacos",
+      "rules": [
+        {
+          "type": "weld:append",
+          "target": "pools",
+          "priority": {},
+          "source": {
+            "value": {
+              "rolls": 1,
+              "bonus_rolls": 0,
+              "entries": [
+                {
+                  "type": "minecraft:item",
+                  "name": "minecraft:tacos"
                 }
               ]
             }

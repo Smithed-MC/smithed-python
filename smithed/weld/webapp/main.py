@@ -1,6 +1,8 @@
+import logging
 import tempfile
 import time
 from importlib import resources
+from io import StringIO
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -9,13 +11,12 @@ import weld
 import yaml
 from streamlit.delta_generator import DeltaGenerator
 from streamlit_extras.stateful_button import button as toggle_button
-from weld import run_weld
 
 from .model import WebApp
 
 icon = "https://github.com/Smithed-MC/smithed-python/blob/feat/weld-but-good/smithed/weld/resources/icon.png?raw=true"
 
-# logging.basicConfig(format="%(levelname)-8s %(message)s")
+logging.basicConfig(format="%(levelname)-8s %(message)s", level=logging.INFO)
 
 webapp = WebApp.parse_obj(
     yaml.safe_load((resources.files("weld") / "resources" / "webapp.yaml").read_text())
@@ -23,8 +24,8 @@ webapp = WebApp.parse_obj(
 temp_dir = tempfile.TemporaryDirectory()
 temp = Path(temp_dir.name)
 
-# console = logging.StreamHandler(stream := StringIO())
-# logging.getLogger().addHandler(console)
+console = logging.StreamHandler(stream := StringIO())
+logging.getLogger("weld").addHandler(console)
 
 
 # def validate_zips(packs: list[str]):
@@ -36,15 +37,6 @@ temp = Path(temp_dir.name)
 #             return f"`pack.mcmeta` not found in pack {pack.filename}"
 
 #     return False
-
-
-# async def consume_logs(ui: DeltaGenerator):
-#     try:
-#         console.stream.seek(0)
-#         while True:
-#             st.write(console.stream.readline())
-#     finally:
-#         ...
 
 
 def upload_flow(ui: DeltaGenerator):
@@ -59,7 +51,6 @@ def upload_flow(ui: DeltaGenerator):
     path = None
     t0 = time.perf_counter()
     if col1.button("Build Packs", disabled=not packs, key="build") and packs:
-        progress.info(f"Building {len(packs)} packs!")
         for pack in packs:
             with (temp / pack.name).with_suffix(".zip").open("wb") as temp_file:
                 temp_file.write(pack.read())
@@ -67,20 +58,28 @@ def upload_flow(ui: DeltaGenerator):
         # if error := validate_zips(pack_paths):
         #     st.error(error)
         #     return
-        with run_weld(pack_paths, as_fabric_mod=fabric_mod) as ctx:
-            if fabric_mod:
-                with ZipFile("output.jar", "w") as jar:
-                    ctx.data.dump(jar)
-                    ctx.assets.dump(jar)
-                    path = Path(str(jar.filename))
-            else:
-                if ctx.data:
-                    path = ctx.data.save(path="output", zipped=True, overwrite=True)
-                if ctx.assets:
-                    path = ctx.assets.save(path="output", zipped=True, overwrite=True)
-        t1 = time.perf_counter()
+        with st.status(f"Welding {len(packs)} packs!", expanded=True) as status:
+            stream.seek(0)
+            stream.truncate(0)
+            with weld.run_weld(pack_paths, as_fabric_mod=fabric_mod) as ctx:
+                if fabric_mod:
+                    with ZipFile("output.jar", "w") as jar:
+                        ctx.data.dump(jar)
+                        ctx.assets.dump(jar)
+                        path = Path(str(jar.filename))
+                else:
+                    if ctx.data:
+                        path = ctx.data.save(path="output", zipped=True, overwrite=True)
+                    if ctx.assets:
+                        path = ctx.assets.save(
+                            path="output", zipped=True, overwrite=True
+                        )
 
-        progress.success(f"Merged in {t1 - t0: 0.2f}s")
+            t1 = time.perf_counter()
+            stream.seek(0)
+            st.text_area("Build Log", stream.getvalue(), disabled=True, height=300)
+            status.update(label=f"Merged in :green[{t1 - t0: 0.3f}s]")
+
         if path is not None:
             with path.open(mode="rb") as file:
                 col3.download_button(

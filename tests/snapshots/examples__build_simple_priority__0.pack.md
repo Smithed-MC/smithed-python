@@ -10,7 +10,7 @@
     "pack_format": 15,
     "description": ""
   },
-  "id": "pack.library"
+  "id": "pack.b"
 }
 ```
 
@@ -126,6 +126,28 @@
   ],
   "__smithed__": [
     {
+      "id": "pack.library",
+      "rules": [
+        {
+          "type": "weld:append",
+          "target": "pools",
+          "priority": {},
+          "source": {
+            "value": {
+              "rolls": 1,
+              "entries": [
+                {
+                  "type": "minecraft:item",
+                  "name": "minecraft:diamond"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "priority": {}
+    },
+    {
       "id": "pack.a",
       "rules": [
         {
@@ -175,28 +197,8 @@
             }
           }
         }
-      ]
-    },
-    {
-      "id": "pack.library",
-      "rules": [
-        {
-          "type": "weld:append",
-          "target": "pools",
-          "priority": {},
-          "source": {
-            "value": {
-              "rolls": 1,
-              "entries": [
-                {
-                  "type": "minecraft:item",
-                  "name": "minecraft:diamond"
-                }
-              ]
-            }
-          }
-        }
-      ]
+      ],
+      "priority": {}
     }
   ]
 }

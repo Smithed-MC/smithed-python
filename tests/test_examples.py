@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 
 import pytest
 from lectern import Document
@@ -18,8 +19,12 @@ TEST_CONFIG = {
 def test_build(
     snapshot: SnapshotFixture, directory: str, caplog: pytest.LogCaptureFixture
 ):
-    packs = (
-        f"examples/{directory}/{pack}" for pack in os.listdir(f"examples/{directory}")
+    packs = sorted(
+        [
+            f"examples/{directory}/{pack.name}"
+            for pack in (Path("examples") / directory).glob("*")
+            if pack.is_dir()
+        ]
     )
     with caplog.at_level(logging.WARNING), run_weld(packs, config=TEST_CONFIG) as ctx:
         document = ctx.inject(Document)

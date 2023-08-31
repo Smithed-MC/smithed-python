@@ -10,7 +10,7 @@
     "pack_format": 15,
     "description": ""
   },
-  "id": "pack.only"
+  "id": "pack.never2"
 }
 ```
 
@@ -20,8 +20,8 @@
 
 ```json
 {
-  "random_sequence": "minecraft:entities/zombie",
   "type": "minecraft:entity",
+  "random_sequence": "minecraft:entities/zombie",
   "pools": [
     {
       "rolls": 1,
@@ -34,12 +34,9 @@
       ]
     }
   ],
-  "__smithed__": [
-    {
-      "id": "pack.only",
-      "override": true,
-      "priority": {}
-    }
-  ]
+  "__smithed__": {
+    "override": true,
+    "id": "pack.only"
+  }
 }
 ```

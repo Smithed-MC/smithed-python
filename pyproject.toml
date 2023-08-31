@@ -44,7 +44,6 @@ streamlit = "^1.16.0"
 [tool.poe.tasks]
 format = "black smithed examples tests"
 check = "black smithed examples tests --check"
-develop = "mudkip develop"
 test = "pytest"
 
 [tool.black]
@@ -54,7 +53,7 @@ include = '\.pyi?$'
 profile = "black"
 
 [tool.poetry.scripts]
-weld = 'weld.toolchain.cli:app'
+weld = 'weld.toolchain.cli:cli'
 
 [tool.poetry.plugins.beet]
 commands = "weld.toolchain.cli"

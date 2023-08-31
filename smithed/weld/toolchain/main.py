@@ -2,7 +2,7 @@ import sys
 from contextlib import contextmanager
 from functools import partial
 from pathlib import Path
-from typing import Iterable, cast
+from typing import Iterable, Literal, cast
 from zipfile import Path as ZPath
 from zipfile import ZipFile
 
@@ -46,24 +46,25 @@ def inspect_zipfile(file: ZipFile) -> PackType:
     raise WeldError("Invalid. Pack has neither assets nor data.")
 
 
-def inspect(file: str | ZipFile) -> PackType:
+def inspect(file: str | ZipFile) -> PackType | Literal[False]:
     match file:
         case str(path) if path.endswith(".zip"):
             with ZipFile(path) as zip:
                 return inspect_zipfile(zip)
 
         case str(path):
-            if (Path(path) / "data").is_dir():
-                return PackType.DATA
-            elif (Path(path) / "assets").is_dir():
-                return PackType.ASSETS
+            if (path := Path(path)).is_dir():
+                if (path / "data").is_dir():
+                    return PackType.DATA
+                elif (path / "assets").is_dir():
+                    return PackType.ASSETS
 
-            raise WeldError(f"Invalid. Pack {path} has neither assets nor data. \n")
+                raise WeldError(f"Invalid. Pack {path} has neither assets nor data. \n")
 
         case ZipFile() as zip:
             return inspect_zipfile(zip)
 
-    assert False
+    return False
 
 
 @contextmanager
@@ -75,7 +76,7 @@ def run_weld(
     as_fabric_mod: bool = False,
 ):
     packs = cast(list[str] | list[ZipFile], list(packs))
-    packs_with_types = zip(packs, map(inspect, packs))
+    packs_with_types = zip(packs, (pack for pack in map(inspect, packs) if pack))
 
     with run_beet(config, directory=directory, cache=cache) as ctx:
         ctx.require(weld)

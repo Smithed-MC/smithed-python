@@ -20,8 +20,8 @@
 
 ```json
 {
-  "type": "minecraft:entity",
   "random_sequence": "minecraft:entities/wither",
+  "type": "minecraft:entity",
   "pools": [
     {
       "rolls": 1,
@@ -65,33 +65,6 @@
     }
   ],
   "__smithed__": [
-    {
-      "id": "pack2",
-      "rules": [
-        {
-          "type": "weld:append",
-          "target": "pools",
-          "priority": {
-            "after": [
-              "pack1"
-            ]
-          },
-          "source": {
-            "value": {
-              "rolls": 1,
-              "bonus_rolls": 0,
-              "entries": [
-                {
-                  "type": "minecraft:item",
-                  "name": "minecraft:pack2"
-                }
-              ]
-            }
-          }
-        }
-      ],
-      "priority": {}
-    },
     {
       "id": "pack.late",
       "rules": [
@@ -137,8 +110,33 @@
             }
           }
         }
-      ],
-      "priority": {}
+      ]
+    },
+    {
+      "id": "pack2",
+      "rules": [
+        {
+          "type": "weld:append",
+          "target": "pools",
+          "priority": {
+            "after": [
+              "pack1"
+            ]
+          },
+          "source": {
+            "value": {
+              "rolls": 1,
+              "bonus_rolls": 0,
+              "entries": [
+                {
+                  "type": "minecraft:item",
+                  "name": "minecraft:pack2"
+                }
+              ]
+            }
+          }
+        }
+      ]
     },
     {
       "id": "pack.early",
