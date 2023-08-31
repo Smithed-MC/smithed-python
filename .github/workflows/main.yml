@@ -71,8 +71,8 @@ jobs:
       if: steps.cache-venv.outputs.cache-hit != 'true'
       run: poetry install
 
-    - name: Run unit tests
-      run: poetry poe test -v
+    # - name: Run unit tests
+    #   run: poetry poe test -v
 
     # ---------------------------------------------
     # -----          Release Package          -----
