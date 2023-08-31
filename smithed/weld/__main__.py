@@ -1,4 +1,4 @@
-from weld import app
+from weld import cli
 
 if __name__ == "__main__":
-    app()
+    cli()

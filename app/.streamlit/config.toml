@@ -6,10 +6,19 @@ base = "dark"
 primaryColor = "#1b48c4"
 
 # Background color for the main content area.
-backgroundColor = "#14131d"
+backgroundColor = "#222222"
 
 # Background color used for the sidebar and most interactive widgets.
-secondaryBackgroundColor = "#2a2a38"
+secondaryBackgroundColor = "#4c4e6d"
 
 # Color used for almost all text.
-textColor = "#ffffff"
+textColor = "#FFF8F0"
+
+[server]
+headerless = true
+
+[client]
+toolbarMode = "minimal"
+
+[runner]
+magicEnabled = false

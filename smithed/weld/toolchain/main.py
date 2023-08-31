@@ -60,7 +60,7 @@ def inspect(file: str | ZipFile) -> PackType:
 
             raise WeldError(f"Invalid. Pack {path} has neither assets nor data. \n")
 
-        case ZipFile(zip):
+        case ZipFile() as zip:
             return inspect_zipfile(zip)
 
     assert False

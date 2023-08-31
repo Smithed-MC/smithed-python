@@ -16,7 +16,7 @@ from smithed.utils import error_handler, path_str
 
 from .main import run_weld
 
-app = typer.Typer(
+cli = typer.Typer(
     help="🔧 Weld multiple data and resource packs into a single zip!",
     add_completion=False,
     pretty_exceptions_enable=True,
@@ -38,7 +38,7 @@ def version_callback(value: bool):
     raise typer.Exit()
 
 
-@app.command(
+@cli.command(
     epilog="Made with :heart: by [Smithed](https://beta.smithed.dev)",
     no_args_is_help=True,
 )

@@ -1,0 +1,35 @@
+title: '<h1 style="text-align: center; color: #23A3FF;">Weld v{version}</h1>'
+intro: |
+  The fastest pack merger in the west 🚅. Merge all your data and resource packs into a single zip easily droppable into any world or minecraft instance.
+
+conflicts: |
+  - **Tags**: Same as Vanilla
+  - **Assets**: Same as Vanilla
+  - **Lang**: Extend each other
+  - **Modes**: Extend and sort overrides with `custom_model_data` defined
+  - **Json**: Supports custom `__smithed__` weld rules
+
+warn: |
+  ⚠️ This tool is in **beta**, forward all feedback to our [Discord](https://smithed.dev/discord)!
+
+fabric: |
+  🧪 This feature is experimental, *please* use with caution!
+
+  **Note**: The resulting `.jar` is purely for convenience and does not represent an optimized fabric mod. Compatibility with other mods is based on the data and resource packs provided.
+
+footer:
+  left: |
+    <h4 style="text-align: center; color: #23A3FF;">Built with ♥️ by Smithed</h4>
+    Smithed is a open-source ecosystem to support data and resource pack creators.
+     Check us out at <a href="https://beta.smithed.dev">here</a>!
+    <br><br>
+    Check out our <a href="https://wiki.smithed.dev/weld">documentation</a>
+     to learn more about weld!
+
+  right: |
+    <iframe
+      src="https://discord.com/widget?id=511303648119226382&amp;theme=dark"
+      title="Discord Embed"
+      sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
+      style="width: 325px; height: 200px; border-radius: 10px;">
+    </iframe>

@@ -25,6 +25,7 @@ typer = {extras = ["all"], version = "^0.9.0"}
 tokenstream = "^1.7.0"
 backports-strenum = "^1.2.4"
 watchdog = {version = "^3.0.0", markers = "sys_platform == 'darwin'"}
+streamlit-extras = "^0.3.0"
 
 
 [tool.poetry.group.dev.dependencies]
