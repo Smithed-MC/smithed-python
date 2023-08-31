@@ -23,6 +23,7 @@ jsonpath-ng = "^1.5.3"
 bolt-expressions = "^0.12.2"
 typer = {extras = ["all"], version = "^0.9.0"}
 tokenstream = "^1.7.0"
+backports-strenum = "^1.2.4"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.1.0"

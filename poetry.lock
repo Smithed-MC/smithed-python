@@ -87,6 +87,17 @@ files = [
 ]
 
 [[package]]
+name = "backports-strenum"
+version = "1.2.4"
+description = "Base class for creating enumerated constants that are also subclasses of str"
+category = "main"
+optional = false
+python-versions = ">=3.8, <4"
+files = [
+    {file = "backports.strenum-1.2.4.tar.gz", hash = "sha256:87b67fd1413af3ce959b565d84ddef99776cdd97a62e2fd2d0550cdacc210dee"},
+]
+
+[[package]]
 name = "beet"
 version = "0.92.0"
 description = "The Minecraft pack development kit"
@@ -2586,4 +2597,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "eb773083e3c1392ba19c51db1ecf83f74955bdc99ffe334acf413a8af64a064d"
+content-hash = "0faf465cdaee2458d53b975039b0ac8b5f52b56617625f36c3356a5e04b7c54b"

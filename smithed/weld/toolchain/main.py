@@ -1,5 +1,5 @@
+import sys
 from contextlib import contextmanager
-from enum import StrEnum
 from functools import partial
 from pathlib import Path
 from typing import Iterable, cast
@@ -12,6 +12,11 @@ from beet.core.utils import FileSystemPath, JsonDict
 from ..errors import WeldError
 from .helper_plugins import add_fabric_mod_json
 
+if sys.version_info >= (3, 11):
+    from enum import StrEnum
+else:
+    from backports.strenum import StrEnum
+
 DESCRIPTION = "Merged by Smithed Weld"
 
 
@@ -22,7 +27,7 @@ class PackType(StrEnum):
 
 def subproject_config(pack_type: PackType, name: str = ""):
     return subproject(
-        {   
+        {
             "require": ["beet.contrib.auto_yaml"],
             pack_type: {"load": name},
             "pipeline": ["weld.print_pack_name", "weld.inject_pack_id_into_smithed"],
