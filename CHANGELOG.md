@@ -2,6 +2,24 @@
 
 <!--next-version-placeholder-->
 
+## v0.13.0 (2023-08-31)
+
+### Feature
+
+* Neat icon there ([`3129f2b`](https://github.com/Smithed-MC/smithed-python/commit/3129f2bd52e8b7159a268eb7393a4fa5406b9867))
+* Add override as a way to completely take over the file ([`4e86277`](https://github.com/Smithed-MC/smithed-python/commit/4e8627737b95bd789ce2ab5927de04cabcbe85cd))
+* Add conditions, tests for stages and conditions ([`5d5ba28`](https://github.com/Smithed-MC/smithed-python/commit/5d5ba28e0f3559ab059e552355e871d6518ecc0f))
+* Cli working, tests, and more ([`9dc9374`](https://github.com/Smithed-MC/smithed-python/commit/9dc9374867f3b017ea31a73ea7f0c38b50c2392c))
+* Fix up weld cli and more ([`eef7bba`](https://github.com/Smithed-MC/smithed-python/commit/eef7bbaee659e839990a6154900e78f2280f3c7c))
+* But good ([`3f0ec52`](https://github.com/Smithed-MC/smithed-python/commit/3f0ec52d1b6559ecf57e057cdcbf629ca5dcad31))
+
+### Fix
+
+* Tests, streamlit, etc ([`0d166fb`](https://github.com/Smithed-MC/smithed-python/commit/0d166fbb6a76d8154c9553b08f4054b72a1ee12f))
+* Update streamlit to newest weld ([`be54f60`](https://github.com/Smithed-MC/smithed-python/commit/be54f60d277078ae446194f5264ae4cd3809bc96))
+* Use backport strenum for 3.10 ([`a2adbbe`](https://github.com/Smithed-MC/smithed-python/commit/a2adbbe266394265c5e1c2aa4bb0db6170fc22ea))
+* Secure rules, add tests ([`1f8f0ef`](https://github.com/Smithed-MC/smithed-python/commit/1f8f0efe41d038bf478bb1221618cbfc0f60871b))
+
 ## v0.12.0 (2023-07-07)
 ### Feature
 * Add manual streamlit option `streamlit run app/main.py` ([`6fc26f9`](https://github.com/Smithed-MC/smithed-python/commit/6fc26f9d301018312d0dc3f7695a9f558c70ba27))
