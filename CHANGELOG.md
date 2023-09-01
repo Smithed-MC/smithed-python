@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.13.2 (2023-08-31)
+
+### Fix
+
+* Adjust dependencies ([`06aa745`](https://github.com/Smithed-MC/smithed-python/commit/06aa745f5963d7b0681cef9a87a2e047980bcdf8))
+
 ## v0.13.1 (2023-08-31)
 
 ### Fix
