@@ -25,6 +25,7 @@ temp_dir = tempfile.TemporaryDirectory()
 temp = Path(temp_dir.name)
 
 console = logging.StreamHandler(stream := StringIO())
+console.setFormatter(logging.Formatter("%(levelname)-12s %(message)s"))
 logging.getLogger("weld").addHandler(console)
 
 
@@ -58,7 +59,7 @@ def upload_flow(ui: DeltaGenerator):
         # if error := validate_zips(pack_paths):
         #     st.error(error)
         #     return
-        with st.status(f"Welding {len(packs)} packs!", expanded=True) as status:
+        with st.status(f"Welding {len(packs)} packs!", expanded=False) as status:
             stream.seek(0)
             stream.truncate(0)
             with weld.run_weld(pack_paths, as_fabric_mod=fabric_mod) as ctx:
@@ -77,8 +78,10 @@ def upload_flow(ui: DeltaGenerator):
 
             t1 = time.perf_counter()
             stream.seek(0)
-            st.text_area("Build Log", stream.getvalue(), disabled=True, height=300)
-            status.update(label=f"Merged in :green[{t1 - t0: 0.3f}s]")
+            st.code(stream.getvalue())
+            status.update(
+                label=f"Merged in :green[{t1 - t0: 0.3f}s]. Click to see log."
+            )
 
         if path is not None:
             with path.open(mode="rb") as file:
