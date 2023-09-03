@@ -28,7 +28,11 @@ class PackType(StrEnum):
 def subproject_config(pack_type: PackType, name: str = ""):
     return subproject(
         {
-            "require": ["beet.contrib.auto_yaml"],
+            "require": [
+                "beet.contrib.auto_yaml",
+                "beet.contrib.model_merging",
+                "beet.contrib.unknown_files",
+            ],
             pack_type: {"load": name},
             "pipeline": ["weld.print_pack_name", "weld.inject_pack_id_into_smithed"],
         }

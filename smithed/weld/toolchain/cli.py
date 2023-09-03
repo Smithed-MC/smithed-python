@@ -62,8 +62,8 @@ def weld(
     setup_logger(dev, log.upper())
 
     packs = list(expand_globs(packs))
-    if len(packs) < 2:
-        raise typer.BadParameter("Need at least two packs to weld")
+    if len(packs) < 1:
+        raise typer.BadParameter("Need at least one pack to weld")
 
     weld_config_dir = Path(typer.get_app_dir("weld"))
     cache = weld_config_dir / "beet_cache"
