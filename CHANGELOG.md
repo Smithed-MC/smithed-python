@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.13.3 (2023-09-03)
+
+### Fix
+
+* Remove 2 pack for weld, make loading packs better ([`552db97`](https://github.com/Smithed-MC/smithed-python/commit/552db97d427aea9b252db5b2235773b84c5d904b))
+
 ## v0.13.2 (2023-08-31)
 
 ### Fix
