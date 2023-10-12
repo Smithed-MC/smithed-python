@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.14.0 (2023-10-12)
+
+### Feature
+
+* Add overlays support and speedup for webapp ([`d56f3e1`](https://github.com/Smithed-MC/smithed-python/commit/d56f3e14d46599f09edfad13c79066f391e12770))
+
 ## v0.13.4 (2023-10-12)
 
 ### Fix
