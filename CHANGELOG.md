@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.13.4 (2023-10-12)
+
+### Fix
+
+* Merge conflict ([`9c53472`](https://github.com/Smithed-MC/smithed-python/commit/9c5347260062fa2cb8d5675b4c370463f2b311ea))
+
 ## v0.13.3 (2023-09-03)
 
 ### Fix
