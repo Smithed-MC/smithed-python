@@ -3,89 +3,89 @@ name: CI
 on:
   workflow_dispatch:
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
       - "smithed/**"
-      - "poetry.lock"
+      - "requirements.lock"
+      - "requirements-dev.lock"
 
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - "smithed/**"
-      - "poetry.lock"
-
-env:
-  POETRY_VERSION: "1.4.1"
+      - "requirements.lock"
+      - "requirements-dev.lock"
 
 jobs:
   ci:
     runs-on: ubuntu-latest
-    
+
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.11" ]
-    
+        python-version: ["3.11"]
+
     steps:
-    # ---------------------------------------------
-    # -----           gather repo             -----
-    # ---------------------------------------------
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
+      # ---------------------------------------------
+      #  -----          gather repo            -----
+      # ---------------------------------------------
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-    # ---------------------------------------------
-    # -----      setup and cache python       -----
-    # ---------------------------------------------
-    - uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
+      # ---------------------------------------------
+      #  -----    setup and install python     -----
+      # ---------------------------------------------
+      - name: Install the latest version of rye
+        uses: eifinger/setup-rye@v1
+        with:
+          enable-cache: true
+          cache-prefix: "python-rye"
 
-    - name: Cache poetry
-      id: cache-poetry
-      uses: actions/cache@v3
-      with:
-        path: ~/.local
-        key: poetry-${{ runner.os }}-${{ env.POETRY_VERSION }}
+      #----------------------------------------------
+      #  -----     install & configure rye     -----
+      #----------------------------------------------
 
-    - name: Install poetry
-      if: steps.cache-poetry.outputs.cache-hit != 'true'
-      uses: snok/install-poetry@v1
-      with:
-        version: ${{ env.POETRY_VERSION }}
-        virtualenvs-in-project: true
-    
-    - name: Install Poe the Poet
-      run: poetry self add poethepoet[poetry_plugin]
+      - name: Cache venv
+        id: cache-venv
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('requirements.lock') }}-${{ hashFiles('requirements-dev.lock') }}
+          restore-keys: |
+            venv-${{ runner.os }}-${{ matrix.python-version }}-
 
-    - name: Cache venv
-      id: cache-venv
-      uses: actions/cache@v3
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ env.POETRY_VERSION }}-${{ hashFiles('poetry.lock') }}
-        restore-keys: |
-          venv-${{ runner.os }}-${{ matrix.python-version }}-${{ env.POETRY_VERSION }}-
+      - name: Install dependencies
+        if: steps.cache-venv.outputs.cache-hit != 'true'
+        run: rye sync
 
-    - name: Install dependencies
-      if: steps.cache-venv.outputs.cache-hit != 'true'
-      run: poetry install
+      #----------------------------------------------
+      #  -----      pass linting & tests      -----
+      #----------------------------------------------
 
-    - name: Run unit tests
-      run: poetry poe test -v
+      - name: Run linting and style checking
+        run: rye run check
 
-    # ---------------------------------------------
-    # -----          Release Package          -----
-    # ---------------------------------------------
-    - name: Release
-      if: |
-        github.repository == 'Smithed-MC/smithed-python'
-        && github.event_name == 'push'
-        && github.ref == 'refs/heads/main'
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-      run: |
-        git config --global user.name "github-actions"
-        git config --global user.email "action@github.com"
-        poetry run semantic-release publish -v DEBUG -D commit_author="github-actions <action@github.com>"
+      - name: Run unit tests
+        run: rye run test -v
+
+  release:
+    needs: ci
+    runs-on: ubuntu-latest
+
+    steps:
+      # ---------------------------------------------
+      # -----          Release Package          -----
+      # ---------------------------------------------
+      - name: Release
+        if: |
+          github.repository == 'Smithed-MC/smithed-python'
+          && github.event_name == 'push'
+          && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "action@github.com"
+          rye run semantic-release publish -v DEBUG -D commit_author="github-actions <action@github.com>"

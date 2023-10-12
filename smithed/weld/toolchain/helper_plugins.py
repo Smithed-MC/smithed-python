@@ -6,7 +6,7 @@ from beet import Context, JsonFile, JsonFileBase
 from jinja2 import Template
 
 FABRIC_MOD_TEMPLATE = Template(
-    (resources.files("weld") / "resources" / "fabric.mod.json.j2").read_text()
+    (resources.files("smithed") / "weld/resources/fabric.mod.json.j2").read_text()
 )
 
 logger = logging.getLogger("weld")

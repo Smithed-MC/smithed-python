@@ -4,4 +4,4 @@ The python package for all things Smithed. Includes weld, cli, and libraries (vi
 ## Weld
 > The fastest pack merger of the west 🚅, build on beet technologies™
 
-
+- [Docs](https://wiki.smithed.dev/weld/)

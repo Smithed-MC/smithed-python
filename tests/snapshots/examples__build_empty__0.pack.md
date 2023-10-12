@@ -7,9 +7,8 @@
 ```json
 {
   "pack": {
-    "format": 18,
     "description": "Smithed's Actionbar Pack",
-    "pack_format": 15
+    "pack_format": 18
   },
   "id": "tacos"
 }

@@ -4,8 +4,8 @@ from typing import Any
 
 from beet import ListOption
 from pydantic import Field, root_validator, validator
-from weld.merging.parser import get
 
+from ..merging.parser import get
 from .base import BaseModel
 from .priority import Priority
 from .rules import AdditiveRule, Rule

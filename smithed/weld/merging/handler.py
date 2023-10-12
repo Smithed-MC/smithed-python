@@ -47,7 +47,9 @@ from .parser import append, get, insert, merge, prepend, remove, replace
 logger = logging.getLogger("weld")
 
 PRIORITY_STAGES = ["early", "standard", "late"]
-YELLOW_SHULKER_BOX = resources.files("weld") / "resources" / "yellow_shulker_box.json"
+YELLOW_SHULKER_BOX = (
+    resources.files("smithed") / "weld/resources/yellow_shulker_box.json"
+)
 
 
 @dataclass

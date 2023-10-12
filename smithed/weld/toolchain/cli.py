@@ -31,7 +31,7 @@ OUTPUT_DIR, OUTPUT = "output", "welded-pack.zip"
 def version_callback(value: bool):
     if not value:
         return
-    import weld
+    from smithed import weld
 
     print("weld", style="secondary", end=" ")
     print(f"v{weld.__version__}", highlight=False, style="accent_light")
@@ -65,7 +65,7 @@ def weld(
     if len(packs) < 1:
         raise typer.BadParameter("Need at least one pack to weld")
 
-    weld_config_dir = Path(typer.get_app_dir("weld"))
+    weld_config_dir = Path(typer.get_app_dir("smithed")) / "weld"
     cache = weld_config_dir / "beet_cache"
 
     if clear_cache:

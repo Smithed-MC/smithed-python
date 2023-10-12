@@ -17,5 +17,5 @@ __smithed__:
     - type: weld:merge
       target: pools[0]
       source:
-        type: smithed:reference
+        type: weld:reference
         path: pools[0]

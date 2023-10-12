@@ -1,3 +1,3 @@
-from weld import webapp
+from smithed.weld import webapp
 
 webapp.run()

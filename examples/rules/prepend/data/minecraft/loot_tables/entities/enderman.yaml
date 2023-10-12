@@ -12,5 +12,5 @@ __smithed__:
     - type: prepend
       target: pools
       source:
-        type: smithed:reference
+        type: weld:reference
         path: pools[0]

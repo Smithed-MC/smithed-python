@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from functools import partial
 from pathlib import Path
 from typing import Iterable, Literal, cast
-from zipfile import Path as ZPath
+from zipfile import Path as ZipPath
 from zipfile import ZipFile
 
 from beet import Context, ProjectCache, ProjectConfig, run_beet, subproject
@@ -34,13 +34,16 @@ def subproject_config(pack_type: PackType, name: str = ""):
                 "beet.contrib.unknown_files",
             ],
             pack_type: {"load": name},
-            "pipeline": ["weld.print_pack_name", "weld.inject_pack_id_into_smithed"],
+            "pipeline": [
+                "smithed.weld.print_pack_name",
+                "smithed.weld.inject_pack_id_into_smithed",
+            ],
         }
     )
 
 
 def inspect_zipfile(file: ZipFile) -> PackType:
-    path = ZPath(file)
+    path = ZipPath(file)
 
     if (path / "data").is_dir():
         return PackType.DATA
@@ -85,20 +88,16 @@ def run_weld(
     with run_beet(config, directory=directory, cache=cache) as ctx:
         ctx.require(weld)
         ctx.require(partial(load_packs, packs=list(packs_with_types)))
-        ctx.require("weld.merging.process")
+        ctx.require("smithed.weld.merging.process")
         if as_fabric_mod:
             ctx.require(partial(add_fabric_mod_json, packs=packs))
         yield ctx
 
 
 def weld(ctx: Context):
-    ctx.require("weld.merging")
+    ctx.require("smithed.weld.merging")
     ctx.require("beet.contrib.model_merging")
     ctx.require("beet.contrib.unknown_files")
-
-    # yield
-
-    # ctx.require("weld.merging.process")
 
 
 def load_packs(ctx: Context, packs: Iterable[tuple[str | ZipFile, PackType]]):

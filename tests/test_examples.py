@@ -5,7 +5,8 @@ from pathlib import Path
 import pytest
 from lectern import Document
 from pytest_insta import SnapshotFixture
-from weld import run_weld
+
+from smithed.weld import run_weld
 
 EXAMPLES = [f for f in os.listdir("examples") if not f.startswith(".")]
 

@@ -7,19 +7,22 @@ from pathlib import Path
 from zipfile import ZipFile
 
 import streamlit as st
-import weld
 import yaml
 from streamlit.delta_generator import DeltaGenerator
 from streamlit_extras.stateful_button import button as toggle_button
 
+from smithed import weld
+
 from .model import WebApp
 
-icon = "https://github.com/Smithed-MC/smithed-python/blob/feat/weld-but-good/smithed/weld/resources/icon.png?raw=true"
+icon = "https://github.com/Smithed-MC/smithed-python/blob/main/smithed/weld/resources/icon.png?raw=true"
 
 logging.basicConfig(format="%(levelname)-8s %(message)s", level=logging.INFO)
 
 webapp = WebApp.parse_obj(
-    yaml.safe_load((resources.files("weld") / "resources" / "webapp.yaml").read_text())
+    yaml.safe_load(
+        (resources.files("smithed") / "weld/resources/webapp.yaml").read_text()
+    )
 )
 temp_dir = tempfile.TemporaryDirectory()
 temp = Path(temp_dir.name)
