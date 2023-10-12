@@ -55,17 +55,17 @@ def upload_flow(ui: DeltaGenerator):
     path = None
     t0 = time.perf_counter()
     if col1.button("Build Packs", disabled=not packs, key="build") and packs:
-        for pack in packs:
-            with (temp / pack.name).with_suffix(".zip").open("wb") as temp_file:
-                temp_file.write(pack.read())
-        pack_paths = list(str(path) for path in temp.glob("*.zip"))
+        # for pack in packs:
+        #     with (temp / pack.name).with_suffix(".zip").open("wb") as temp_file:
+        #         temp_file.write(pack.read())
+        # pack_paths = list(str(path) for path in temp.glob("*.zip"))
         # if error := validate_zips(pack_paths):
         #     st.error(error)
         #     return
         with st.status(f"Welding {len(packs)} packs!", expanded=False) as status:
             stream.seek(0)
             stream.truncate(0)
-            with weld.run_weld(pack_paths, as_fabric_mod=fabric_mod) as ctx:
+            with weld.run_weld(packs, as_fabric_mod=fabric_mod) as ctx:
                 if fabric_mod:
                     with ZipFile("output.jar", "w") as jar:
                         ctx.data.dump(jar)

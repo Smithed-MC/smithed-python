@@ -15,6 +15,7 @@ secondaryBackgroundColor = "#4c4e6d"
 textColor = "#FFF8F0"
 
 [server]
+fileWatcherType = "none"
 headerless = true
 
 [client]
