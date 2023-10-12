@@ -69,11 +69,6 @@ jobs:
       - name: Run unit tests
         run: rye run test -v
 
-  release:
-    needs: ci
-    runs-on: ubuntu-latest
-
-    steps:
       # ---------------------------------------------
       # -----          Release Package          -----
       # ---------------------------------------------
