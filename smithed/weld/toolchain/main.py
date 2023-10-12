@@ -9,6 +9,8 @@ from zipfile import ZipFile
 from beet import Context, ProjectCache, ProjectConfig, run_beet, subproject
 from beet.core.utils import FileSystemPath, JsonDict
 
+from smithed.weld import merging
+
 from ..errors import WeldError
 from .helper_plugins import add_fabric_mod_json
 
@@ -31,7 +33,7 @@ def subproject_config(pack_type: PackType, name: str = ""):
             "require": [
                 "beet.contrib.auto_yaml",
                 "beet.contrib.model_merging",
-                "beet.contrib.unknown_files",
+                # "beet.contrib.unknown_files",
             ],
             pack_type: {"load": name},
             "pipeline": [
@@ -88,16 +90,16 @@ def run_weld(
     with run_beet(config, directory=directory, cache=cache) as ctx:
         ctx.require(weld)
         ctx.require(partial(load_packs, packs=list(packs_with_types)))
-        ctx.require("smithed.weld.merging.process")
+        ctx.require(merging.process)
         if as_fabric_mod:
             ctx.require(partial(add_fabric_mod_json, packs=packs))
         yield ctx
 
 
 def weld(ctx: Context):
-    ctx.require("smithed.weld.merging")
+    ctx.require(merging.beet_default)
     ctx.require("beet.contrib.model_merging")
-    ctx.require("beet.contrib.unknown_files")
+    # ctx.require("beet.contrib.unknown_files")
 
 
 def load_packs(ctx: Context, packs: Iterable[tuple[str | ZipFile, PackType]]):

@@ -1,8 +1,5 @@
-import logging
-import tempfile
 import time
 from importlib import resources
-from io import StringIO
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -13,24 +10,16 @@ from streamlit_extras.stateful_button import button as toggle_button
 
 from smithed import weld
 
-from .model import WebApp
+from .log_helpers import init_logger
+from .models import WebApp
 
 icon = "https://github.com/Smithed-MC/smithed-python/blob/main/smithed/weld/resources/icon.png?raw=true"
-
-logging.basicConfig(format="%(levelname)-8s %(message)s", level=logging.INFO)
 
 webapp = WebApp.parse_obj(
     yaml.safe_load(
         (resources.files("smithed") / "weld/resources/webapp.yaml").read_text()
     )
 )
-temp_dir = tempfile.TemporaryDirectory()
-temp = Path(temp_dir.name)
-
-console = logging.StreamHandler(stream := StringIO())
-console.setFormatter(logging.Formatter("%(levelname)-12s %(message)s"))
-logging.getLogger("weld").addHandler(console)
-
 
 # def validate_zips(packs: list[str]):
 #     for pack in packs:
@@ -45,7 +34,8 @@ logging.getLogger("weld").addHandler(console)
 
 def upload_flow(ui: DeltaGenerator):
     progress = ui.container()
-    packs = ui.file_uploader("Upload packs", accept_multiple_files=True, type="zip")
+    raw_packs = ui.file_uploader("Upload packs", accept_multiple_files=True, type="zip")
+    packs = [ZipFile(pack) for pack in raw_packs]
 
     col1, col2, col3 = ui.columns(3)
     with col2:
@@ -63,8 +53,9 @@ def upload_flow(ui: DeltaGenerator):
         #     st.error(error)
         #     return
         with st.status(f"Welding {len(packs)} packs!", expanded=False) as status:
+            stream = init_logger()
             stream.seek(0)
-            stream.truncate(0)
+            stream.truncate()
             with weld.run_weld(packs, as_fabric_mod=fabric_mod) as ctx:
                 if fabric_mod:
                     with ZipFile("output.jar", "w") as jar:
