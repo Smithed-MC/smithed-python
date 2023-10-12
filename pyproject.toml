@@ -29,7 +29,7 @@ dev-dependencies = [
   "lectern>=0.29.1",
   "devtools>=0.12.2",
   "streamlit-extras>=0.3.4",
-  "python-semantic-release>=7.34.6",
+  "python-semantic-release==7.34.6",
   "ipython>=8.16.1",
 ]
 managed = true
