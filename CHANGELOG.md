@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.14.1 (2023-10-12)
+
+### Fix
+
+* Temporarily remove unknown_files plugin ([`6451071`](https://github.com/Smithed-MC/smithed-python/commit/6451071cffffc64c8891341a76f0ef820edc359b))
+
 ## v0.14.0 (2023-10-12)
 
 ### Feature
