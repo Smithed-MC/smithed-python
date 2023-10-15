@@ -5,6 +5,7 @@ from zipfile import ZipFile
 
 import streamlit as st
 import yaml
+from beet import WrappedException
 from streamlit.delta_generator import DeltaGenerator
 from streamlit_extras.stateful_button import button as toggle_button
 
@@ -56,26 +57,33 @@ def upload_flow(ui: DeltaGenerator):
             stream = init_logger()
             stream.seek(0)
             stream.truncate()
-            with weld.run_weld(packs, as_fabric_mod=fabric_mod) as ctx:
-                if fabric_mod:
-                    with ZipFile("output.jar", "w") as jar:
-                        ctx.data.dump(jar)
-                        ctx.assets.dump(jar)
-                        path = Path(str(jar.filename))
-                else:
-                    if ctx.data:
-                        path = ctx.data.save(path="output", zipped=True, overwrite=True)
-                    if ctx.assets:
-                        path = ctx.assets.save(
-                            path="output", zipped=True, overwrite=True
-                        )
+            try:
+                with weld.run_weld(packs, as_fabric_mod=fabric_mod) as ctx:
+                    if fabric_mod:
+                        with ZipFile("output.jar", "w") as jar:
+                            ctx.data.dump(jar)
+                            ctx.assets.dump(jar)
+                            path = Path(str(jar.filename))
+                    else:
+                        if ctx.data:
+                            path = ctx.data.save(
+                                path="output", zipped=True, overwrite=True
+                            )
+                        if ctx.assets:
+                            path = ctx.assets.save(
+                                path="output", zipped=True, overwrite=True
+                            )
 
-            t1 = time.perf_counter()
-            stream.seek(0)
-            st.code(stream.getvalue())
-            status.update(
-                label=f"Merged in :green[{t1 - t0: 0.3f}s]. Click to see log."
-            )
+                t1 = time.perf_counter()
+                stream.seek(0)
+                st.code(stream.getvalue())
+                status.update(
+                    label=f"Merged in :green[{t1 - t0: 0.3f}s]. Click to see log."
+                )
+
+            except WrappedException as exc:
+                status.update(label=":red[Error occured. Click to reveal error.]")
+                st.exception(exc.__cause__)
 
         if path is not None:
             with path.open(mode="rb") as file:

@@ -14,7 +14,7 @@ attrs==23.1.0
 backcall==0.2.0
 backports-strenum==1.2.8
 beautifulsoup4==4.12.2
-beet==0.95.4
+beet==0.96.1
 black==23.9.1
 blinker==1.6.3
 cachetools==5.3.1
