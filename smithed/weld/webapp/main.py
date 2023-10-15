@@ -97,6 +97,7 @@ def upload_flow(ui: DeltaGenerator):
 
     if not packs:
         progress.info("Waiting for uploaded packs")
+
     elif path is None:
         progress.success("Ready to Build!")
 
