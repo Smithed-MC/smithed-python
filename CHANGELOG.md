@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.14.2 (2023-10-15)
+
+### Fix
+
+* Bump patch ([`51822d2`](https://github.com/Smithed-MC/smithed-python/commit/51822d2901cdea5ebe9f3ac39bb39e53d15c4661))
+
 ## v0.14.1 (2023-10-12)
 
 ### Fix
