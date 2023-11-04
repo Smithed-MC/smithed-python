@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.14"
 
 [[package]]
@@ -129,6 +129,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/21/28/9b3f50ce0e048515135495f198351908d99540d69bfdc8c1d15b73dc55ce/blinker-1.9.0.tar.gz", hash = "sha256:b4ce2265a7abece45e7cc896e98dbebe6cead56bcf805a3d23136d145f5445bf", size = 22460, upload-time = "2024-11-08T17:25:47.436Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/10/cb/f2ad4230dc2eb1a74edf38f1a38b9b52277f75bef262d8908e60d957e13c/blinker-1.9.0-py3-none-any.whl", hash = "sha256:ba0efaa9080b619ff2f3459d1d500c57bddea4a6b424b60a91141db6fd2f08bc", size = 8458, upload-time = "2024-11-08T17:25:46.184Z" },
+]
+
+[[package]]
+name = "bolt"
+version = "0.51.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "beet" },
+    { name = "mecha" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/50/ff/4fcca0be75b32a790bc751a0113ede064d033c517167c0de2ae228bf8389/bolt-0.51.0.tar.gz", hash = "sha256:1abb78bf058cb7439cacc60cde8d3b9af49cadc147990b3525c16f4bc2463461", size = 52523, upload-time = "2026-09-10T18:33:06.99Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7f/5e/83d8dddc4603ac43b71569247ba53d18149198b8a70ebc9f6d2e1390d486/bolt-0.51.0-py3-none-any.whl", hash = "sha256:ef3fb1f40c01c4a5d216b8440f98a083368f53b12989d795e1a684ff9f416ad1", size = 59765, upload-time = "2026-09-10T18:33:05.858Z" },
 ]
 
 [[package]]
@@ -1718,6 +1731,7 @@ source = { editable = "." }
 dependencies = [
     { name = "backports-strenum" },
     { name = "beet" },
+    { name = "bolt" },
     { name = "lectern" },
     { name = "mecha" },
     { name = "pydantic" },
@@ -1750,6 +1764,7 @@ github-workflows = [
 requires-dist = [
     { name = "backports-strenum", specifier = ">=1.2.8" },
     { name = "beet", specifier = ">=0.119.0" },
+    { name = "bolt", specifier = ">=0.38.5" },
     { name = "lectern", specifier = ">=0.34.0" },
     { name = "mecha", specifier = ">=0.106.0" },
     { name = "pydantic", specifier = ">=2.5.2" },
