@@ -31,9 +31,10 @@ def subproject_config(pack_type: PackType, name: str = ""):
     return subproject(
         {
             "require": [
+                "smithed.weld.plugins.load_resources",
                 "beet.contrib.auto_yaml",
                 "beet.contrib.model_merging",
-                # "beet.contrib.unknown_files",
+                "beet.contrib.unknown_files",
             ],
             pack_type: {"load": name},
             "pipeline": [
@@ -93,13 +94,14 @@ def run_weld(
         ctx.require(merging.process)
         if as_fabric_mod:
             ctx.require(partial(add_fabric_mod_json, packs=packs))
+        ctx.require("mecha")
         yield ctx
 
 
 def weld(ctx: Context):
-    ctx.require(merging.beet_default)
+    ctx.require("smithed.weld.merging")
+    ctx.require("smithed.weld.plugins")
     ctx.require("beet.contrib.model_merging")
-    # ctx.require("beet.contrib.unknown_files")
 
 
 def load_packs(ctx: Context, packs: Iterable[tuple[str | ZipFile, PackType]]):

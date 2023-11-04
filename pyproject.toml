@@ -3,11 +3,12 @@ authors = [
   {name = "Smithed Team", email = "team@smithed.dev"},
 ]
 dependencies = [
-    "beet>=0.96.1",
-    "mecha>=0.76.2",
+    "beet>=0.97.1",
+    "mecha>=0.83.1",
     "typer>=0.9.0",
     "tokenstream>=1.7.0",
     "backports-strenum>=1.2.8",
+    "bolt>=0.38.5",
 ]
 description = "Smithed's Python client with CLI, weld and more"
 license = "MIT"
