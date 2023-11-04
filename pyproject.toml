@@ -3,13 +3,14 @@ authors = [
   {name = "Smithed Team", email = "team@smithed.dev"},
 ]
 dependencies = [
-    "beet @ git+https://github.com/Smithed-MC/beet@fix/overlay-folder-names",
-    "mecha>=0.95.2",
-    "typer>=0.9.0",
-    "tokenstream>=1.7.0",
-    "backports-strenum>=1.2.8",
-    "rich>=13.6.0",
-    "pydantic>=2.5.2",
+  "beet @ git+https://github.com/Smithed-MC/beet@fix/overlay-folder-names",
+  "mecha>=0.95.2",
+  "typer>=0.9.0",
+  "tokenstream>=1.7.0",
+  "backports-strenum>=1.2.8",
+  "rich>=13.6.0",
+  "pydantic>=2.5.2",
+  "bolt>=0.38.5",
 ]
 description = "Smithed's Python client with CLI, Weld and more"
 license = "MIT"
@@ -23,19 +24,19 @@ weld = "smithed.weld:cli"
 
 [tool.rye]
 dev-dependencies = [
-    "ruff>=0.0.292",
-    "streamlit>=1.34.0",
-    "black>=23.9.1",
-    "pytest>=7.4.2",
-    "pytest-insta>=0.2.0",
-    "lectern>=0.29.1",
-    "devtools>=0.12.2",
-    "streamlit-extras>=0.4.0",
-    "python-semantic-release>=9.1.1",
-    "ipython>=8.16.1",
-    "twine>=5.0.0",
-    "streamlit-elements>=0.1.0",
-    "streamlit-router>=0.1.8",
+  "ruff>=0.0.292",
+  "streamlit>=1.34.0",
+  "black>=23.9.1",
+  "pytest>=7.4.2",
+  "pytest-insta>=0.2.0",
+  "lectern>=0.29.1",
+  "devtools>=0.12.2",
+  "streamlit-extras>=0.4.0",
+  "python-semantic-release>=9.1.1",
+  "ipython>=8.16.1",
+  "twine>=5.0.0",
+  "streamlit-elements>=0.1.0",
+  "streamlit-router>=0.1.8",
 ]
 managed = true
 
