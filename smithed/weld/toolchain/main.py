@@ -44,7 +44,7 @@ def subproject_config(pack_type: PackType, name: str = ""):
     )
 
 
-def inspect_zipfile(file: ZipFile) -> PackType:
+def inspect_zipfile(file: ZipFile, path: str) -> PackType:
     path = ZipPath(file)
 
     if (path / "data").is_dir():
@@ -52,14 +52,14 @@ def inspect_zipfile(file: ZipFile) -> PackType:
     elif (path / "assets").is_dir():
         return PackType.ASSETS
 
-    raise WeldError("Invalid. Pack has neither assets nor data.")
+    raise WeldError("Invalid. Pack '{path}' has neither assets nor data.")
 
 
 def inspect(file: str | ZipFile) -> PackType | Literal[False]:
     match file:
         case str(path) if path.endswith(".zip"):
             with ZipFile(path) as zip:
-                return inspect_zipfile(zip)
+                return inspect_zipfile(zip, path)
 
         case str(path):
             if (path := Path(path)).is_dir():
@@ -68,7 +68,9 @@ def inspect(file: str | ZipFile) -> PackType | Literal[False]:
                 elif (path / "assets").is_dir():
                     return PackType.ASSETS
 
-                raise WeldError(f"Invalid. Pack {path} has neither assets nor data. \n")
+                raise WeldError(
+                    f"Invalid. Pack '{path}' has neither assets nor data. \n"
+                )
 
         case ZipFile() as zip:
             return inspect_zipfile(zip)

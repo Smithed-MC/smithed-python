@@ -1,0 +1,11 @@
+id: tacos
+require:
+  - smithed.weld.plugins.registry
+
+data_pack:
+  load: pack
+
+pipeline:
+  - mecha
+
+output: out
