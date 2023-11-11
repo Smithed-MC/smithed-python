@@ -52,7 +52,7 @@ def inspect_zipfile(file: ZipFile, path: str) -> PackType:
     elif (path / "assets").is_dir():
         return PackType.ASSETS
 
-    raise WeldError("Invalid. Pack '{path}' has neither assets nor data.")
+    raise WeldError(f"Invalid. Pack '{path}' has neither assets nor data.")
 
 
 def inspect(file: str | ZipFile) -> PackType | Literal[False]:
