@@ -1,7 +1,7 @@
 from . import merging
 from .toolchain import cli, inject_pack_id_into_smithed, print_pack_name, run_weld
 
-__version__ = "0.14.2"
+__version__ = "0.14.3"
 
 __all__ = [
     "print_pack_name",

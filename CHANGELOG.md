@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v0.14.3 (2023-11-11)
+
+### Fix
+
+* Improve debugging ([`1cf4808`](https://github.com/Smithed-MC/smithed-python/commit/1cf480884547e66f56475057764ff047e329c0aa))
+
+### Documentation
+
+* Fixup changelog ([`8239620`](https://github.com/Smithed-MC/smithed-python/commit/8239620990dd25a890edee227262ba2b812416a8))
+
 ## v0.14.2 (2023-10-15)
 
 ### Fix
