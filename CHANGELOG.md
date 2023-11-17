@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.14.4 (2023-11-11)
+
+### Fix
+
+* Missing f-string ([`fa75e8a`](https://github.com/Smithed-MC/smithed-python/commit/fa75e8a170c426868308f711d1b7a65e409ea624))
+
 ## v0.14.3 (2023-11-11)
 
 ### Fix
