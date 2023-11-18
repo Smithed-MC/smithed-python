@@ -11,10 +11,20 @@ The python package for all things Smithed. Includes weld, cli, and libraries (vi
 We use [rye](https://rye-up.com/) to manage this project's dependencies. This will handle every aspect from grabbing the correct python, downloading dependencies, and managing a virtual environment.
 
 To get started, install rye:
+- [MacOS and linux](#macos-and-linux)
+- [Windows](#windows)
+
+### MacOS and Linux
 
 ```bash
 curl -sSf https://rye-up.com/get | bash
 ```
+
+### Windows
+
+Check the guide [here](https://rye-up.com/guide/installation/#installing-rye) for an in-depth explanation.
+
+## Usage
 
 Once installed, you can sync the project to generate a virtual environment and you'll be set!
 
