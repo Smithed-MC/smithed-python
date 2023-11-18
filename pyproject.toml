@@ -19,6 +19,7 @@ version = "0.14.4"
 
 [project.scripts]
 weld = "smithed.weld:cli"
+smithed = "smithed.cli:cli"
 
 [tool.rye]
 dev-dependencies = [
