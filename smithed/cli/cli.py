@@ -17,6 +17,7 @@ cli = typer.Typer(
     no_args_is_help=True,
 )
 def smithed(
+    
 ):
     """
     Access the smithed API directly from the command line!
