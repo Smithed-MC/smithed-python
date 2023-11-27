@@ -14,8 +14,8 @@ SortOption = Enum('SortOptions', ['trending', 'downloads', 'alphabetically', 'ne
 class PackReference:
     """A type which defines a pack reference.
 
-    :param pack_id: the id of the datapack
-    :type pack_id: str
+    :param id: the id of the datapack
+    :type id: str
 
     :param version: the version of the datapack
     :type version: str
@@ -87,8 +87,8 @@ class PackDisplay:
 class PackData:
     """A type representing whole pack data
     
-    :param pack_id: Id of the datapack.
-    :type pack_id: str
+    :param id: Id of the datapack.
+    :type id: str
 
     :param display: Display data of the pack.
     :type display: PackDisplay
@@ -138,11 +138,11 @@ class PackStats:
 class PackMetadata:
     """A type to represent pack metadata
 
-    :param doc_id: The pack ID - random garbage edition
-    :type doc_id: str
+    :param docId: The pack ID - random garbage edition
+    :type docId: str
 
-    :param raw_id: The pack ID - plaintext
-    :type raw_id: str
+    :param rawId: The pack ID - plaintext
+    :type rawId: str
 
     :param stats: Statistics of the datapack
     :type stats: PackStats
@@ -175,8 +175,8 @@ class PackBundle:
     :param packs: The packs within this bundle.
     :type packs: List of PackReference's
 
-    :param is_public: Is this bundle within public view.
-    :type is_public: bool
+    :param public: Is this bundle within public view.
+    :type public: bool
 
     :param uid: The uid of the pack? (Not sure on this one)
     :type uid: Optional str
