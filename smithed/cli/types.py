@@ -20,7 +20,7 @@ class PackReference:
     :param version: the version of the datapack
     :type version: str
     """
-    pack_id      : str
+    id           : str
     version      : str 
 
 @dataclass
@@ -99,7 +99,7 @@ class PackData:
     :param categories: The categories this datapack is in.
     :type categories: List of packCategory's
     """
-    pack_id      : str
+    id           : str
     display      : PackDisplay
     versions     : list[PackVersion]
     categories   : list[PackCategory]
@@ -153,8 +153,8 @@ class PackMetadata:
     :param contributors: Contributors of the datapack 
     :type contributors: List of str's
     """
-    doc_id       : str
-    raw_Id       : str
+    docId        : str
+    rawId        : str
     stats        : PackStats
     owner        : str
     contributors : list[str]
@@ -185,7 +185,7 @@ class PackBundle:
     name         : str
     version      : MinecraftVersion
     packs        : list[PackReference]
-    is_public    : bool
+    public       : bool
     uid          : Optional[str] 
 
 @dataclass
