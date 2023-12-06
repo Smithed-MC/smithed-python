@@ -1,6 +1,6 @@
 from typing import TypeVar
 
-from pydantic import BaseModel as _BaseModel
+from pydantic.v1 import BaseModel as _BaseModel
 
 T = TypeVar("T")
 

@@ -22,7 +22,7 @@ from typing import Literal, cast
 from beet import Context, DataPack, JsonFile, NamespaceFile
 from beet.contrib.format_json import get_formatter
 from beet.contrib.vanilla import Vanilla
-from pydantic import ValidationError
+from pydantic.v1 import ValidationError
 
 from smithed.type import JsonDict, JsonTypeT
 

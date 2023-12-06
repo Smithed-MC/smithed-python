@@ -8,13 +8,14 @@
 
 -e file:.
 altair==5.1.2
+annotated-types==0.6.0
 appnope==0.1.3
 asttokens==2.4.0
 attrs==23.1.0
 backcall==0.2.0
 backports-strenum==1.2.8
 beautifulsoup4==4.12.2
-beet==0.98.0
+beet==0.100.0
 black==23.9.1
 blinker==1.6.3
 cachetools==5.3.1
@@ -80,7 +81,8 @@ protobuf==4.24.4
 ptyprocess==0.7.0
 pure-eval==0.2.2
 pyarrow==13.0.0
-pydantic==1.10.13
+pydantic==2.5.2
+pydantic-core==2.14.5
 pydeck==0.8.1b0
 pygments==2.16.1
 pymdown-extensions==10.3

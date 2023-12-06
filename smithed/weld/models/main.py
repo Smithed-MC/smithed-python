@@ -3,7 +3,7 @@ import logging
 from typing import Any
 
 from beet import ListOption
-from pydantic import Field, root_validator, validator
+from pydantic.v1 import Field, root_validator, validator
 
 from ..merging.parser import get
 from .base import BaseModel

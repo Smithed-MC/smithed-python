@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Annotated, Literal
 
-from pydantic import Field, validator
+from pydantic.v1 import Field, validator
 
 from .base import BaseModel
 from .conditions import Condition
