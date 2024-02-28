@@ -6,13 +6,21 @@ The python package for all things Smithed. Includes weld, cli, and libraries (vi
 
 - [Docs](https://wiki.smithed.dev/weld/)
 
+```bash
+pip install smithed
+```
+
 ## Contributing
 
 We use [rye](https://rye-up.com/) to manage this project's dependencies. This will handle every aspect from grabbing the correct python, downloading dependencies, and managing a virtual environment.
 
 To get started, install rye:
-- [MacOS and linux](#macos-and-linux)
-- [Windows](#windows)
+- [smithed-python](#smithed-python)
+  - [Weld](#weld)
+  - [Contributing](#contributing)
+    - [MacOS and Linux](#macos-and-linux)
+    - [Windows](#windows)
+  - [Developer Setup](#developer-setup)
 
 ### MacOS and Linux
 
@@ -24,7 +32,7 @@ curl -sSf https://rye-up.com/get | bash
 
 Check the guide [here](https://rye-up.com/guide/installation/#installing-rye) for an in-depth explanation.
 
-## Usage
+## Developer Setup
 
 Once installed, you can sync the project to generate a virtual environment and you'll be set!
 
