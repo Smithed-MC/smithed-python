@@ -16,7 +16,7 @@ license = "MIT"
 name = "smithed"
 readme = "README.md"
 requires-python = ">= 3.10"
-version = "0.15.0"
+version = "0.14.4"
 
 [project.scripts]
 weld = "smithed.weld:cli"
@@ -47,9 +47,8 @@ test = "pytest"
 branch = "main"
 build_command = "rye build"
 major_on_zero = false
-upload_to_pypi = true
 version_toml = ["pyproject.toml:project.version"]
-version_variable = ["smithed/__init__.py:__version__", "smithed/weld/__init__.py:__version__"]
+version_variables = ["smithed/__init__.py:__version__", "smithed/weld/__init__.py:__version__"]
 
 [tool.hatch.metadata]
 allow-direct-references = true

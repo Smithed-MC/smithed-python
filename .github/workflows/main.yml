@@ -78,14 +78,21 @@ jobs:
       # -----          Release Package          -----
       # ---------------------------------------------
       - name: Release
+        id: release
         if: |
           github.repository == 'Smithed-MC/smithed-python'
           && github.event_name == 'push'
           && github.ref == 'refs/heads/main'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "action@github.com"
-          rye run semantic-release publish -v DEBUG -D commit_author="github-actions <action@github.com>"
+        uses: python-semantic-release/python-semantic-release@v9.1.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        if: steps.release.outputs.released == 'true'
+
+      - name: Publish package distributions to GitHub Releases
+        uses: python-semantic-release/upload-to-gh-release@main
+        if: steps.release.outputs.released == 'true'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
