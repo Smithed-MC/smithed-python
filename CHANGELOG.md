@@ -2,6 +2,22 @@
 
 <!--next-version-placeholder-->
 
+## v0.15.0 (2024-03-11)
+
+### Feature
+
+* Update to latest deps, fix bugs, renames, and more ([`c9bed77`](https://github.com/Smithed-MC/smithed-python/commit/c9bed77907e9c00fb357f05498e6988a056a77e6))
+* Bump to 1.20.3 ([`8d9cef5`](https://github.com/Smithed-MC/smithed-python/commit/8d9cef5f60001ddefbf43937f3ad0c4f5a2b2885))
+
+### Fix
+
+* Possible fix ([`3e7c4a3`](https://github.com/Smithed-MC/smithed-python/commit/3e7c4a32e30410f343d32aa29db1744cc081a446))
+
+### Documentation
+
+* Improve README ([`3c26036`](https://github.com/Smithed-MC/smithed-python/commit/3c2603695f983527cc02d56ff883f30b694e2da0))
+* Add contributing instructions to README ([`c5c6663`](https://github.com/Smithed-MC/smithed-python/commit/c5c666312e10dbd4a996ac321a3849b72e8180cf))
+
 ## v0.14.4 (2023-11-11)
 
 ### Fix
