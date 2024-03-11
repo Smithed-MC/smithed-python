@@ -39,17 +39,12 @@ click==8.1.7
     # via beet
     # via black
     # via click-help-colors
-    # via click-log
     # via lectern
     # via python-semantic-release
     # via streamlit
     # via typer
 click-help-colors==0.9.4
     # via beet
-click-log==0.4.0
-    # via python-semantic-release
-colorama==0.4.6
-    # via twine
 contourpy==1.2.0
     # via matplotlib
 cycler==0.12.1
@@ -86,10 +81,10 @@ idna==3.6
 importlib-metadata==7.0.2
     # via keyring
     # via twine
+importlib-resources==6.1.3
+    # via python-semantic-release
 iniconfig==2.0.0
     # via pytest
-invoke==2.2.0
-    # via python-semantic-release
 ipython==8.22.2
 jaraco-classes==3.3.1
     # via keyring
@@ -99,6 +94,7 @@ jinja2==3.1.3
     # via altair
     # via beet
     # via pydeck
+    # via python-semantic-release
     # via streamlit-camera-input-live
     # via streamlit-image-coordinates
     # via streamlit-keyup
@@ -153,7 +149,6 @@ packaging==23.2
     # via black
     # via matplotlib
     # via pytest
-    # via python-semantic-release
     # via streamlit
 pandas==2.2.1
     # via altair
@@ -189,6 +184,7 @@ pyarrow==15.0.1
     # via streamlit
 pydantic==2.6.3
     # via beet
+    # via python-semantic-release
     # via smithed
 pydantic-core==2.16.3
     # via pydantic
@@ -212,7 +208,7 @@ python-dateutil==2.9.0.post0
     # via pandas
 python-gitlab==3.15.0
     # via python-semantic-release
-python-semantic-release==7.34.6
+python-semantic-release==9.1.1
 pytz==2024.1
     # via pandas
 pyyaml==6.0.1
@@ -236,13 +232,15 @@ requests-toolbelt==1.0.0
 rfc3986==2.0.0
     # via twine
 rich==13.7.1
+    # via python-semantic-release
     # via smithed
     # via streamlit
+    # via twine
 rpds-py==0.18.0
     # via jsonschema
     # via referencing
 ruff==0.3.2
-semver==2.13.0
+shellingham==1.5.4
     # via python-semantic-release
 six==1.16.0
     # via asttokens
@@ -299,13 +297,10 @@ toolz==0.12.1
     # via altair
 tornado==6.4
     # via streamlit
-tqdm==4.66.2
-    # via twine
 traitlets==5.14.1
     # via ipython
     # via matplotlib-inline
-twine==3.8.0
-    # via python-semantic-release
+twine==5.0.0
 typer==0.9.0
     # via smithed
 typing-extensions==4.10.0
@@ -321,8 +316,6 @@ urllib3==2.2.1
     # via twine
 wcwidth==0.2.13
     # via prompt-toolkit
-wheel==0.42.0
-    # via python-semantic-release
 wrapt==1.16.0
     # via pytest-insta
 zipp==3.17.0

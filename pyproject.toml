@@ -23,16 +23,17 @@ weld = "smithed.weld:cli"
 
 [tool.rye]
 dev-dependencies = [
-  "ruff>=0.0.292",
-  "streamlit>=1.27.2",
-  "black>=23.9.1",
-  "pytest>=7.4.2",
-  "pytest-insta>=0.2.0",
-  "lectern>=0.29.1",
-  "devtools>=0.12.2",
-  "streamlit-extras>=0.3.4",
-  "python-semantic-release==7.34.6",
-  "ipython>=8.16.1",
+    "ruff>=0.0.292",
+    "streamlit>=1.27.2",
+    "black>=23.9.1",
+    "pytest>=7.4.2",
+    "pytest-insta>=0.2.0",
+    "lectern>=0.29.1",
+    "devtools>=0.12.2",
+    "streamlit-extras>=0.3.4",
+    "python-semantic-release>=9.1.1",
+    "ipython>=8.16.1",
+    "twine>=5.0.0",
 ]
 managed = true
 
