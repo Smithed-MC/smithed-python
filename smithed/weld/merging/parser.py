@@ -56,10 +56,17 @@ def handle_stream(stream: TokenStream, convert_index: bool) -> Iterator[Token | 
                         case Token(type="curly"):
                             yield parse_filter(stream)
                             stream.expect(("curly", "}"))
+
+                        case _:
+                            ...
+
                     stream.expect(("bracket", "]"))
 
                 case Token(type="separator") as token:
                     yield token
+
+                case _:
+                    ...
 
 
 def parse_filter(stream: TokenStream):

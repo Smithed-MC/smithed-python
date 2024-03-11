@@ -171,8 +171,8 @@ class ConflictsHandler:
         """Grabs the vanilla file to load as the current file (aka the base).
 
         ⚠️ Uses the bundled `yellow_shulker_box.json` as an override over vanilla's.
-
         """
+
         if path == "minecraft:blocks/yellow_shulker_box":
             return json.loads(YELLOW_SHULKER_BOX.read_text())
 
@@ -269,6 +269,7 @@ class ConflictsHandler:
         rules = {
             model.id: rule for model in file.smithed.entries() for rule in model.rules
         }
+
         removed_ids: set[str] = set()
         for current_id, rule in rules.items():
             if not all(

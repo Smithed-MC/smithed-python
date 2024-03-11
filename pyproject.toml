@@ -3,13 +3,13 @@ authors = [
   {name = "Smithed Team", email = "team@smithed.dev"},
 ]
 dependencies = [
-    "beet>=0.100.0",
-    "mecha>=0.76.2",
-    "typer>=0.9.0",
-    "tokenstream>=1.7.0",
-    "backports-strenum>=1.2.8",
-    "rich>=13.6.0",
-    "pydantic>=2.5.2",
+  "beet>=0.100.0",
+  "mecha>=0.76.2",
+  "typer>=0.9.0",
+  "tokenstream>=1.7.0",
+  "backports-strenum>=1.2.8",
+  "rich>=13.6.0",
+  "pydantic>=2.5.2",
 ]
 description = "Smithed's Python client with CLI, weld and more"
 license = "MIT"
@@ -53,6 +53,9 @@ version_variable = ["smithed/__init__.py:__version__", "smithed/weld/__init__.py
 
 [tool.hatch.metadata]
 allow-direct-references = true
+
+[tool.pyright]
+mode = "strict"
 
 [build-system]
 build-backend = "hatchling.build"

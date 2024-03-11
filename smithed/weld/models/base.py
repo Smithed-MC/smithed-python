@@ -7,4 +7,4 @@ T = TypeVar("T")
 
 class BaseModel(_BaseModel):
     class Config:
-        json_encoders = {dict: lambda v: list(v)}
+        json_encoders = {dict: lambda v: list(v)}  # type: ignore
