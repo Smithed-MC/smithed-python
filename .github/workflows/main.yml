@@ -44,6 +44,9 @@ jobs:
           enable-cache: true
           cache-prefix: "python-rye"
 
+      - name: Enable uv in rye for speeeeed
+        run: rye config --set-bool behavior.use-uv=true
+
       #----------------------------------------------
       #  -----     install & configure rye     -----
       #----------------------------------------------
