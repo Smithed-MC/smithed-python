@@ -88,9 +88,9 @@ jobs:
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "action@github.com"
-          rye run semantic-release version
-          rye run twine upload dist/*
-          rye run semantic-release publish
+          semantic-release version
+          twine upload dist/*
+          semantic-release publish
 
       # - name: Publish package distributions to PyPI
       #   uses: pypa/gh-action-pypi-publish@release/v1
