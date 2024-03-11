@@ -86,6 +86,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
+          . .venv/bin/activate
           git config --global user.name "github-actions"
           git config --global user.email "action@github.com"
           semantic-release version
