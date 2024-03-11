@@ -79,7 +79,6 @@ htbuilder==0.6.2
 idna==3.6
     # via requests
 importlib-metadata==7.0.2
-    # via keyring
     # via twine
 importlib-resources==6.1.3
     # via python-semantic-release
@@ -141,6 +140,7 @@ numpy==1.26.4
     # via contourpy
     # via matplotlib
     # via nbtlib
+    # via pandas
     # via pyarrow
     # via pydeck
     # via streamlit
