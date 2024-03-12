@@ -39,7 +39,7 @@ jobs:
       #  -----    setup and install python     -----
       # ---------------------------------------------
       - name: Install the latest version of rye
-        uses: eifinger/setup-rye@v1
+        uses: eifinger/setup-rye@v2
         with:
           enable-cache: true
           cache-prefix: "python-rye"
