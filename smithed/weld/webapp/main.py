@@ -103,18 +103,23 @@ def upload_flow(ui: DeltaGenerator):
 
 
 def main():
-    st.set_page_config(page_title="Weld", page_icon=icon, layout="wide")
+    st.set_page_config(
+        page_title="Weld",
+        page_icon=icon,
+        layout="wide",
+    )
 
     st.sidebar.title("Special Merging Rules")
     st.sidebar.write(webapp.conflicts)
     st.sidebar.write("----")
     st.sidebar.write("See [docs](https://wiki.smithed.dev/weld) for more info!")
+    st.sidebar.write("----")
+    st.sidebar.warning(webapp.warn)
 
     st.write(webapp.title.format(version=weld.__version__), unsafe_allow_html=True)
 
     st.write(webapp.intro, unsafe_allow_html=True)
 
-    st.warning(webapp.warn)
     upload_flow(st.container())
 
     st.write("---")

@@ -24,6 +24,9 @@ ENV PATH="$RYE_HOME/shims:$PATH"
 # See: https://github.com/mitsuhiko/rye/issues/246
 RUN curl -sSf https://rye-up.com/get | RYE_NO_AUTO_INSTALL=1 RYE_INSTALL_OPTION="--yes" bash
 
+# Enable UV for speeeeeed
+RUN rye config --set-bool behavior.use-uv=true
+
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a bind mount to some files to avoid having to copy them into
 # into this layer.

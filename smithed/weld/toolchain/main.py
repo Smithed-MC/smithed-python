@@ -73,7 +73,7 @@ def inspect(file: str | ZipFile) -> PackType | Literal[False]:
                 )
 
         case ZipFile() as zip:
-            return inspect_zipfile(zip, "")
+            return inspect_zipfile(zip)
 
     return False
 

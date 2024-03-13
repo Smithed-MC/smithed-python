@@ -253,7 +253,7 @@ st-annotated-text==4.0.1
     # via streamlit-extras
 stack-data==0.6.3
     # via ipython
-streamlit==1.32.0
+streamlit==1.32.1
     # via markdownlit
     # via streamlit-camera-input-live
     # via streamlit-card
