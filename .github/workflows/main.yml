@@ -17,6 +17,7 @@ on:
       - "requirements.lock"
       - "requirements-dev.lock"
       - ".github/workflows/main.yml"
+      - "Dockerfile"
 
 jobs:
   ci:
