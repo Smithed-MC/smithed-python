@@ -2,6 +2,17 @@
 
 
 
+## v0.15.3 (2024-03-13)
+
+### Fix
+
+* fix: Update TWINE_PASSWORD to use PYPI_TOKEN ([`10b337c`](https://github.com/Smithed-MC/smithed-python/commit/10b337c1749502d081322f82ff58cb3ad7ccfe5d))
+
+### Unknown
+
+* Merge branch &#39;main&#39; of https://github.com/Smithed-MC/smithed-python ([`cd5c12e`](https://github.com/Smithed-MC/smithed-python/commit/cd5c12e71e8366e308039e3cb71184d8a99f5280))
+
+
 ## v0.15.2 (2024-03-13)
 
 ### Fix
