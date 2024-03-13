@@ -2,6 +2,17 @@
 
 
 
+## v0.15.2 (2024-03-13)
+
+### Fix
+
+* fix: update PyPI deployment configuration ([`e270fae`](https://github.com/Smithed-MC/smithed-python/commit/e270fae467000537c95848f3c802c437502dccd8))
+
+### Unknown
+
+* Merge branch &#39;main&#39; of https://github.com/Smithed-MC/smithed-python ([`c3e4e08`](https://github.com/Smithed-MC/smithed-python/commit/c3e4e08409fd86dad49ff2070fa51b0e33af716e))
+
+
 ## v0.15.1 (2024-03-13)
 
 ### Fix
