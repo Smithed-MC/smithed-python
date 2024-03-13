@@ -75,7 +75,7 @@ jobs:
         run: rye run test -v
 
       # ---------------------------------------------
-      # -----          Release Package          -----
+      #  -----         Release Package         -----
       # ---------------------------------------------
       - name: Release
         if: |
@@ -94,3 +94,18 @@ jobs:
           semantic-release version
           twine upload dist/*
           semantic-release publish
+
+      # ---------------------------------------------
+      #  -----           Push to prod          -----
+      # ---------------------------------------------
+      - name: Deploy to DevOps
+        if: |
+          github.repository == 'Smithed-MC/smithed-python'
+          && github.event_name == 'push'
+          && github.ref == 'refs/heads/main'
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.PAT }}
+          repository: Smithed-MC/DevOps
+          event-type: update
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "module": "main", "branch": "main"}'
