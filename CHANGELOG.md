@@ -2,6 +2,17 @@
 
 
 
+## v0.15.1 (2024-03-13)
+
+### Fix
+
+* fix: (chore) bump minor ver and clean main.yml workflow ([`b4a9a7d`](https://github.com/Smithed-MC/smithed-python/commit/b4a9a7d12844fdde39c779b69bd540a9a8f20128))
+
+### Unknown
+
+* Merge branch &#39;main&#39; of https://github.com/Smithed-MC/smithed-python ([`7fadde5`](https://github.com/Smithed-MC/smithed-python/commit/7fadde52a5483fca14e9438223379e4d7b89c6cd))
+
+
 ## v0.15.0 (2024-03-12)
 
 ### Chore
