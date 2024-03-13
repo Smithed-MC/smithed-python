@@ -2,6 +2,13 @@
 
 
 
+## v0.15.4 (2024-03-13)
+
+### Fix
+
+* fix: webapp improvements + docker ([`17363ba`](https://github.com/Smithed-MC/smithed-python/commit/17363ba269e8a182a3676a51a70644fbd63d3fe1))
+
+
 ## v0.15.3 (2024-03-13)
 
 ### Fix
