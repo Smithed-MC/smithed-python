@@ -51,7 +51,7 @@ major_on_zero = false
 version_toml = ["pyproject.toml:project.version"]
 version_variables = ["smithed/__init__.py:__version__", "smithed/weld/__init__.py:__version__"]
 
-[tool.hatch.build.targets.wheel.sources]
+[tool.hatch.build.targets.wheel.force-include]
 "smithed/weld" = "weld"
 
 [tool.hatch.metadata]
