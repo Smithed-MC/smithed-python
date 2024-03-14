@@ -16,7 +16,7 @@ license = "MIT"
 name = "smithed"
 readme = "README.md"
 requires-python = ">= 3.10"
-version = "0.15.6"
+version = "0.15.4"
 
 [project.scripts]
 weld = "smithed.weld:cli"
@@ -55,6 +55,12 @@ version_variables = ["smithed/__init__.py:__version__", "smithed/weld/__init__.p
 packages = ["smithed"]
 
 [tool.hatch.build.force-include]
+"smithed/weld" = "weld"
+
+[tool.hatch.build.targets.sdist.force-include]
+"smithed/weld" = "weld"
+
+[tool.hatch.build.targets.wheel.force-include]
 "smithed/weld" = "weld"
 
 [tool.hatch.metadata]
