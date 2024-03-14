@@ -55,4 +55,4 @@ COPY . .
 
 EXPOSE ${PORT}
 
-CMD ["streamlit", "run", "app/main.py", "--browser.serverAddress", "0.0.0.0"]
+CMD [".venv/bin/python", "-m", "streamlit", "run", "app/main.py", "--browser.serverAddress", "0.0.0.0"]
