@@ -2,6 +2,27 @@
 
 
 
+## v0.15.5 (2024-03-14)
+
+### Chore
+
+* chore: continue on error ([`82ae026`](https://github.com/Smithed-MC/smithed-python/commit/82ae02626678f682fd3b43a7be404b766a176b59))
+
+* chore: watch Dockerfile ([`81a945d`](https://github.com/Smithed-MC/smithed-python/commit/81a945d5f4e2abc392ec933133241b192d9d8598))
+
+* chore: disable uv ([`d5873e9`](https://github.com/Smithed-MC/smithed-python/commit/d5873e96ffca1bad5fe0b0a08b9a64669948d5d6))
+
+* chore: Update release and deployment workflows ([`e3d6726`](https://github.com/Smithed-MC/smithed-python/commit/e3d6726f8236509c6d40a9b4d7671bc43a2801ba))
+
+### Fix
+
+* fix: import weld etc ([`da82576`](https://github.com/Smithed-MC/smithed-python/commit/da825763997503a232c652bc1735076cf80a5e30))
+
+### Unknown
+
+* Merge branch &#39;main&#39; of https://github.com/Smithed-MC/smithed-python ([`afb7b19`](https://github.com/Smithed-MC/smithed-python/commit/afb7b190c22593c13979b9bbc989be10d9579cb2))
+
+
 ## v0.15.4 (2024-03-13)
 
 ### Fix
