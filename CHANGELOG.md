@@ -2,6 +2,17 @@
 
 
 
+## v0.15.7 (2024-03-14)
+
+### Fix
+
+* fix: lib pypi hot fix ([`88d8a8b`](https://github.com/Smithed-MC/smithed-python/commit/88d8a8b68425885b66ec97c7e661b17de9c8ea52))
+
+### Unknown
+
+* Merge branch &#39;main&#39; of https://github.com/Smithed-MC/smithed-python ([`5cf6778`](https://github.com/Smithed-MC/smithed-python/commit/5cf67783c33c9767279e8099681724b97d90bb06))
+
+
 ## v0.15.6 (2024-03-14)
 
 ### Fix
