@@ -36,7 +36,7 @@ webapp = WebApp.parse_obj(
 def upload_flow(ui: DeltaGenerator):
     progress = ui.container()
     raw_packs = ui.file_uploader("Upload packs", accept_multiple_files=True, type="zip")
-    packs = [ZipFile(pack) for pack in raw_packs]
+    packs = [ZipFile(pack) for pack in raw_packs] if raw_packs else []
 
     col1, col2, col3 = ui.columns(3)
     with col2:
@@ -46,13 +46,6 @@ def upload_flow(ui: DeltaGenerator):
     path = None
     t0 = time.perf_counter()
     if col1.button("Build Packs", disabled=not packs, key="build") and packs:
-        # for pack in packs:
-        #     with (temp / pack.name).with_suffix(".zip").open("wb") as temp_file:
-        #         temp_file.write(pack.read())
-        # pack_paths = list(str(path) for path in temp.glob("*.zip"))
-        # if error := validate_zips(pack_paths):
-        #     st.error(error)
-        #     return
         with st.status(f"Welding {len(packs)} packs!", expanded=False) as status:
             stream = init_logger()
             stream.seek(0)

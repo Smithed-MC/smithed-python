@@ -17,7 +17,7 @@ from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from importlib import resources
-from typing import Literal, cast
+from typing import Iterator, Literal, cast
 
 from beet import Context, DataPack, JsonFile, NamespaceFile
 from beet.contrib.format_json import get_formatter
@@ -376,7 +376,7 @@ class ConflictsHandler:
             return False
 
         # Apply each rule's logic
-        match rule:
+        match rule:   # type: ignore (i disagree)
             case MergeRule(source=ValueSource(value=value)):
                 merge(raw, rule.target, value)
 
@@ -397,6 +397,6 @@ class ConflictsHandler:
 
         return raw
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[tuple[type[NamespaceFile], str]]:
         for json_file_type, paths in self.cache.items():
             yield from [(json_file_type, path) for path in paths]
