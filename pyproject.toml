@@ -51,7 +51,7 @@ major_on_zero = false
 version_toml = ["pyproject.toml:project.version"]
 version_variables = ["smithed/__init__.py:__version__", "smithed/weld/__init__.py:__version__"]
 
-[tool.hatch.build.targets.wheel.force-include]
+[tool.hatch.build.force-include]
 "smithed/weld" = "weld"
 
 [tool.hatch.metadata]
@@ -62,4 +62,4 @@ mode = "strict"
 
 [build-system]
 build-backend = "hatchling.build"
-requires = ["hatchling"]
+requires = ["hatchling<1.19"]
