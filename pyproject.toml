@@ -51,23 +51,14 @@ major_on_zero = false
 version_toml = ["pyproject.toml:project.version"]
 version_variables = ["smithed/__init__.py:__version__", "smithed/weld/__init__.py:__version__"]
 
-[tool.hatch.build.targets.wheel]
-packages = ["smithed"]
-
-[tool.hatch.build.force-include]
-"smithed/weld" = "weld"
-
-[tool.hatch.build.targets.sdist.force-include]
-"smithed/weld" = "weld"
+[tool.pyright]
+mode = "strict"
 
 [tool.hatch.build.targets.wheel.force-include]
 "smithed/weld" = "weld"
 
 [tool.hatch.metadata]
 allow-direct-references = true
-
-[tool.pyright]
-mode = "strict"
 
 [build-system]
 build-backend = "hatchling.build"
