@@ -2,6 +2,17 @@
 
 
 
+## v0.15.6 (2024-03-14)
+
+### Fix
+
+* fix: imports Update Dockerfile and pyproject.toml ([`b7c58ec`](https://github.com/Smithed-MC/smithed-python/commit/b7c58ec28e6eebf88f06403ebc914cac546a2016))
+
+### Unknown
+
+* Merge branch &#39;main&#39; of https://github.com/Smithed-MC/smithed-python ([`f34a0cb`](https://github.com/Smithed-MC/smithed-python/commit/f34a0cb49c2d239b4263c6a39ab47df549cf22b9))
+
+
 ## v0.15.5 (2024-03-14)
 
 ### Chore
