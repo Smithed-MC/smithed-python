@@ -2,6 +2,17 @@
 
 
 
+## v0.15.8 (2024-03-14)
+
+### Fix
+
+* fix: pyproject damn ([`e488d46`](https://github.com/Smithed-MC/smithed-python/commit/e488d4627cd9cfd2d4ff632bd2595b02615c4f22))
+
+### Unknown
+
+* Merge branch &#39;main&#39; of https://github.com/Smithed-MC/smithed-python ([`9932185`](https://github.com/Smithed-MC/smithed-python/commit/99321856ed5768c77d3b8115a49bfa259c7d9e92))
+
+
 ## v0.15.7 (2024-03-14)
 
 ### Fix
