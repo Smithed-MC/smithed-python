@@ -2,6 +2,17 @@
 
 
 
+## v0.15.9 (2024-03-14)
+
+### Fix
+
+* fix: pip install damn ([`408f596`](https://github.com/Smithed-MC/smithed-python/commit/408f5967fb829d47c84065ccce31489c73a113f4))
+
+### Unknown
+
+* Merge branch &#39;main&#39; of https://github.com/Smithed-MC/smithed-python ([`c269533`](https://github.com/Smithed-MC/smithed-python/commit/c269533045abe0cd3da2cc6dc5d8a5bc3234ac5d))
+
+
 ## v0.15.8 (2024-03-14)
 
 ### Fix
