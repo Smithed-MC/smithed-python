@@ -376,7 +376,7 @@ class ConflictsHandler:
             return False
 
         # Apply each rule's logic
-        match rule:   # type: ignore (i disagree)
+        match rule:  # type: ignore (i disagree)
             case MergeRule(source=ValueSource(value=value)):
                 merge(raw, rule.target, value)
 

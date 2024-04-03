@@ -17,9 +17,11 @@ RUN \
   apt-get update \
   && apt-get install -y --no-install-recommends build-essential
 
+ENV CARGO_HOME="/opt/cargo"
+ENV PATH="/opt/cargo/bin:$PATH"
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
-RUN /root/.cargo/bin/uv venv
+RUN uv venv
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a bind mount to some files to avoid having to copy them into
@@ -30,7 +32,7 @@ RUN --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     --mount=type=bind,source=requirements-dev.lock,target=requirements-dev.lock \
     --mount=type=bind,source=.python-version,target=.python-version \
     --mount=type=bind,source=README.md,target=README.md \
-    /root/.cargo/bin/uv pip install -r requirements-dev.lock
+    uv pip install -r requirements-dev.lock
 
 RUN . .venv/bin/activate
 

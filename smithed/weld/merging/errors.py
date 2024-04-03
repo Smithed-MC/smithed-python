@@ -7,3 +7,7 @@ class MergingError(WeldError):
 
 class PriorityError(MergingError):
     """Error related to resolving priorities"""
+
+
+class ParsingError(WeldError):
+    """Error related to parsing json path"""

@@ -36,25 +36,39 @@ def add_fabric_mod_json(ctx: Context, packs: list[str] | list[ZipFile]):
     )
 
 
-def inject_pack_id_into_smithed(ctx: Context):
+def inject_pack_stuff_into_smithed(ctx: Context):
     """TODO: there needs to be a better way to inject the id, perhaps during proper
     preprocessing later in the process.
     """
 
     id = (
-        ctx.data.mcmeta.data.get("id", "missing")
+        ctx.data.mcmeta.data.get("id", ctx.generate.format("missing_{incr}"))
         if ctx.data
-        else ctx.assets.mcmeta.data.get("id", "missing")
+        else ctx.assets.mcmeta.data.get("id", ctx.generate.format("missing_{incr}"))
     )
 
-    for _, data in ctx.query(match="*", extend=JsonFileBase).items():
+    override = (
+        ctx.data.mcmeta.data.get("__smithed__", {}).get("override", False)
+        if ctx.data
+        else ctx.assets.mcmeta.data.get("__smithed__", {}).get("override", False)
+    )
+
+    for namespace_file_type, data in ctx.query(match="*", extend=JsonFileBase).items():
         if not isinstance(data, dict):
             continue
 
-        for _, resource in data.keys():
-            if smithed := resource.data.get("__smithed__"):
+        for namespace, resource in data.keys():
+            if override:
+                resource.data.setdefault("__smithed__", {})
+
+            smithed = resource.data.get("__smithed__", False)
+            if smithed is not False:
                 if isinstance(smithed, list):
                     for item in smithed:  # type: ignore
                         item["id"] = id
+                        if override:
+                            smithed["override"] = override  # type: ignore
                 elif isinstance(smithed, dict):
                     smithed["id"] = id
+                    if override:
+                        smithed["override"] = override

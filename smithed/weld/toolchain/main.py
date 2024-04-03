@@ -45,7 +45,7 @@ def subproject_config(pack_type: PackType, name: str = ""):
             pack_type: {"load": name},
             "pipeline": [
                 "smithed.weld.print_pack_name",
-                "smithed.weld.inject_pack_id_into_smithed",
+                "smithed.weld.inject_pack_stuff_into_smithed",
             ],
         }
     )

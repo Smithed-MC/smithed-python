@@ -11,5 +11,7 @@ def init_logger():
     weld_logger = logging.getLogger("weld")
     weld_logger.addHandler(console)
     weld_logger.setLevel(logging.INFO)
+    stream.seek(0)
+    stream.truncate()
 
     return stream

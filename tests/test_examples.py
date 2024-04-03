@@ -43,7 +43,9 @@ def test_build(
 
         # ignore pack format
         snapshot_doc = snapshot("pack.md")
-        snapshot_doc.assets.pack_format = document.assets.pack_format
-        snapshot_doc.data.pack_format = document.data.pack_format
+        if hasattr(snapshot_doc, "assets"):
+            snapshot_doc.assets.pack_format = document.assets.pack_format
+        if hasattr(snapshot_doc, "data"):
+            snapshot_doc.data.pack_format = document.data.pack_format
 
         assert snapshot_doc == document

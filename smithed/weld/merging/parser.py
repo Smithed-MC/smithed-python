@@ -10,6 +10,8 @@ from tokenstream import Token, TokenStream
 
 from smithed.type import JsonDict, JsonList, JsonType
 
+from .errors import ParsingError
+
 logger = logging.getLogger("weld")
 
 
@@ -57,16 +59,22 @@ def handle_stream(stream: TokenStream, convert_index: bool) -> Iterator[Token | 
                             yield parse_filter(stream)
                             stream.expect(("curly", "}"))
 
-                        case _:
-                            ...
+                        case Token() as token:
+                            raise ParsingError(
+                                f"Unexpected token {token} reached."
+                                " Expected number or filter subexpression."
+                            )
 
                     stream.expect(("bracket", "]"))
 
                 case Token(type="separator") as token:
                     yield token
 
-                case _:
-                    ...
+                case Token() as token:
+                    raise ParsingError(
+                        f"Unexpected token {token} reached."
+                        " Expected key, bracket, or separator."
+                    )
 
 
 def parse_filter(stream: TokenStream):
@@ -75,7 +83,7 @@ def parse_filter(stream: TokenStream):
             key = value
         case Token(type="string", value=value):
             key = value[1:-1]
-        case token:
+        case Token() as token:
             raise ValueError(f"Expected key or string. Found {token}")
 
     stream.expect("colon")
@@ -195,4 +203,5 @@ def merge(obj: JsonDict, path: str, value: JsonType):
 
 def replace(obj: JsonDict, path: str, value: JsonType):
     parent, _, key = traverse(obj, path, True)
+    parent[key] = value
     parent[key] = value
