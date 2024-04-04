@@ -37,13 +37,6 @@ dev-dependencies = [
 ]
 managed = true
 
-[tool.rye.scripts]
-check = {chain = ["check:black", "check:ruff"]}
-"check:black" = "black smithed examples tests --check"
-"check:ruff" = "ruff smithed examples tests"
-format = "black smithed examples tests"
-test = "pytest"
-
 [tool.semantic_release]
 branch = "main"
 build_command = "rye build"

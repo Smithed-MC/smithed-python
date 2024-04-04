@@ -70,10 +70,10 @@ jobs:
       #----------------------------------------------
 
       - name: Run linting and style checking
-        run: rye run check
+        run: rye format --check
 
       - name: Run unit tests
-        run: rye run test -v
+        run: rye test -v
 
       # ---------------------------------------------
       #  -----         Release Package         -----
