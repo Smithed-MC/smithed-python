@@ -59,3 +59,7 @@ Rule = Annotated[
     MergeRule | AppendRule | PrependRule | InsertRule | ReplaceRule | RemoveRule,
     Field(..., discriminator="type"),
 ]
+
+class RuleHelper(BaseModel):
+    rule: Rule
+ 

@@ -27,7 +27,10 @@ def test_build(
             if pack.is_dir()
         ]
     )
-    with caplog.at_level(logging.WARNING), run_weld(packs, config=TEST_CONFIG) as ctx:
+    with (
+        caplog.at_level(logging.DEBUG, logger="weld"),
+        run_weld(packs, config=TEST_CONFIG) as ctx,
+    ):
         document = ctx.inject(Document)
         document.markdown_serializer.flat = True
 

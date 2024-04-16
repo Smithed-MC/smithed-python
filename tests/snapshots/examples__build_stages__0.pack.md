@@ -7,7 +7,7 @@
 ```json
 {
   "pack": {
-    "pack_format": 18,
+    "pack_format": 26,
     "description": ""
   },
   "id": "pack.early"
@@ -20,8 +20,8 @@
 
 ```json
 {
-  "random_sequence": "minecraft:entities/wither",
   "type": "minecraft:entity",
+  "random_sequence": "minecraft:entities/wither",
   "pools": [
     {
       "rolls": 1,
