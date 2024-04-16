@@ -119,13 +119,6 @@ class ConflictsHandler:
         if path.startswith("minecraft:"):
             if path not in self.vanilla:
                 current.data = self.grab_vanilla(path, json_file_type)
-                # if path == "minecraft:blocks/yellow_shulker_box":
-                #     logger.warn(
-                #         f"Weld is ignoring [bold]'{path}'[/bold] for now.",
-                #         extra={"markup": True},
-                #     )
-                #     return True
-
                 self.vanilla.add(path)
 
         # Handle non-vanilla paths, swap conflict w/ current if no smithed rules exist
@@ -174,9 +167,6 @@ class ConflictsHandler:
 
         ⚠️ Uses the bundled `yellow_shulker_box.json` as an override over vanilla's.
         """
-
-        # if path == "minecraft:blocks/yellow_shulker_box":
-        #     return json.loads(YELLOW_SHULKER_BOX.read_text())
 
         vanilla = self.ctx.inject(Vanilla)
         return cast(JsonFile, vanilla.data[json_file_type][path]).data
