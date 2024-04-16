@@ -2,6 +2,35 @@
 
 
 
+## v0.16.0 (2024-04-04)
+
+### Chore
+
+* chore: update format and linting to use bundled `ruff` from `rye` ([`e79792a`](https://github.com/Smithed-MC/smithed-python/commit/e79792a5763209d4e8db852ac9a51c134d378cfd))
+
+* chore: elevate perms ([`31674a0`](https://github.com/Smithed-MC/smithed-python/commit/31674a0a6e4f8cc227a52a25048069296102f124))
+
+* chore: Dockerfile nonsense ([`23bce02`](https://github.com/Smithed-MC/smithed-python/commit/23bce02be929e49d6fc688a472fa0ec4ed5be427))
+
+### Feature
+
+* feat: override feature in `pack.mcmeta` `__smithed__.override` ([`1468aa1`](https://github.com/Smithed-MC/smithed-python/commit/1468aa1d4b98c7226de79bf8af9ea47d9c061d32))
+
+### Fix
+
+* fix: better error handling for invalid mcmeta files ([`db82278`](https://github.com/Smithed-MC/smithed-python/commit/db82278815d317cca55d0cbe98ae9462cc2e7079))
+
+### Style
+
+* style: lint ([`a9f81be`](https://github.com/Smithed-MC/smithed-python/commit/a9f81be6808419dd995274fd9f5a507ab9b02ec5))
+
+### Unknown
+
+* &#39;style: linting errors&#39;g ([`4ca94e1`](https://github.com/Smithed-MC/smithed-python/commit/4ca94e19ebfd25def0e82eb31b903bc875fd4951))
+
+* Merge branch &#39;main&#39; of https://github.com/Smithed-MC/smithed-python ([`0a85964`](https://github.com/Smithed-MC/smithed-python/commit/0a859643d9c62f4aeb9d909542cc4ad22ba44222))
+
+
 ## v0.15.9 (2024-03-14)
 
 ### Fix
