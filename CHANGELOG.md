@@ -2,6 +2,21 @@
 
 
 
+## v0.17.0 (2024-04-16)
+
+### Feature
+
+* feat: adds de-duping plus critical multiple rule bug fix ([`1b160a7`](https://github.com/Smithed-MC/smithed-python/commit/1b160a7f0588dcaaab5e74891ad8a190460b213c))
+
+### Style
+
+* style: format ([`066c420`](https://github.com/Smithed-MC/smithed-python/commit/066c4203ebd4182e4e6d015e0e12ab8905d81864))
+
+### Unknown
+
+* Merge branch &#39;main&#39; of https://github.com/Smithed-MC/smithed-python ([`05358f5`](https://github.com/Smithed-MC/smithed-python/commit/05358f50b30591ca8ae7de23ffc5f5dba8ab121d))
+
+
 ## v0.16.0 (2024-04-04)
 
 ### Chore
