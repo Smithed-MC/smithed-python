@@ -2,6 +2,27 @@
 
 
 
+## v0.17.1 (2024-04-16)
+
+### Fix
+
+* fix: module should be weld ([`4e8d487`](https://github.com/Smithed-MC/smithed-python/commit/4e8d48775538fbdd4b2f038233382a5528bc6c37))
+
+### Style
+
+* style: remove old hardcoded yellow shulker box in resources ([`6a80a2d`](https://github.com/Smithed-MC/smithed-python/commit/6a80a2dd52b4fba9ea8c4aaf57ecef2b0cf95217))
+
+* style: remove old hardcoded yellow shulker box code ([`167b104`](https://github.com/Smithed-MC/smithed-python/commit/167b10456814bd6171726030f291fc9a5bdff357))
+
+### Test
+
+* test: added test for exact duplicate files ([`60cb1ba`](https://github.com/Smithed-MC/smithed-python/commit/60cb1ba5686b2d4844b22591123f33ab378ddc82))
+
+### Unknown
+
+* test workflow ([`fe7ce0a`](https://github.com/Smithed-MC/smithed-python/commit/fe7ce0a0304ae7e0891db92dde2fcd6ba95ba4ba))
+
+
 ## v0.17.0 (2024-04-16)
 
 ### Feature
