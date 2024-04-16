@@ -39,17 +39,6 @@ class SmithedModel(BaseModel, extra="forbid"):
             if rule.priority is None:
                 rule.priority = value
 
-    def __eq__(self, other: object) -> bool:
-        if type(other) is not SmithedModel:
-            raise ValueError("Can only compare to other `SmithedModel`s")
-
-        return (
-            (other.override == self.override)
-            and (other.rules == self.rules)
-            and (other.version == self.version)
-            and (other.priority == self.priority)
-        )
-
 
 class SmithedJsonFile(BaseModel, extra="allow"):
     """Accepts any standard JSON file from in-game, only needs as `__smithed__` field

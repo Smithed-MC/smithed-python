@@ -16,7 +16,6 @@ from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from importlib import resources
-from itertools import chain
 from typing import Iterator, Literal, cast
 
 from beet import Context, DataPack, JsonFile, ListOption, NamespaceFile
@@ -230,8 +229,7 @@ class ConflictsHandler:
                             item["_index"] = index
 
                 return [
-                    self.manage_indexes(item, strip)
-                    for item in value  # type: ignore
+                    self.manage_indexes(item, strip) for item in value  # type: ignore
                 ]
 
             case dict(value):
@@ -406,10 +404,17 @@ class ConflictsHandler:
 
 
 def dedupe_conflict(current: SmithedJsonFile, conflict: SmithedJsonFile):
+    """This dedupe goes through all of the rules in the conflict file, ditches them if
+    it already exists in the currently loaded rules. It looks pretty unperformant but
+    these lists shouldn't be too large so it's alright. We need to keep the order and
+    using sets would require me to make everything hashable."""
+
+    loaded_rules = [
+        rule for model in current.smithed.entries() for rule in model.rules
+    ]
+    for model in conflict.smithed.entries():
+        model.rules = [rule for rule in model.rules if rule not in loaded_rules]
+
     conflict.smithed = ListOption(
-        __root__=[
-            item
-            for item in conflict.smithed.entries()
-            if item not in current.smithed.entries()
-        ]
+        __root__=[model for model in conflict.smithed.entries() if model.rules]
     )

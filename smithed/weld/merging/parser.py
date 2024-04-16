@@ -204,4 +204,3 @@ def merge(obj: JsonDict, path: str, value: JsonType):
 def replace(obj: JsonDict, path: str, value: JsonType):
     parent, _, key = traverse(obj, path, True)
     parent[key] = value
-    parent[key] = value
