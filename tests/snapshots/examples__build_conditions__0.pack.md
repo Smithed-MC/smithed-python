@@ -7,7 +7,7 @@
 ```json
 {
   "pack": {
-    "pack_format": 18,
+    "pack_format": 26,
     "description": ""
   },
   "id": "pass"
@@ -126,8 +126,7 @@
             }
           }
         }
-      ],
-      "priority": {}
+      ]
     },
     {
       "id": "pass",

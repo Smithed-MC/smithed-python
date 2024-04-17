@@ -23,7 +23,7 @@ from beet.contrib.format_json import get_formatter
 from beet.contrib.vanilla import Vanilla
 from pydantic.v1 import ValidationError
 
-from smithed.type import JsonDict, JsonTypeT
+from smithed.type import JsonDict, JsonType, JsonTypeT
 
 from ..models import (
     AppendRule,
@@ -150,6 +150,8 @@ class ConflictsHandler:
         raw: JsonDict = deserialize(smithed_current)
         current.data["__smithed__"] = raw["__smithed__"]
 
+        current.data = normalize_quotes(current.data)
+
         return True
 
     def parse_smithed_file(self, file: JsonFile) -> SmithedJsonFile | Literal[False]:
@@ -229,8 +231,7 @@ class ConflictsHandler:
                             item["_index"] = index
 
                 return [
-                    self.manage_indexes(item, strip)
-                    for item in value  # type: ignore
+                    self.manage_indexes(item, strip) for item in value  # type: ignore
                 ]
 
             case dict(value):
@@ -417,3 +418,18 @@ def dedupe_conflict(current: SmithedJsonFile, conflict: SmithedJsonFile):
     conflict.smithed = ListOption(
         __root__=[model for model in conflict.smithed.entries() if model.rules]
     )
+
+
+def normalize_quotes(current: JsonTypeT) -> JsonTypeT:
+    """It's a bit odd but we need some normalization"""
+
+    match current:
+        case {**d}:
+            return {
+                key.replace('"', ""): normalize_quotes(value)
+                for key, value in d.items()
+            }
+        case [*l]:
+            return [normalize_quotes(value) for value in l]
+        case item:
+            return item

@@ -1,0 +1,19 @@
+{
+    "foo": [
+        {
+            "\"minecraft:bar\"": {
+                "taco": "bell"
+            }
+        },
+        {
+            "minecraft:bar": {
+                "taco": "bell"
+            }
+        },
+        {
+            "bar": {
+                "taco": "bell"
+            }
+        }
+    ]
+}

@@ -20,6 +20,8 @@
 
 ```json
 {
+  "type": "minecraft:entity",
+  "random_sequence": "minecraft:entities/zombie",
   "pools": [
     {
       "bonus_rolls": 0.0,
@@ -122,8 +124,6 @@
       ]
     }
   ],
-  "type": "minecraft:entity",
-  "random_sequence": "minecraft:entities/zombie",
   "__smithed__": [
     {
       "id": "pack1",
@@ -144,8 +144,7 @@
             }
           }
         }
-      ],
-      "priority": {}
+      ]
     },
     {
       "id": "pack2",
@@ -197,8 +196,7 @@
             }
           }
         }
-      ],
-      "priority": {}
+      ]
     }
   ]
 }

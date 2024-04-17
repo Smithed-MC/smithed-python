@@ -3,7 +3,7 @@ import logging
 from typing import Any
 
 from beet import ListOption
-from pydantic.v1 import Field, root_validator, validator
+from pydantic.v1 import Field, root_validator
 
 from ..merging.parser import get
 from .base import BaseModel
@@ -22,22 +22,29 @@ class SmithedModel(BaseModel, extra="forbid"):
     id: str = ""
     version: int = 1
     override: bool = False  # only should be set by bundle packs
-    rules: list[Rule] = []
     priority: Priority | None = None
+    rules: list[Rule] = []
 
-    @validator("priority", always=True)
-    def push_down_priorities(cls, value: Priority, values: dict[str, list[Rule]]):
+    @root_validator
+    def push_down_priorities(cls, values: dict[str, Any]) -> dict[str, Any]:
         """Push down top-level priority to every rule.
 
         If a rule has a priority defined, it will not be overwritten.
         """
 
-        if value is None:
-            return Priority()
+        rules: list[Rule] = values.get("rules")  # type: ignore
+        priority: Priority | None = values.get("priority")  # type: ignore
 
-        for rule in values["rules"]:
+        if priority is None:
+            priority = Priority()
+
+        for rule in rules:
             if rule.priority is None:
-                rule.priority = value
+                rule.priority = priority
+
+        values.pop("priority")
+
+        return values
 
 
 class SmithedJsonFile(BaseModel, extra="allow"):

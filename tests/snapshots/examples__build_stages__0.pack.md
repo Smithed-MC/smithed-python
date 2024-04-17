@@ -20,8 +20,8 @@
 
 ```json
 {
-  "type": "minecraft:entity",
   "random_sequence": "minecraft:entities/wither",
+  "type": "minecraft:entity",
   "pools": [
     {
       "rolls": 1,
@@ -87,8 +87,7 @@
             }
           }
         }
-      ],
-      "priority": {}
+      ]
     },
     {
       "id": "pack1",
@@ -160,8 +159,7 @@
             }
           }
         }
-      ],
-      "priority": {}
+      ]
     }
   ]
 }
