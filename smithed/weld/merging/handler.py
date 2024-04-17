@@ -11,20 +11,19 @@ It uses the beet's merge policies to implement a conflict handler that registers
   each other.
 """
 
-import json
 import logging
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from importlib import resources
-from typing import Literal, cast
+from typing import Iterator, Literal, cast
 
-from beet import Context, DataPack, JsonFile, NamespaceFile
+from beet import Context, DataPack, JsonFile, ListOption, NamespaceFile
 from beet.contrib.format_json import get_formatter
 from beet.contrib.vanilla import Vanilla
-from pydantic import ValidationError
+from pydantic.v1 import ValidationError
 
-from smithed.type import JsonDict, JsonTypeT
+from smithed.type import JsonDict, JsonType, JsonTypeT
 
 from ..models import (
     AppendRule,
@@ -91,6 +90,8 @@ class ConflictsHandler:
         elif smithed_conflict is False:
             return True
 
+        dedupe_conflict(smithed_current, smithed_conflict)
+
         current_entries = smithed_current.smithed.entries()
 
         if len(current_entries) > 0 and current_entries[0].override:
@@ -117,13 +118,6 @@ class ConflictsHandler:
         if path.startswith("minecraft:"):
             if path not in self.vanilla:
                 current.data = self.grab_vanilla(path, json_file_type)
-                if path == "minecraft:blocks/yellow_shulker_box":
-                    logger.warn(
-                        f"Weld is ignoring [bold]'{path}'[/bold] for now.",
-                        extra={"markup": True},
-                    )
-                    return True
-
                 self.vanilla.add(path)
 
         # Handle non-vanilla paths, swap conflict w/ current if no smithed rules exist
@@ -156,6 +150,8 @@ class ConflictsHandler:
         raw: JsonDict = deserialize(smithed_current)
         current.data["__smithed__"] = raw["__smithed__"]
 
+        current.data = normalize_quotes(current.data)
+
         return True
 
     def parse_smithed_file(self, file: JsonFile) -> SmithedJsonFile | Literal[False]:
@@ -171,10 +167,7 @@ class ConflictsHandler:
         """Grabs the vanilla file to load as the current file (aka the base).
 
         ⚠️ Uses the bundled `yellow_shulker_box.json` as an override over vanilla's.
-
         """
-        if path == "minecraft:blocks/yellow_shulker_box":
-            return json.loads(YELLOW_SHULKER_BOX.read_text())
 
         vanilla = self.ctx.inject(Vanilla)
         return cast(JsonFile, vanilla.data[json_file_type][path]).data
@@ -203,20 +196,25 @@ class ConflictsHandler:
     def process_file(self, file: SmithedJsonFile) -> JsonDict:
         """Process each file's rules"""
 
-        logger.debug("Resolving priorities")
-        rules = self.resolve_priorities(file)
+        logger.debug("Resolving priorities..")
+        rules_dict = self.resolve_priorities(file)
         logger.debug(
             "Rules: %s",
-            ", ".join(f"{id} {type(rule).__name__}" for id, rule in rules.items()),
+            ", ".join(
+                f"{id} {type(rule).__name__}"
+                for id, rules in rules_dict.items()
+                for rule in rules
+            ),
         )
 
         logger.debug("Injecting `_index`")
         raw = self.manage_indexes(deserialize(file, defaults=False))
 
-        logger.debug(f"Pack order: {', '.join(rules)}")
-        for id, rule in rules.items():
-            if applied := self.apply_rule(raw, id, rule):
-                raw = applied
+        logger.debug(f"Pack order: {', '.join(rules_dict)}")
+        for id, rules in rules_dict.items():
+            for rule in rules:
+                if applied := self.apply_rule(raw, id, rule):
+                    raw = applied
 
         return self.manage_indexes(raw, strip=True)
 
@@ -233,7 +231,8 @@ class ConflictsHandler:
                             item["_index"] = index
 
                 return [
-                    self.manage_indexes(item, strip) for item in value  # type: ignore
+                    self.manage_indexes(item, strip)
+                    for item in value  # type: ignore
                 ]
 
             case dict(value):
@@ -246,7 +245,7 @@ class ConflictsHandler:
                 return other
 
     def pre_process_condition(
-        self, rules: dict[str, Rule], condition: Condition
+        self, rules: dict[str, list[Rule]], condition: Condition
     ) -> bool:
         """Returns true if all conditions satisfy their criteria."""
 
@@ -265,55 +264,62 @@ class ConflictsHandler:
         Converts each 'before' priority into 'after' (as it's easier to resolve).
         """
 
-        # refactor to be cleaner
-        rules = {
-            model.id: rule for model in file.smithed.entries() for rule in model.rules
-        }
+        rules_dict: dict[str, list[Rule]] = defaultdict(list)
+        for model in file.smithed.entries():
+            rules_dict[model.id].extend(model.rules)
+
         removed_ids: set[str] = set()
-        for current_id, rule in rules.items():
-            if not all(
-                self.pre_process_condition(rules, condition)
-                for condition in rule.conditions
-            ):
-                logging.info("Skipping rule from %s due to conditions", current_id)
-                removed_ids.add(current_id)
-                continue
+        for current_id, rules in rules_dict.items():
+            for rule in rules:
+                if not all(
+                    self.pre_process_condition(rules_dict, condition)
+                    for condition in rule.conditions
+                ):
+                    logging.info("Skipping rule from %s due to conditions", current_id)
+                    removed_ids.add(current_id)
+                    continue
 
-            assert rule.priority is not None
-            if before := rule.priority.before.entries():
-                for id in before:
-                    if id not in rules:
-                        logger.warn(f"Priority: {id} was not found. Ignoring Rule.")
-                        continue
-                    other_rule = rules[id]
-                    assert other_rule.priority is not None
-                    if current_id not in other_rule.priority.after.entries():
-                        other_rule.priority.after.entries().append(current_id)
-                before.clear()
+                assert rule.priority is not None
 
-        return {id: rule for id, rule in rules.items() if id not in removed_ids}
+                if before := rule.priority.before.entries():
+                    for id in before:
+                        if id not in rules_dict:
+                            logger.warn(
+                                f"{id} was not found while processing `before` priorities."
+                            )
+                            continue
+                        for other_rule in rules_dict[id]:
+                            assert other_rule.priority is not None
+                            if current_id not in other_rule.priority.after.entries():
+                                other_rule.priority.after.entries().append(current_id)
+                    before.clear()
+
+        return {id: rules for id, rules in rules_dict.items() if id not in removed_ids}
 
     def resolve_priorities(self, file: SmithedJsonFile):
         """Resolves priorities for each stage."""
 
         pre_processed_rules = self.pre_process_rules(file)
-        rules: dict[str, Rule] = {}
+        rules_dict: dict[str, list[Rule]] = defaultdict(list)
 
         for stage in PRIORITY_STAGES:
             logger.debug(f"Stage: `{stage}`")
-            for id, rule in pre_processed_rules.items():
-                assert rule.priority is not None
-                if rule.priority.stage == stage:
-                    self.resolve_stage(stage, pre_processed_rules, id, rules, [])
+            for id, rules in pre_processed_rules.items():
+                for rule in rules:
+                    assert rule.priority is not None
+                    if rule.priority.stage == stage:
+                        self.resolve_stage(
+                            stage, pre_processed_rules, id, rules_dict, []
+                        )
 
-        return rules
+        return rules_dict
 
     def resolve_stage(
         self,
         stage: str,
-        pre_processed_rules: dict[str, Rule],
+        pre_processed_rules: dict[str, list[Rule]],
         current: str,
-        processed: dict[str, Rule],
+        processed: dict[str, list[Rule]],
         processing: list[str],
     ):
         """Resolves priorities within a specific stage.
@@ -323,39 +329,38 @@ class ConflictsHandler:
         ⚠️ Logs warning if a pack depends on a pack that does not exist.
         """
 
-        current_rule = pre_processed_rules[current]
+        for current_rule in pre_processed_rules[current]:
+            assert current_rule.priority is not None
+            if after := current_rule.priority.after.entries():
+                for id in after:
+                    if id in processing:
+                        raise PriorityError(
+                            "Dependency loop found while resolving"
+                            f" `{current}` in stage `{stage}`.\n"
+                            "The following loop was discovered: "
+                            + " -> ".join(f"`{id}`" for id in processing)
+                            + f" -> `{id}`"
+                        )
+                    if stage != current_rule.priority.stage and id not in processed:
+                        raise PriorityError(
+                            f"Cannot resolve priority for rule during stage `{stage}`."
+                            "\nPacks must only depend on packs in `before` or `after`"
+                            " thah are in the same stage. You likely shouldn't specify"
+                            " both `stage` AND `before/after` unless you know what"
+                            " you are doing."
+                        )
+                    elif id in pre_processed_rules:
+                        processing.append(id)
+                        self.resolve_stage(
+                            stage, pre_processed_rules, id, processed, processing
+                        )
+                        processing.remove(id)
+                    else:
+                        logger.warn(f"Priority: {id} was not found. Ignoring Rule.")
 
-        assert current_rule.priority is not None
-        if after := current_rule.priority.after.entries():
-            for id in after:
-                if id in processing:
-                    raise PriorityError(
-                        "Dependency loop found while resolving"
-                        f" `{current}` in stage `{stage}`.\n"
-                        "The following loop was discovered: "
-                        + " -> ".join(f"`{id}`" for id in processing)
-                        + f" -> `{id}`"
-                    )
-                if stage != current_rule.priority.stage and id not in processed:
-                    raise PriorityError(
-                        f"Cannot resolve priority for rule during stage `{stage}`."
-                        "\nPacks must only depend on packs in `before` or `after`"
-                        " thah are in the same stage. You likely shouldn't specify"
-                        " both `stage` AND `before/after` unless you know what"
-                        " you are doing."
-                    )
-                elif id in pre_processed_rules:
-                    processing.append(id)
-                    self.resolve_stage(
-                        stage, pre_processed_rules, id, processed, processing
-                    )
-                    processing.remove(id)
-                else:
-                    logger.warn(f"Priority: {id} was not found. Ignoring Rule.")
-
-        # dict insertion order for the win
-        if current not in processed:
-            processed[current] = pre_processed_rules[current]
+            # dict insertion order for the win
+            if current not in processed:
+                processed[current] = pre_processed_rules[current]
 
     def apply_rule(
         self, raw: JsonDict, current: str, rule: Rule
@@ -375,7 +380,7 @@ class ConflictsHandler:
             return False
 
         # Apply each rule's logic
-        match rule:
+        match rule:  # type: ignore (i disagree)
             case MergeRule(source=ValueSource(value=value)):
                 merge(raw, rule.target, value)
 
@@ -396,6 +401,36 @@ class ConflictsHandler:
 
         return raw
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[tuple[type[NamespaceFile], str]]:
         for json_file_type, paths in self.cache.items():
             yield from [(json_file_type, path) for path in paths]
+
+
+def dedupe_conflict(current: SmithedJsonFile, conflict: SmithedJsonFile):
+    """This dedupe goes through all of the rules in the conflict file, ditches them if
+    it already exists in the currently loaded rules. It looks pretty unperformant but
+    these lists shouldn't be too large so it's alright. We need to keep the order and
+    using sets would require me to make everything hashable."""
+
+    loaded_rules = [rule for model in current.smithed.entries() for rule in model.rules]
+    for model in conflict.smithed.entries():
+        model.rules = [rule for rule in model.rules if rule not in loaded_rules]
+
+    conflict.smithed = ListOption(
+        __root__=[model for model in conflict.smithed.entries() if model.rules]
+    )
+
+
+def normalize_quotes(current: JsonTypeT) -> JsonTypeT:
+    """It's a bit odd but we need some normalization"""
+
+    match current:
+        case {**d}:
+            return {
+                key.replace('"', ""): normalize_quotes(value)
+                for key, value in d.items()
+            }
+        case [*l]:
+            return [normalize_quotes(value) for value in l]
+        case item:
+            return item

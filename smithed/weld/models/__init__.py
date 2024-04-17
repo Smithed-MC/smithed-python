@@ -10,6 +10,7 @@ from .rules import (
     RemoveRule,
     ReplaceRule,
     Rule,
+    RuleHelper,
 )
 from .sources import ReferenceSource, Source, ValueSource
 
@@ -23,6 +24,7 @@ __all__ = [
     "ReplaceRule",
     "RemoveRule",
     "Rule",
+    "RuleHelper",
     "Condition",
     "ConditionInverted",
     "ConditionPackCheck",

@@ -10,6 +10,8 @@ from tokenstream import Token, TokenStream
 
 from smithed.type import JsonDict, JsonList, JsonType
 
+from .errors import ParsingError
+
 logger = logging.getLogger("weld")
 
 
@@ -33,16 +35,20 @@ def parse(raw: str, convert_index: bool):
 
 def handle_stream(stream: TokenStream, convert_index: bool) -> Iterator[Token | Filter]:
     with stream.syntax(
-        key=r"[A-Z_a-z]+",
+        key=r"[A-Z_a-z:]+",
         string=r'"\w*"',
         separator=r"\.",
         bracket=r"\[|\]",
         curly=r"\{|\}",
         number=r"\d+",
         colon=r": *",
+        quote=r"\"|'",
     ):
         for token in stream.collect():
             match token:
+                case Token(type="quote"):
+                    continue
+
                 case Token(type="key"):
                     yield token
 
@@ -56,10 +62,23 @@ def handle_stream(stream: TokenStream, convert_index: bool) -> Iterator[Token | 
                         case Token(type="curly"):
                             yield parse_filter(stream)
                             stream.expect(("curly", "}"))
+
+                        case Token() as token:
+                            raise ParsingError(
+                                f"Unexpected token {token} reached."
+                                " Expected number or filter subexpression."
+                            )
+
                     stream.expect(("bracket", "]"))
 
                 case Token(type="separator") as token:
                     yield token
+
+                case Token() as token:
+                    raise ParsingError(
+                        f"Unexpected token {token} reached."
+                        " Expected key, bracket, or separator."
+                    )
 
 
 def parse_filter(stream: TokenStream):
@@ -68,7 +87,7 @@ def parse_filter(stream: TokenStream):
             key = value
         case Token(type="string", value=value):
             key = value[1:-1]
-        case token:
+        case Token() as token:
             raise ValueError(f"Expected key or string. Found {token}")
 
     stream.expect("colon")
@@ -87,7 +106,14 @@ def traverse(obj: JsonDict, path: str, convert_index: bool = False):
                 if not isinstance(current, dict):
                     raise ValueError
                 parent = current
-                current = current.setdefault(value, {})
+                if value in current:
+                    current: JsonType = current[value]
+                elif (new_value := value.replace("minecraft:", "")) in current:
+                    current: JsonType = current[new_value]
+                elif (new_value := f"minecraft:{value}") in current:
+                    current: JsonType = current[new_value]
+                else:
+                    current: JsonType = {}
                 last_token = token
 
             case Token(type="number", value=index):
@@ -120,6 +146,8 @@ def traverse(obj: JsonDict, path: str, convert_index: bool = False):
                     parent = current
                     current = current[-1]
                 last_token = token
+            case _:
+                pass
 
     return TraverseResult(
         parent, current, last_token.value if last_token is not None else None

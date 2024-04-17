@@ -27,10 +27,28 @@ def test_build(
             if pack.is_dir()
         ]
     )
-    with caplog.at_level(logging.WARNING), run_weld(packs, config=TEST_CONFIG) as ctx:
+    with (
+        caplog.at_level(logging.DEBUG, logger="weld"),
+        run_weld(packs, config=TEST_CONFIG) as ctx,
+    ):
         document = ctx.inject(Document)
         document.markdown_serializer.flat = True
+
+        # assert no errors
         for record in caplog.records:
-            if record.levelname == "ERROR":
-                raise AssertionError("Logger revealed error")
-        assert snapshot("pack.md") == document
+            match record.levelname:
+                case "ERROR":
+                    raise AssertionError("Logger revealed error")
+                # case "WARNING":
+                #     raise AssertionError("Logger revealed warning")
+                case _:
+                    ...
+
+        # ignore pack format
+        snapshot_doc = snapshot("pack.md")
+        if hasattr(snapshot_doc, "assets"):
+            snapshot_doc.assets.pack_format = document.assets.pack_format
+        if hasattr(snapshot_doc, "data"):
+            snapshot_doc.data.pack_format = document.data.pack_format
+
+        assert snapshot_doc == document

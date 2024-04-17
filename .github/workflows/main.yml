@@ -17,6 +17,7 @@ on:
       - "requirements.lock"
       - "requirements-dev.lock"
       - ".github/workflows/main.yml"
+      - "Dockerfile"
 
 jobs:
   ci:
@@ -39,10 +40,13 @@ jobs:
       #  -----    setup and install python     -----
       # ---------------------------------------------
       - name: Install the latest version of rye
-        uses: eifinger/setup-rye@v1
+        uses: eifinger/setup-rye@v2
         with:
           enable-cache: true
           cache-prefix: "python-rye"
+
+      - name: Enable uv in rye for speeeeed
+        run: rye config --set-bool behavior.use-uv=true
 
       #----------------------------------------------
       #  -----     install & configure rye     -----
@@ -66,13 +70,13 @@ jobs:
       #----------------------------------------------
 
       - name: Run linting and style checking
-        run: rye run check
+        run: rye format --check
 
       - name: Run unit tests
-        run: rye run test -v
+        run: rye test -v
 
       # ---------------------------------------------
-      # -----          Release Package          -----
+      #  -----         Release Package         -----
       # ---------------------------------------------
       - name: Release
         if: |
@@ -81,8 +85,29 @@ jobs:
           && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+          TWINE_NON_INTERACTIVE: true
+        continue-on-error: true
         run: |
+          . .venv/bin/activate
           git config --global user.name "github-actions"
           git config --global user.email "action@github.com"
-          rye run semantic-release publish -v DEBUG -D commit_author="github-actions <action@github.com>"
+          semantic-release version
+          twine upload dist/*
+          semantic-release publish
+
+      # ---------------------------------------------
+      #  -----           Push to prod          -----
+      # ---------------------------------------------
+      - name: Deploy to DevOps
+        if: |
+          github.repository == 'Smithed-MC/smithed-python'
+          && github.event_name == 'push'
+          && github.ref == 'refs/heads/main'
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.PAT }}
+          repository: Smithed-MC/DevOps
+          event-type: update
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "module": "weld", "branch": "main"}'

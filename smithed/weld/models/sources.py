@@ -1,6 +1,6 @@
 from typing import Annotated, Any, Literal
 
-from pydantic import Field, validator
+from pydantic.v1 import Field, validator
 
 from .base import BaseModel
 

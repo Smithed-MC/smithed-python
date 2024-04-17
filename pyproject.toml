@@ -3,19 +3,20 @@ authors = [
   {name = "Smithed Team", email = "team@smithed.dev"},
 ]
 dependencies = [
-    "beet>=0.97.1",
-    "mecha>=0.83.1",
-    "typer>=0.9.0",
-    "tokenstream>=1.7.0",
-    "backports-strenum>=1.2.8",
-    "bolt>=0.38.5",
+  "beet>=0.100.0",
+  "mecha>=0.76.2",
+  "typer>=0.9.0",
+  "tokenstream>=1.7.0",
+  "backports-strenum>=1.2.8",
+  "rich>=13.6.0",
+  "pydantic>=2.5.2",
 ]
 description = "Smithed's Python client with CLI, weld and more"
 license = "MIT"
 name = "smithed"
 readme = "README.md"
 requires-python = ">= 3.10"
-version = "0.14.2"
+version = "0.18.0"
 
 [project.scripts]
 weld = "smithed.weld:cli"
@@ -23,36 +24,35 @@ weld = "smithed.weld:cli"
 [tool.rye]
 dev-dependencies = [
   "ruff>=0.0.292",
-  "streamlit>=1.27.2",
+  "streamlit>=1.32.1",
   "black>=23.9.1",
   "pytest>=7.4.2",
   "pytest-insta>=0.2.0",
   "lectern>=0.29.1",
   "devtools>=0.12.2",
-  "streamlit-extras>=0.3.4",
-  "python-semantic-release==7.34.6",
+  "streamlit-extras>=0.4.0",
+  "python-semantic-release>=9.1.1",
   "ipython>=8.16.1",
+  "twine>=5.0.0",
 ]
 managed = true
-
-[tool.rye.scripts]
-check = {chain = ["check:black", "check:ruff"]}
-"check:black" = "black smithed examples tests --check"
-"check:ruff" = "ruff smithed examples tests"
-format = "black smithed examples tests"
-test = "pytest"
 
 [tool.semantic_release]
 branch = "main"
 build_command = "rye build"
 major_on_zero = false
-upload_to_pypi = true
 version_toml = ["pyproject.toml:project.version"]
-version_variable = ["smithed/__init__.py:__version__", "smithed/weld/__init__.py:__version__"]
+version_variables = ["smithed/__init__.py:__version__", "smithed/weld/__init__.py:__version__"]
+
+[tool.pyright]
+mode = "strict"
+
+[tool.hatch.build.targets.wheel.force-include]
+"smithed/weld" = "weld"
 
 [tool.hatch.metadata]
 allow-direct-references = true
 
 [build-system]
 build-backend = "hatchling.build"
-requires = ["hatchling"]
+requires = ["hatchling<1.19"]

@@ -4,7 +4,7 @@ from collections.abc import Sequence
 from glob import glob
 from pathlib import Path
 from time import perf_counter
-from typing import Annotated, Optional
+from typing import Annotated, Generator, Optional
 
 import typer
 from beet import ProjectCache
@@ -124,7 +124,7 @@ def setup_logger(dev: bool, log_level: str):
     )
 
 
-def expand_globs(packs: Sequence[str]):
+def expand_globs(packs: Sequence[str]) -> Generator[str, None, None]:
     for pack in packs:
         yield from glob(pack)
 

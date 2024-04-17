@@ -7,7 +7,7 @@
 ```json
 {
   "pack": {
-    "pack_format": 18,
+    "pack_format": 26,
     "description": ""
   },
   "id": "pack.replace"
@@ -21,7 +21,6 @@
 ```json
 {
   "random_sequence": "minecraft:entities/enderman",
-  "type": "minecraft:entity",
   "pools": [
     {
       "rolls": 1,
@@ -84,6 +83,7 @@
       ]
     }
   ],
+  "type": "minecraft:entity",
   "__smithed__": [
     {
       "id": "pack.append",
@@ -156,8 +156,7 @@
             }
           }
         }
-      ],
-      "priority": {}
+      ]
     },
     {
       "id": "pack.prepend",
@@ -188,8 +187,7 @@
           "target": "pools[0].entries[0].functions[0]",
           "priority": {}
         }
-      ],
-      "priority": {}
+      ]
     },
     {
       "id": "pack.replace",

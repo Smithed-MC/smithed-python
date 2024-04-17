@@ -6,12 +6,19 @@ from typing import Iterable, Literal, cast
 from zipfile import Path as ZipPath
 from zipfile import ZipFile
 
-from beet import Context, ProjectCache, ProjectConfig, run_beet, subproject
+from beet import (
+    Context,
+    DeserializationError,
+    ProjectCache,
+    ProjectConfig,
+    run_beet,
+    subproject,
+)
 from beet.core.utils import FileSystemPath, JsonDict
 
 from smithed.weld import merging
 
-from ..errors import WeldError
+from ..errors import InvalidMcmeta, WeldError
 from .helper_plugins import add_fabric_mod_json
 
 if sys.version_info >= (3, 11):
@@ -39,7 +46,7 @@ def subproject_config(pack_type: PackType, name: str = ""):
             pack_type: {"load": name},
             "pipeline": [
                 "smithed.weld.print_pack_name",
-                "smithed.weld.inject_pack_id_into_smithed",
+                "smithed.weld.inject_pack_stuff_into_smithed",
             ],
         }
     )
@@ -53,7 +60,7 @@ def inspect_zipfile(file: ZipFile) -> PackType:
     elif (path / "assets").is_dir():
         return PackType.ASSETS
 
-    raise WeldError("Invalid. Pack has neither assets nor data.")
+    raise WeldError(f"Invalid. Pack '{path}' has neither assets nor data.")
 
 
 def inspect(file: str | ZipFile) -> PackType | Literal[False]:
@@ -69,7 +76,9 @@ def inspect(file: str | ZipFile) -> PackType | Literal[False]:
                 elif (path / "assets").is_dir():
                     return PackType.ASSETS
 
-                raise WeldError(f"Invalid. Pack {path} has neither assets nor data. \n")
+                raise WeldError(
+                    f"Invalid. Pack '{path}' has neither assets nor data. \n"
+                )
 
         case ZipFile() as zip:
             return inspect_zipfile(zip)
@@ -102,16 +111,22 @@ def weld(ctx: Context):
     ctx.require("smithed.weld.merging")
     ctx.require("smithed.weld.plugins")
     ctx.require("beet.contrib.model_merging")
+    ctx.require("beet.contrib.unknown_files")
 
 
 def load_packs(ctx: Context, packs: Iterable[tuple[str | ZipFile, PackType]]):
     for pack, pack_type in packs:
-        match pack:
-            case str(name):
-                ctx.require(subproject_config(pack_type, name))
-            case ZipFile() as file:
-                match pack_type:
-                    case PackType.DATA:
-                        ctx.data.load(file)
-                    case PackType.ASSETS:
-                        ctx.assets.load(file)
+        try:
+            match pack:
+                case str(name):
+                    ctx.require(subproject_config(pack_type, name))
+                case ZipFile() as file:
+                    name = file.filename or "Unknown"
+                    match pack_type:
+                        case PackType.DATA:
+                            ctx.data.load(file)
+                        case PackType.ASSETS:
+                            ctx.assets.load(file)
+                    ctx.require(subproject_config(pack_type, name))
+        except DeserializationError as err:
+            raise InvalidMcmeta(pack=name, contents=err.file.get_content()) from err  # type: ignore

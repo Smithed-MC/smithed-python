@@ -2,7 +2,7 @@ import logging
 from typing import Literal
 
 from beet import ListOption
-from pydantic import validator
+from pydantic.v1 import validator
 
 from .base import BaseModel
 

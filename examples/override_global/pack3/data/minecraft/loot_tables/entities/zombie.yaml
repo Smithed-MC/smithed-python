@@ -1,0 +1,50 @@
+type: 'minecraft:entity'
+random_sequence: 'minecraft:entities/zombie'
+
+pools:
+  - rolls: 1
+    entries:
+      - type: 'minecraft:item'
+        name: 'minecraft:rotten_flesh'
+        functions:
+          - function: 'minecraft:set_count'
+            count: {min: 0, max: 2}
+            add: false
+          - function: 'minecraft:looting_enchant'
+            count: {min: 0, max: 2}
+
+  - rolls: 1
+    entries:
+      - type: 'minecraft:item'
+        name: 'minecraft:emerald'
+
+      - type: 'minecraft:item'
+        name: 'minecraft:carrot'
+
+      - type: 'minecraft:item'
+        name: 'minecraft:potato'
+        functions:
+          - function: 'minecraft:furnace_smelt'
+            conditions:
+              - condition: 'minecraft:entity_properties'
+                entity: this
+                predicate: {flags: {is_on_fire: true}}
+
+    conditions:
+      - condition: 'minecraft:killed_by_player'
+      - condition: 'minecraft:random_chance_with_looting'
+        chance: 0.025
+        looting_multiplier: 0.01
+
+  - rolls: 1
+    entries:
+      - type: 'minecraft:item'
+        name: 'minecraft:cobblestone'
+
+__smithed__:
+  rules:
+    - type: smithed:append
+      target: pools
+      source:
+        type: smithed:reference
+        path: pools[2]

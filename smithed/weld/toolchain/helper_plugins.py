@@ -36,26 +36,39 @@ def add_fabric_mod_json(ctx: Context, packs: list[str] | list[ZipFile]):
     )
 
 
-def inject_pack_id_into_smithed(ctx: Context):
-    """CURSED"""
+def inject_pack_stuff_into_smithed(ctx: Context):
+    """TODO: there needs to be a better way to inject the id, perhaps during proper
+    preprocessing later in the process.
+    """
 
     id = (
-        ctx.data.mcmeta.data.get("id", "missing")
+        ctx.data.mcmeta.data.get("id", ctx.generate.format("missing_{incr}"))
         if ctx.data
-        else ctx.assets.mcmeta.data.get("id", "missing")
+        else ctx.assets.mcmeta.data.get("id", ctx.generate.format("missing_{incr}"))
     )
 
-    for file in ctx.select(match="*", extend=JsonFileBase):
-        try:
-            if isinstance(file.data, list):  # type: ignore
-                continue
-            if smithed := file.data.get("__smithed__"):  # type: ignore
+    override = (
+        ctx.data.mcmeta.data.get("__smithed__", {}).get("override", False)
+        if ctx.data
+        else ctx.assets.mcmeta.data.get("__smithed__", {}).get("override", False)
+    )
+
+    for namespace_file_type, data in ctx.query(match="*", extend=JsonFileBase).items():
+        if not isinstance(data, dict):
+            continue
+
+        for namespace, resource in data.keys():
+            if override:
+                resource.data.setdefault("__smithed__", {})
+
+            smithed = resource.data.get("__smithed__", False)
+            if smithed is not False:
                 if isinstance(smithed, list):
-                    for item in smithed:
+                    for item in smithed:  # type: ignore
                         item["id"] = id
+                        if override:
+                            smithed["override"] = override  # type: ignore
                 elif isinstance(smithed, dict):
                     smithed["id"] = id
-        except Exception:
-            logger.warning(
-                "Failed to inject pack id into smithed: %s", file.source_path
-            )
+                    if override:
+                        smithed["override"] = override

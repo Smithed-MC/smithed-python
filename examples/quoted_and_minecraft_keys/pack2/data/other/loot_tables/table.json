@@ -1,0 +1,30 @@
+{
+    "__smithed__": {
+        "rules": [
+            {
+                "type": "replace",
+                "target": "foo[0].bar.taco",
+                "source": {
+                    "type": "value",
+                    "value": "not bell"
+                }
+            },
+            {
+                "type": "replace",
+                "target": "foo[1].minecraft:bar.taco",
+                "source": {
+                    "type": "value",
+                    "value": "not bell"
+                }
+            },
+            {
+                "type": "replace",
+                "target": "foo[2].\"minecraft:bar\".taco",
+                "source": {
+                    "type": "value",
+                    "value": "not bell"
+                }
+            }
+        ]
+    }
+}

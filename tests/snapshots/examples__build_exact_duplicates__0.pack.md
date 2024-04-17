@@ -1,0 +1,76 @@
+# Lectern snapshot
+
+## Data pack
+
+`@data_pack pack.mcmeta`
+
+```json
+{
+  "pack": {
+    "description": "Smithed's Actionbar Pack",
+    "pack_format": 26
+  },
+  "id": "tacos"
+}
+```
+
+### minecraft
+
+`@loot_table minecraft:blocks/yellow_shulker_box`
+
+```json
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "minecraft:copy_name",
+              "source": "block_entity"
+            },
+            {
+              "function": "minecraft:copy_nbt",
+              "ops": [
+                {
+                  "op": "replace",
+                  "source": "Lock",
+                  "target": "BlockEntityTag.Lock"
+                },
+                {
+                  "op": "replace",
+                  "source": "LootTable",
+                  "target": "BlockEntityTag.LootTable"
+                },
+                {
+                  "op": "replace",
+                  "source": "LootTableSeed",
+                  "target": "BlockEntityTag.LootTableSeed"
+                }
+              ],
+              "source": "block_entity"
+            },
+            {
+              "type": "minecraft:shulker_box",
+              "entries": [
+                {
+                  "type": "minecraft:dynamic",
+                  "name": "minecraft:contents"
+                }
+              ],
+              "function": "minecraft:set_contents"
+            }
+          ],
+          "name": "minecraft:yellow_shulker_box"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "minecraft:blocks/yellow_shulker_box",
+  "__smithed__": []
+}
+```
