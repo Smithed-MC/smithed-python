@@ -2,6 +2,21 @@
 
 
 
+## v0.17.2 (2024-04-17)
+
+### Fix
+
+* fix: dedupe per rule instead of globally ([`fde1179`](https://github.com/Smithed-MC/smithed-python/commit/fde1179b7e66828ac982d79ad1cb67366bf39043))
+
+### Style
+
+* style: format ([`25d0ca5`](https://github.com/Smithed-MC/smithed-python/commit/25d0ca511cbc419aac4aa6b2e99267357651941e))
+
+### Unknown
+
+* Merge branch &#39;main&#39; of https://github.com/Smithed-MC/smithed-python ([`23d6586`](https://github.com/Smithed-MC/smithed-python/commit/23d6586018f737f1d953aa0174ba784d8cd6dc9b))
+
+
 ## v0.17.1 (2024-04-16)
 
 ### Fix
