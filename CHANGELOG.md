@@ -2,6 +2,21 @@
 
 
 
+## v0.18.0 (2024-04-17)
+
+### Feature
+
+* feat: handles quoted keys and `minecraft:` keys ([`c6aed1f`](https://github.com/Smithed-MC/smithed-python/commit/c6aed1f1f480100947f2e6814b6ab9d7e68fe984))
+
+### Style
+
+* style: format ([`b0ec33f`](https://github.com/Smithed-MC/smithed-python/commit/b0ec33f01f0eb21341ce40e0e649a8443a003289))
+
+### Unknown
+
+* Merge branch &#39;main&#39; of https://github.com/Smithed-MC/smithed-python ([`609b237`](https://github.com/Smithed-MC/smithed-python/commit/609b237352746ed1a8e06c665c89452f82c35fcc))
+
+
 ## v0.17.2 (2024-04-17)
 
 ### Fix
