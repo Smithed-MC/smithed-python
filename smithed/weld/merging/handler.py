@@ -229,7 +229,8 @@ class ConflictsHandler:
                             item["_index"] = index
 
                 return [
-                    self.manage_indexes(item, strip) for item in value  # type: ignore
+                    self.manage_indexes(item, strip)
+                    for item in value  # type: ignore
                 ]
 
             case dict(value):
@@ -409,9 +410,7 @@ def dedupe_conflict(current: SmithedJsonFile, conflict: SmithedJsonFile):
     these lists shouldn't be too large so it's alright. We need to keep the order and
     using sets would require me to make everything hashable."""
 
-    loaded_rules = [
-        rule for model in current.smithed.entries() for rule in model.rules
-    ]
+    loaded_rules = [rule for model in current.smithed.entries() for rule in model.rules]
     for model in conflict.smithed.entries():
         model.rules = [rule for rule in model.rules if rule not in loaded_rules]
 
