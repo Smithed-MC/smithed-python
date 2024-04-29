@@ -92,7 +92,12 @@ def weld(
             "[success]Saving[/success], might take a while.",
             extra={"markup": True},
         )
-        ctx.data.save(path=dir / name, zipped=name.suffix == ".zip", overwrite=True)
+        # TODO: figure out what to do if user uploads both data and resource packs
+        # prolly merge and download UNZIP ME or something
+        if ctx.data:
+            ctx.data.save(path=dir / name, zipped=name.suffix == ".zip", overwrite=True)
+        if ctx.assets:
+            ctx.assets.save(path=dir / name, zipped=name.suffix == ".zip", overwrite=True)
         success = True
     t1 = perf_counter()
 
