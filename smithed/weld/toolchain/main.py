@@ -118,12 +118,11 @@ def load_packs(ctx: Context, packs: Iterable[tuple[str | ZipFile, PackType]]):
                 case str(name):
                     ctx.require(subproject_config(pack_type, name))
                 case ZipFile() as file:
-                    name = file.filename or "Unknown"
-                    match pack_type:
-                        case PackType.DATA:
-                            ctx.data.load(file)
-                        case PackType.ASSETS:
-                            ctx.assets.load(file)
-                    #ctx.require(subproject_config(pack_type, name))
+                    # save the file to temp.zip
+                    with ZipFile("temp.zip", "w") as zip:
+                        for info in file.infolist():
+                            zip.writestr(info, file.read(info))
+                    ctx.require(subproject_config(pack_type, "temp.zip"))
+                    Path("temp.zip").unlink()
         except DeserializationError as err:
             raise InvalidMcmeta(pack=name, contents=err.file.get_content()) from err  # type: ignore
