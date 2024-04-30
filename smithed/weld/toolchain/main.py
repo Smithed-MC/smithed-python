@@ -118,7 +118,6 @@ def load_packs(ctx: Context, packs: Iterable[tuple[str | ZipFile, PackType]]):
                 case str(name):
                     ctx.require(subproject_config(pack_type, name))
                 case ZipFile() as file:
-                    # save the file to temp.zip
                     with ZipFile("temp.zip", "w") as zip:
                         for info in file.infolist():
                             zip.writestr(info, file.read(info))
