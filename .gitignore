@@ -50,3 +50,4 @@ venv.bak/
 .pytest_cache/
 
 output/
+output.zip
