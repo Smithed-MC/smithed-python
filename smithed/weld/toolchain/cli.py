@@ -97,7 +97,9 @@ def weld(
         if ctx.data:
             ctx.data.save(path=dir / name, zipped=name.suffix == ".zip", overwrite=True)
         if ctx.assets:
-            ctx.assets.save(path=dir / name, zipped=name.suffix == ".zip", overwrite=True)
+            ctx.assets.save(
+                path=dir / name, zipped=name.suffix == ".zip", overwrite=True
+            )
         success = True
     t1 = perf_counter()
 
