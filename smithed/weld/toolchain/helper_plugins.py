@@ -72,3 +72,17 @@ def inject_pack_stuff_into_smithed(ctx: Context):
                     smithed["id"] = id
                     if override:
                         smithed["override"] = override
+
+def cache_pack_metadata(ctx: Context):
+    ctx.meta.setdefault("loaded_packs", [])
+    
+    if ctx.data:
+        ctx.meta["loaded_packs"].append({
+            "id": ctx.data.mcmeta.data.get("id", "unknown"),
+            "pack.png": ctx.data.icon
+        })
+    elif ctx.assets:
+        ctx.meta["loaded_packs"].append({
+            "id": ctx.assets.mcmeta.data.get("id", "unknown"),
+            "pack.png": ctx.assets.icon
+        })

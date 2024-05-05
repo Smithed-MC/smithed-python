@@ -1,3 +1,6 @@
+# type: ignore
+
+
 class WeldPluginError(Exception):
     namespace: str
     __cause__: Exception
