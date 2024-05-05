@@ -9,7 +9,7 @@ from zipfile import ZipFile
 from beet import Context, ProjectCache, ProjectConfig, run_beet, subproject
 from beet.core.utils import FileSystemPath, JsonDict
 
-from smithed.weld import merging
+from smithed.weld import merging, plugins
 
 from ..errors import WeldError
 from .helper_plugins import add_fabric_mod_json
@@ -39,7 +39,8 @@ def subproject_config(pack_type: PackType, name: str = ""):
             pack_type: {"load": name},
             "pipeline": [
                 "smithed.weld.print_pack_name",
-                "smithed.weld.inject_pack_id_into_smithed",
+                "smithed.weld.inject_pack_stuff_into_smithed",
+                "smithed.weld.cache_pack_metadata",
             ],
         }
     )
@@ -95,6 +96,7 @@ def run_weld(
         if as_fabric_mod:
             ctx.require(partial(add_fabric_mod_json, packs=packs))
         ctx.require("mecha")
+        ctx.require(plugins.clear_plugins)
         yield ctx
 
 

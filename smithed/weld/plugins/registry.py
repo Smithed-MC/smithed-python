@@ -5,7 +5,7 @@ from beet.core.utils import FormatsRangeDict, normalize_string
 from bolt.contrib.sandbox import Sandbox
 from mecha import CompilationUnit, Mecha
 
-from .resources import WeldPlugin, load_resources
+from .resources import CustomResource, WeldPlugin, load_resources
 
 
 def provide_compilation_units(
@@ -39,6 +39,13 @@ def beet_default(ctx: Context):
     ctx.require(define_compilation_unit_providers)
     ctx.require(load_resources)
 
-    yield
 
-    ctx.data[WeldPlugin].clear()
+def clear_plugins(ctx: Context):
+    for pack in [
+        ctx.data,
+        *ctx.data.overlays.values(),
+        ctx.assets,
+        *ctx.assets.overlays.values(),
+    ]:
+        for resource in [WeldPlugin, CustomResource]:
+            pack[resource].clear()
