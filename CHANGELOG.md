@@ -2,6 +2,27 @@
 
 
 
+## v0.18.1 (2024-05-05)
+
+### Fix
+
+* fix: make the CLi the same behaviour as streamlit, and a random fix ? ([`72e3d0e`](https://github.com/Smithed-MC/smithed-python/commit/72e3d0e3b3a96efdeb24c6e607ed920a99ec36fc))
+
+### Style
+
+* style: run `rye format` ([`a91243a`](https://github.com/Smithed-MC/smithed-python/commit/a91243aedb1a2806e53e798ab84c2e4f3a2ce72f))
+
+### Unknown
+
+* Merge pull request #11 from edayot/main
+
+fix: streamlit working + cli working the same as the webapp ([`ac6a44b`](https://github.com/Smithed-MC/smithed-python/commit/ac6a44b86bc431cffb87cdc4c7ec6d22811c1723))
+
+* better gitignore ([`1983363`](https://github.com/Smithed-MC/smithed-python/commit/198336341ba7e8245fd85b7ea17d73ce7e0fd993))
+
+* fix it by saving the file to a temp directory, loading it &amp; delete the zip ([`9a16626`](https://github.com/Smithed-MC/smithed-python/commit/9a166266c74d9fa43a05b2349cfc4edecc1c9be1))
+
+
 ## v0.18.0 (2024-04-17)
 
 ### Feature
