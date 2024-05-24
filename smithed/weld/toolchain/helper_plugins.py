@@ -2,7 +2,7 @@ import logging
 from importlib import resources
 from zipfile import ZipFile
 
-from beet import Context, JsonFile, JsonFileBase
+from beet import Context, ItemModifier, JsonFile, JsonFileBase, LootTable
 from jinja2 import Template
 
 FABRIC_MOD_TEMPLATE = Template(
@@ -58,10 +58,22 @@ def inject_pack_stuff_into_smithed(ctx: Context):
             continue
 
         for namespace, resource in data.keys():
-            if override:
-                resource.data.setdefault("__smithed__", {})
 
-            smithed = resource.data.get("__smithed__", False)
+            resource_data: dict|list = resource.data
+            
+            if isinstance(resource_data, list):
+                if isinstance(resource, ItemModifier) or isinstance(resource, LootTable):
+                    resource_data = {
+                        "function": "sequence",
+                        "functions": resource_data
+                    }
+                else:
+                    continue
+
+            if override:
+                resource_data.setdefault("__smithed__", {})
+
+            smithed = resource_data.get("__smithed__", False)
             if smithed is not False:
                 if isinstance(smithed, list):
                     for item in smithed:  # type: ignore

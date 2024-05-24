@@ -51,3 +51,6 @@ venv.bak/
 
 output/
 output.zip
+
+temp.zip
+docker-compose.yaml
