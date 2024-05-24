@@ -58,15 +58,13 @@ def inject_pack_stuff_into_smithed(ctx: Context):
             continue
 
         for namespace, resource in data.keys():
+            resource_data: dict | list = resource.data
 
-            resource_data: dict|list = resource.data
-            
             if isinstance(resource_data, list):
-                if isinstance(resource, ItemModifier) or isinstance(resource, LootTable):
-                    resource_data = {
-                        "function": "sequence",
-                        "functions": resource_data
-                    }
+                if isinstance(resource, ItemModifier) or isinstance(
+                    resource, LootTable
+                ):
+                    resource_data = {"function": "sequence", "functions": resource_data}
                 else:
                     continue
 
