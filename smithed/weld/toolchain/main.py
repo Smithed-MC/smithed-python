@@ -40,7 +40,7 @@ def subproject_config(pack_type: PackType, name: str = ""):
             "require": [
                 "beet.contrib.auto_yaml",
                 "beet.contrib.model_merging",
-                # "beet.contrib.unknown_files",
+                "beet.contrib.unknown_files",
             ],
             pack_type: {"load": name},
             "pipeline": [
