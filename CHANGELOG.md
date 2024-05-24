@@ -2,6 +2,21 @@
 
 
 
+## v0.18.2 (2024-05-24)
+
+### Chore
+
+* chore: run formatter ([`1e7ea50`](https://github.com/Smithed-MC/smithed-python/commit/1e7ea503fd79946232988872ceb299cec8db4c46))
+
+### Fix
+
+* fix: lists not handled by injection ([`d9435f3`](https://github.com/Smithed-MC/smithed-python/commit/d9435f3ad1805fadaa9cf21df9cf4e52feddde2f))
+
+### Unknown
+
+* fix failing to get __smithed__ on item modifiers ([`dfe1945`](https://github.com/Smithed-MC/smithed-python/commit/dfe1945d04955e12cfbd49065d55160387c85a44))
+
+
 ## v0.18.1 (2024-05-05)
 
 ### Fix
