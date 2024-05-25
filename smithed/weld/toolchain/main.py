@@ -83,7 +83,7 @@ def inspect(file: str | ZipFile | tuple[str | ZipFile]) -> PackType | Literal[Fa
 
         case ZipFile() as zip:
             return inspect_zipfile(zip)
-        
+
         case (_, zip):
             return inspect_zipfile(zip)
 
@@ -114,17 +114,21 @@ def weld(ctx: Context):
     ctx.require(merging.beet_default)
     ctx.require("beet.contrib.model_merging")
     ctx.require("beet.contrib.unknown_files")
- 
+
+
 logger = logging.getLogger("weld")
 
-def load_packs(ctx: Context, packs: Iterable[tuple[str | ZipFile | tuple[str, ZipFile], PackType]]):
+
+def load_packs(
+    ctx: Context, packs: Iterable[tuple[str | ZipFile | tuple[str, ZipFile], PackType]]
+):
     for pack, pack_type in packs:
         try:
             match pack:
                 case str(name):
                     logger.info(name)
                     ctx.require(subproject_config(pack_type, name))
-                
+
                 case (name, file):
                     with ZipFile("temp.zip", "w") as zip:
                         for info in file.infolist():

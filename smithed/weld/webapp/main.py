@@ -22,7 +22,7 @@ icon = "https://github.com/Smithed-MC/smithed-python/blob/main/smithed/weld/reso
 
 webapp = WebApp.parse_obj(
     yaml.safe_load(
-        (resources.files("smithed") / "weld/resources/webapp.yaml").read_text('utf-8')
+        (resources.files("smithed") / "weld/resources/webapp.yaml").read_text("utf-8")
     )
 )
 
@@ -86,10 +86,11 @@ def build_packs(
 
     return path
 
+
 def upload_flow(ui: DeltaGenerator):
     progress = ui.container()
     raw_packs = ui.file_uploader("Upload packs", accept_multiple_files=True, type="zip")
-    
+
     packs = [(pack.name, ZipFile(pack)) for pack in raw_packs] if raw_packs else []
 
     cols = Columns(*ui.columns(3))
