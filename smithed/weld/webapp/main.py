@@ -13,7 +13,6 @@ from streamlit_extras.stateful_button import button as toggle_button
 from streamlit_extras.streaming_write import write as streaming_write
 
 from smithed import weld
-from smithed.weld.toolchain.main import NamedZipFile
 
 from .log_helpers import init_logger
 from .models import Columns, WebApp
