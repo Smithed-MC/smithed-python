@@ -4,13 +4,16 @@ from importlib import resources
 from pathlib import Path
 from zipfile import ZipFile
 
+from beet import PluginError
 import streamlit as st
 import yaml
 from streamlit.delta_generator import DeltaGenerator
+from streamlit.runtime.uploaded_file_manager import UploadedFile
 from streamlit_extras.stateful_button import button as toggle_button
 from streamlit_extras.streaming_write import write as streaming_write
 
 from smithed import weld
+from smithed.weld.toolchain.main import NamedZipFile
 
 from .log_helpers import init_logger
 from .models import Columns, WebApp
@@ -19,12 +22,12 @@ icon = "https://github.com/Smithed-MC/smithed-python/blob/main/smithed/weld/reso
 
 webapp = WebApp.parse_obj(
     yaml.safe_load(
-        (resources.files("smithed") / "weld/resources/webapp.yaml").read_text()
+        (resources.files("smithed") / "weld/resources/webapp.yaml").read_text('utf-8')
     )
 )
 
 
-def weld_packs(packs: list[ZipFile], make_fabric_mod: bool) -> Path | None:
+def weld_packs(packs: list[tuple[str, ZipFile]], make_fabric_mod: bool) -> Path | None:
     """Welds a list of zip files. Outputs a path"""
 
     with weld.run_weld(packs, as_fabric_mod=make_fabric_mod) as ctx:
@@ -46,7 +49,7 @@ def weld_packs(packs: list[ZipFile], make_fabric_mod: bool) -> Path | None:
 
 
 def build_packs(
-    packs: list[ZipFile], cols: Columns, make_fabric_mod: bool = False
+    packs: list[tuple[str, ZipFile]], cols: Columns, make_fabric_mod: bool = False
 ) -> Path | None:
     path = None
 
@@ -74,18 +77,20 @@ def build_packs(
             )
 
             return path
-
+        except PluginError as exc:
+            status.update(label=":red[Error occured. Click to reveal error.]")
+            status.error(f"# `Plugin Error`\n{exc.args}")
         except Exception as exc:
             status.update(label=":red[Error occured. Click to reveal error.]")
             status.error(f"# `{exc.__class__.__name__}`\n{exc.args[0]}")
 
     return path
 
-
 def upload_flow(ui: DeltaGenerator):
     progress = ui.container()
     raw_packs = ui.file_uploader("Upload packs", accept_multiple_files=True, type="zip")
-    packs = [ZipFile(pack) for pack in raw_packs] if raw_packs else []
+    
+    packs = [(pack.name, ZipFile(pack)) for pack in raw_packs] if raw_packs else []
 
     cols = Columns(*ui.columns(3))
     with cols.middle:

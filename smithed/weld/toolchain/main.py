@@ -1,3 +1,4 @@
+import logging
 import sys
 from contextlib import contextmanager
 from functools import partial
@@ -9,6 +10,7 @@ from zipfile import ZipFile
 from beet import (
     Context,
     DeserializationError,
+    Mcmeta,
     ProjectCache,
     ProjectConfig,
     run_beet,
@@ -44,7 +46,7 @@ def subproject_config(pack_type: PackType, name: str = ""):
             ],
             pack_type: {"load": name},
             "pipeline": [
-                "smithed.weld.print_pack_name",
+                # "smithed.weld.print_pack_name",
                 "smithed.weld.inject_pack_stuff_into_smithed",
             ],
         }
@@ -62,7 +64,7 @@ def inspect_zipfile(file: ZipFile) -> PackType:
     raise WeldError(f"Invalid. Pack '{path}' has neither assets nor data.")
 
 
-def inspect(file: str | ZipFile) -> PackType | Literal[False]:
+def inspect(file: str | ZipFile | tuple[str | ZipFile]) -> PackType | Literal[False]:
     match file:
         case str(path) if path.endswith(".zip"):
             with ZipFile(path) as zip:
@@ -81,24 +83,27 @@ def inspect(file: str | ZipFile) -> PackType | Literal[False]:
 
         case ZipFile() as zip:
             return inspect_zipfile(zip)
+        
+        case (_, zip):
+            return inspect_zipfile(zip)
 
     return False
 
 
 @contextmanager
 def run_weld(
-    packs: Iterable[str] | Iterable[ZipFile],
+    packs: Iterable[str] | Iterable[ZipFile] | Iterable[tuple[str, ZipFile]],
     config: FileSystemPath | ProjectConfig | JsonDict = {},
     directory: FileSystemPath | None = None,
     cache: bool | ProjectCache = True,
     as_fabric_mod: bool = False,
 ):
-    packs = cast(list[str] | list[ZipFile], list(packs))
+    packs = cast(list[str] | list[ZipFile] | list[tuple[str, ZipFile]], list(packs))
     packs_with_types = zip(packs, (pack for pack in map(inspect, packs) if pack))
 
     with run_beet(config, directory=directory, cache=cache) as ctx:
         ctx.require(weld)
-        ctx.require(partial(load_packs, packs=list(packs_with_types)))
+        load_packs(ctx, packs=list(packs_with_types))
         ctx.require(merging.process)
         if as_fabric_mod:
             ctx.require(partial(add_fabric_mod_json, packs=packs))
@@ -109,19 +114,32 @@ def weld(ctx: Context):
     ctx.require(merging.beet_default)
     ctx.require("beet.contrib.model_merging")
     ctx.require("beet.contrib.unknown_files")
+ 
+logger = logging.getLogger("weld")
 
-
-def load_packs(ctx: Context, packs: Iterable[tuple[str | ZipFile, PackType]]):
+def load_packs(ctx: Context, packs: Iterable[tuple[str | ZipFile | tuple[str, ZipFile], PackType]]):
     for pack, pack_type in packs:
         try:
             match pack:
                 case str(name):
+                    logger.info(name)
                     ctx.require(subproject_config(pack_type, name))
+                
+                case (name, file):
+                    with ZipFile("temp.zip", "w") as zip:
+                        for info in file.infolist():
+                            zip.writestr(info, file.read(info))
+                    ctx.require(subproject_config(pack_type, "temp.zip"))
+                    Path("temp.zip").unlink()
+
                 case ZipFile() as file:
+                    name = "temp"
                     with ZipFile("temp.zip", "w") as zip:
                         for info in file.infolist():
                             zip.writestr(info, file.read(info))
                     ctx.require(subproject_config(pack_type, "temp.zip"))
                     Path("temp.zip").unlink()
         except DeserializationError as err:
-            raise InvalidMcmeta(pack=name, contents=err.file.get_content()) from err  # type: ignore
+            if isinstance(err.file, Mcmeta):
+                raise InvalidMcmeta(pack=name, contents=err.file.get_content()) from err  # type: ignore
+            raise err
