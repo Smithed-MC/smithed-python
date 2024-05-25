@@ -2,6 +2,17 @@
 
 
 
+## v0.18.4 (2024-05-25)
+
+### Fix
+
+* fix: removed old import ([`f2e9193`](https://github.com/Smithed-MC/smithed-python/commit/f2e9193a31f79e5039172304ce67636312a6ddfb))
+
+### Unknown
+
+* Merge branch &#39;main&#39; of https://github.com/Smithed-MC/smithed-python ([`5f58269`](https://github.com/Smithed-MC/smithed-python/commit/5f582693909a3487c47a365c139faf692b76b4a9))
+
+
 ## v0.18.3 (2024-05-25)
 
 ### Chore
