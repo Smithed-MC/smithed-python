@@ -2,6 +2,21 @@
 
 
 
+## v0.18.3 (2024-05-25)
+
+### Chore
+
+* chore: run formatter ([`f946737`](https://github.com/Smithed-MC/smithed-python/commit/f94673788af9f7c48da0e6ce5c7ccb59c3b3dd6d))
+
+* chore: rerun ([`5767e1c`](https://github.com/Smithed-MC/smithed-python/commit/5767e1cf5b0f51728d8461343a0ee2e292926e85))
+
+### Fix
+
+* fix: error reporting and file names being lost ([`26a16cd`](https://github.com/Smithed-MC/smithed-python/commit/26a16cd98e5a298b4a5642d678d26ac8b95aa26e))
+
+* fix: enable unknown_files ([`ae28e39`](https://github.com/Smithed-MC/smithed-python/commit/ae28e3911ffab0b5f28bff31469e8ef1b0707ae8))
+
+
 ## v0.18.2 (2024-05-24)
 
 ### Chore
