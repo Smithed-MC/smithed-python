@@ -46,11 +46,6 @@ click==8.1.7
     # via typer
 click-help-colors==0.9.4
     # via beet
-colorama==0.4.6
-    # via beet
-    # via click
-    # via ipython
-    # via pytest
 contourpy==1.2.0
     # via matplotlib
 cycler==0.12.1
@@ -124,6 +119,7 @@ markdownlit==0.0.7
     # via streamlit-extras
 markupsafe==2.1.5
     # via jinja2
+    # via werkzeug
 matplotlib==3.8.3
     # via streamlit-faker
 matplotlib-inline==0.1.6
@@ -164,6 +160,8 @@ parso==0.8.3
 pathspec==0.11.2
     # via beet
     # via black
+pexpect==4.9.0
+    # via ipython
 pillow==10.2.0
     # via matplotlib
     # via streamlit
@@ -180,6 +178,8 @@ prompt-toolkit==3.0.43
 protobuf==4.25.3
     # via streamlit
     # via streamlit-extras
+ptyprocess==0.7.0
+    # via pexpect
 pure-eval==0.2.2
     # via stack-data
 pyarrow==15.0.1
@@ -213,8 +213,6 @@ python-gitlab==3.15.0
 python-semantic-release==9.1.1
 pytz==2024.1
     # via pandas
-pywin32-ctypes==0.2.2
-    # via keyring
 pyyaml==6.0.1
     # via beet
     # via pymdown-extensions
@@ -261,17 +259,20 @@ streamlit==1.32.1
     # via markdownlit
     # via streamlit-camera-input-live
     # via streamlit-card
+    # via streamlit-elements
     # via streamlit-embedcode
     # via streamlit-extras
     # via streamlit-faker
     # via streamlit-image-coordinates
     # via streamlit-keyup
+    # via streamlit-router
     # via streamlit-toggle-switch
     # via streamlit-vertical-slider
 streamlit-camera-input-live==0.2.0
     # via streamlit-extras
 streamlit-card==1.0.0
     # via streamlit-extras
+streamlit-elements==0.1.0
 streamlit-embedcode==0.1.2
     # via streamlit-extras
 streamlit-extras==0.4.0
@@ -283,6 +284,7 @@ streamlit-image-coordinates==0.1.6
     # via streamlit-extras
 streamlit-keyup==0.2.3
     # via streamlit-extras
+streamlit-router==0.1.8
 streamlit-toggle-switch==1.0.2
     # via streamlit-extras
 streamlit-vertical-slider==2.5.5
@@ -318,10 +320,10 @@ tzdata==2024.1
 urllib3==2.2.1
     # via requests
     # via twine
-watchdog==4.0.0
-    # via streamlit
 wcwidth==0.2.13
     # via prompt-toolkit
+werkzeug==3.0.3
+    # via streamlit-router
 wrapt==1.16.0
     # via pytest-insta
 zipp==3.17.0

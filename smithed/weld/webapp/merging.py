@@ -1,30 +1,20 @@
 import time
 from concurrent.futures import ThreadPoolExecutor
-from importlib import resources
 from pathlib import Path
 from zipfile import ZipFile
 
 from beet import PluginError
 import streamlit as st
-import yaml
 from streamlit.delta_generator import DeltaGenerator
-from streamlit.runtime.uploaded_file_manager import UploadedFile
 from streamlit_extras.stateful_button import button as toggle_button
 from streamlit_extras.streaming_write import write as streaming_write
 
 from smithed import weld
 
 from .log_helpers import init_logger
-from .models import Columns, WebApp
+from .models import Columns
 
-icon = "https://github.com/Smithed-MC/smithed-python/blob/main/smithed/weld/resources/icon.png?raw=true"
-
-webapp = WebApp.parse_obj(
-    yaml.safe_load(
-        (resources.files("smithed") / "weld/resources/webapp.yaml").read_text("utf-8")
-    )
-)
-
+from . import common
 
 def weld_packs(packs: list[tuple[str, ZipFile]], make_fabric_mod: bool) -> Path | None:
     """Welds a list of zip files. Outputs a path"""
@@ -118,30 +108,19 @@ def upload_flow(ui: DeltaGenerator):
 
 
 def main():
-    st.set_page_config(
-        page_title="Weld",
-        page_icon=icon,
-        layout="wide",
-    )
+    common.set_defaults()
 
-    st.sidebar.title("Special Merging Rules")
-    st.sidebar.write(webapp.conflicts)
-    st.sidebar.write("----")
-    st.sidebar.write("See [docs](https://wiki.smithed.dev/weld) for more info!")
-    st.sidebar.write("----")
-    st.sidebar.warning(webapp.warn)
+    st.write(common.webapp.title.format(version=weld.__version__), unsafe_allow_html=True)
 
-    st.write(webapp.title.format(version=weld.__version__), unsafe_allow_html=True)
-
-    st.write(webapp.intro, unsafe_allow_html=True)
+    st.write(common.webapp.intro, unsafe_allow_html=True)
 
     upload_flow(st.container())
 
     st.write("---")
 
     col1, col2 = st.columns(2)
-    col1.markdown(webapp.footer.left, unsafe_allow_html=True)
-    col2.markdown(webapp.footer.right, unsafe_allow_html=True)
+    col1.markdown(common.webapp.footer.left, unsafe_allow_html=True)
+    col2.markdown(common.webapp.footer.right, unsafe_allow_html=True)
 
 
 if __name__ == "__main__":

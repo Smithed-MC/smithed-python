@@ -182,6 +182,7 @@ class ConflictsHandler:
             smithed_file = SmithedJsonFile.parse_obj(
                 namespace_file[path].data  # type: ignore
             )
+            print(smithed_file.smithed)
 
             if smithed_file.smithed.entries():
                 processed = self.process_file(smithed_file)
