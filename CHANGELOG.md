@@ -2,6 +2,17 @@
 
 
 
+## v0.19.0 (2024-07-18)
+
+### Chore
+
+* chore: formatting ([`3e55428`](https://github.com/Smithed-MC/smithed-python/commit/3e55428be19795f89e0ad10c512a4b9cd928b1b0))
+
+### Feature
+
+* feat: weld rules previewer ([`004aa08`](https://github.com/Smithed-MC/smithed-python/commit/004aa0886f7c4d2525c469a9761bfd981c0df433))
+
+
 ## v0.18.4 (2024-05-25)
 
 ### Fix
