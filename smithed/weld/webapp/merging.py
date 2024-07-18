@@ -16,6 +16,7 @@ from .models import Columns
 
 from . import common
 
+
 def weld_packs(packs: list[tuple[str, ZipFile]], make_fabric_mod: bool) -> Path | None:
     """Welds a list of zip files. Outputs a path"""
 
@@ -110,7 +111,9 @@ def upload_flow(ui: DeltaGenerator):
 def main():
     common.set_defaults()
 
-    st.write(common.webapp.title.format(version=weld.__version__), unsafe_allow_html=True)
+    st.write(
+        common.webapp.title.format(version=weld.__version__), unsafe_allow_html=True
+    )
 
     st.write(common.webapp.intro, unsafe_allow_html=True)
 

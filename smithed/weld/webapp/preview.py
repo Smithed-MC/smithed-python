@@ -50,7 +50,6 @@ def merge_files(
 
 
 def upload_flow(ui: DeltaGenerator):
-
     file_type = ui.selectbox("Data Type", valid_file_types.keys())
     input_json = ui.file_uploader(
         "Upload Overriding JSON File", accept_multiple_files=False, type="json"
@@ -68,7 +67,10 @@ def upload_flow(ui: DeltaGenerator):
         )
 
     merge_clicked = ui.button(
-        "Merge", disabled=(not input_json) or (file_origin == "Custom" and not base_json) or (file_origin == "Vanilla" and len(file_path) == 0) 
+        "Merge",
+        disabled=(not input_json)
+        or (file_origin == "Custom" and not base_json)
+        or (file_origin == "Vanilla" and len(file_path) == 0),
     )
 
     if merge_clicked and input_json:
@@ -89,7 +91,10 @@ def upload_flow(ui: DeltaGenerator):
 def main():
     common.set_defaults()
 
-    st.write('<h1 style="text-align: center; color: #23A3FF;">Rules Previewer</h1>', unsafe_allow_html=True)
+    st.write(
+        '<h1 style="text-align: center; color: #23A3FF;">Rules Previewer</h1>',
+        unsafe_allow_html=True,
+    )
     # st.write('<span style="text-align: center; width: 100%">View how your weld rules will run with a nicely formatted diff.</span>', unsafe_allow_html=True)
 
     with elements("editor"):
