@@ -16,12 +16,21 @@ from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from importlib import resources
-from typing import Iterator, Literal, cast
+from typing import Iterator, Literal, cast, Generator
 
-from beet import Context, DataPack, JsonFile, ListOption, NamespaceFile
+from beet import (
+    Context,
+    DataPack,
+    JsonFile,
+    ListOption,
+    NamespaceFile,
+    ResourcePack,
+    Texture,
+)
 from beet.contrib.format_json import get_formatter
 from beet.contrib.vanilla import Vanilla
 from pydantic.v1 import ValidationError
+from PIL import Image
 
 from smithed.type import JsonDict, JsonType, JsonTypeT
 
@@ -435,3 +444,87 @@ def normalize_quotes(current: JsonTypeT) -> JsonTypeT:
             return [normalize_quotes(value) for value in l]
         case item:
             return item
+
+
+@dataclass
+class FancyPantsConflictsHandler:
+    SIZE = 64
+
+    def __call__(
+        self,
+        pack: ResourcePack,
+        path: str,
+        current_texture: Texture,
+        conflict_texture: Texture,
+    ) -> bool:
+        if not path in {
+            "minecraft:models/armor/leather_layer_1",
+            "minecraft:models/armor/leather_layer_2",
+        }:
+            return False
+
+        current: Image.Image = current_texture.image
+        conflict: Image.Image = conflict_texture.image
+
+        current_is_fancyPants = current.getpixel((0, 1)) == (255, 255, 255, 255)
+        conflict_is_fancyPants = conflict.getpixel((0, 1)) == (255, 255, 255, 255)
+
+        if not current_is_fancyPants and not conflict_is_fancyPants:
+            # Normal behavior of merge_policy
+            current_texture.image = conflict
+            return True
+        current = current.copy().convert("RGBA")
+        current_first = current.crop((0, 0, self.SIZE, current.height))
+        current = current.crop((self.SIZE, 0, current.width, current.height))
+
+        conflict = conflict.copy().convert("RGBA")
+        conflict_first = conflict.crop((0, 0, self.SIZE, conflict.height))
+        conflict = conflict.crop((self.SIZE, 0, conflict.width, conflict.height))
+
+        if current_is_fancyPants and not conflict_is_fancyPants:
+            # The conflict image will be put at the first layer
+            first = conflict_first
+        elif not current_is_fancyPants and conflict_is_fancyPants:
+            # The current image will be put at the first layer
+            first = current_first
+        elif current_is_fancyPants and conflict_is_fancyPants:
+            # The conflict image will be put at the first layer
+            first = conflict_first
+
+        new_size = (
+            current.width + conflict.width + self.SIZE,
+            max(current.height, conflict.height),
+        )
+        new_image = Image.new("RGBA", new_size)
+        new_image.paste(first, (0, 0))
+
+        layer_dict: dict[int, Image.Image] = {}
+        self.fill_layer_dict(conflict, layer_dict)
+        self.fill_layer_dict(current, layer_dict)
+
+        for i, layer in enumerate(layer_dict.values()):
+            new_image.paste(layer, (self.SIZE + i * self.SIZE, 0))
+
+        # Add the fancy pants tag
+        new_image.putpixel((0, 1), (255, 255, 255, 255))
+
+        current_texture.image = new_image
+
+        return True
+
+    def iterate_layer(self, image: Image.Image) -> Generator[Image.Image, None, None]:
+        for i in range(0, image.width, self.SIZE):
+            yield image.crop((i, 0, i + self.SIZE, image.height)).convert("RGBA")
+
+    def fill_layer_dict(self, image: Image.Image, layer_dict: dict[int, Image.Image]):
+        for layer in self.iterate_layer(image):
+            color = layer.getpixel((0, 0))
+            if not isinstance(color, tuple):
+                raise ValueError("Expected color to be a tuple but got " + str(color))
+
+            color_int = 256 * 256 * color[0] + 256 * color[1] + color[2]
+            if color_int in layer_dict:
+                logger.warning(
+                    f"Duplicate layer color found in fancy pants handler: {color_int}"
+                )
+            layer_dict[color_int] = layer
