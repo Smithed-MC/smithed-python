@@ -23,7 +23,7 @@ from beet.contrib.format_json import get_formatter
 from beet.contrib.vanilla import Vanilla
 from pydantic.v1 import ValidationError
 
-from smithed.type import JsonDict, JsonType, JsonTypeT
+from smithed.type import JsonDict, JsonTypeT
 
 from ..models import (
     AppendRule,
@@ -228,8 +228,7 @@ class ConflictsHandler:
                             item["_index"] = index
 
                 return [
-                    self.manage_indexes(item, strip)
-                    for item in value  # type: ignore
+                    self.manage_indexes(item, strip) for item in value  # type: ignore
                 ]
 
             case dict(value):
