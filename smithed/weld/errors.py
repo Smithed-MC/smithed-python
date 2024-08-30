@@ -6,3 +6,7 @@ class InvalidMcmeta(WeldError):
         super().__init__(f"Pack {pack}'s mcmeta file is not valid JSON:\n{contents}")
         self.pack = pack
         self.contents = contents
+
+
+class InvalidUpload(WeldError):
+    ...

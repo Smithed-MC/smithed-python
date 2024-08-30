@@ -7,7 +7,7 @@
 ```json
 {
   "pack": {
-    "pack_format": 26,
+    "pack_format": 48,
     "description": ""
   },
   "id": "pack.replace"
@@ -20,7 +20,6 @@
 
 ```json
 {
-  "random_sequence": "minecraft:entities/enderman",
   "pools": [
     {
       "rolls": 1,
@@ -43,7 +42,8 @@
                 "max": 1.0,
                 "min": 0.0
               },
-              "function": "minecraft:looting_enchant"
+              "enchantment": "minecraft:looting",
+              "function": "minecraft:enchanted_count_increase"
             }
           ],
           "name": "minecraft:ender_pearl"
@@ -84,6 +84,7 @@
     }
   ],
   "type": "minecraft:entity",
+  "random_sequence": "minecraft:entities/enderman",
   "__smithed__": [
     {
       "id": "pack.append",

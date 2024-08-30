@@ -164,10 +164,7 @@ class ConflictsHandler:
             return False
 
     def grab_vanilla(self, path: str, json_file_type: type[NamespaceFile]) -> JsonDict:
-        """Grabs the vanilla file to load as the current file (aka the base).
-
-        ⚠️ Uses the bundled `yellow_shulker_box.json` as an override over vanilla's.
-        """
+        """Grabs the vanilla file to load as the current file (aka the base)."""
 
         vanilla = self.ctx.inject(Vanilla)
         return cast(JsonFile, vanilla.data[json_file_type][path]).data
@@ -182,7 +179,6 @@ class ConflictsHandler:
             smithed_file = SmithedJsonFile.parse_obj(
                 namespace_file[path].data  # type: ignore
             )
-            print(smithed_file.smithed)
 
             if smithed_file.smithed.entries():
                 processed = self.process_file(smithed_file)

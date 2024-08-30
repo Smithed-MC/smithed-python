@@ -7,7 +7,7 @@
 ```json
 {
   "pack": {
-    "pack_format": 26,
+    "pack_format": 48,
     "description": ""
   },
   "id": "pack3"
@@ -20,7 +20,6 @@
 
 ```json
 {
-  "type": "minecraft:entity",
   "random_sequence": "minecraft:entities/zombie",
   "pools": [
     {
@@ -44,7 +43,8 @@
                 "max": 1.0,
                 "min": 0.0
               },
-              "function": "minecraft:looting_enchant"
+              "enchantment": "minecraft:looting",
+              "function": "minecraft:enchanted_count_increase"
             }
           ],
           "name": "minecraft:rotten_flesh"
@@ -59,9 +59,14 @@
           "condition": "minecraft:killed_by_player"
         },
         {
-          "chance": 0.025,
-          "condition": "minecraft:random_chance_with_looting",
-          "looting_multiplier": 0.01
+          "condition": "minecraft:random_chance_with_enchanted_bonus",
+          "enchanted_chance": {
+            "type": "minecraft:linear",
+            "base": 0.035,
+            "per_level_above_first": 0.01
+          },
+          "enchantment": "minecraft:looting",
+          "unenchanted_chance": 0.025
         }
       ],
       "entries": [
@@ -79,13 +84,35 @@
             {
               "conditions": [
                 {
-                  "condition": "minecraft:entity_properties",
-                  "entity": "this",
-                  "predicate": {
-                    "flags": {
-                      "is_on_fire": true
+                  "condition": "minecraft:any_of",
+                  "terms": [
+                    {
+                      "condition": "minecraft:entity_properties",
+                      "entity": "this",
+                      "predicate": {
+                        "flags": {
+                          "is_on_fire": true
+                        }
+                      }
+                    },
+                    {
+                      "condition": "minecraft:entity_properties",
+                      "entity": "direct_attacker",
+                      "predicate": {
+                        "equipment": {
+                          "mainhand": {
+                            "predicates": {
+                              "minecraft:enchantments": [
+                                {
+                                  "enchantments": "#minecraft:smelts_loot"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
                     }
-                  }
+                  ]
                 }
               ],
               "function": "minecraft:furnace_smelt"
@@ -101,7 +128,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:diamond"
+          "name": "minecraft:first"
         }
       ]
     },
@@ -110,7 +137,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:cobblestone"
+          "name": "minecraft:middle"
         }
       ]
     },
@@ -119,11 +146,12 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:stone"
+          "name": "minecraft:last"
         }
       ]
     }
   ],
+  "type": "minecraft:entity",
   "__smithed__": [
     {
       "id": "pack1",
@@ -138,7 +166,7 @@
               "entries": [
                 {
                   "type": "minecraft:item",
-                  "name": "minecraft:diamond"
+                  "name": "minecraft:first"
                 }
               ]
             }
@@ -164,7 +192,7 @@
               "entries": [
                 {
                   "type": "minecraft:item",
-                  "name": "minecraft:stone"
+                  "name": "minecraft:last"
                 }
               ]
             }
@@ -190,7 +218,7 @@
               "entries": [
                 {
                   "type": "minecraft:item",
-                  "name": "minecraft:cobblestone"
+                  "name": "minecraft:middle"
                 }
               ]
             }

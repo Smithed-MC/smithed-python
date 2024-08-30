@@ -2,6 +2,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from zipfile import ZipFile
+import traceback
 
 from beet import PluginError
 import streamlit as st
@@ -72,7 +73,8 @@ def build_packs(
             status.error(f"# `Plugin Error`\n{exc.args}")
         except Exception as exc:
             status.update(label=":red[Error occured. Click to reveal error.]")
-            status.error(f"# `{exc.__class__.__name__}`\n{exc.args[0]}")
+            status.error(f"# `{exc.__class__.__name__}`\n" + "\n".join(exc.args))
+            print(traceback.format_exc())
 
     return path
 

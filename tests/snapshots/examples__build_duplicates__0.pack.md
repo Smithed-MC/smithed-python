@@ -8,7 +8,7 @@
 {
   "pack": {
     "description": "Smithed's Actionbar Pack",
-    "pack_format": 26
+    "pack_format": 48
   },
   "id": "tacos"
 }
@@ -20,6 +20,8 @@
 
 ```json
 {
+  "type": "minecraft:block",
+  "random_sequence": "minecraft:blocks/yellow_shulker_box",
   "pools": [
     {
       "bonus_rolls": 0.0,
@@ -28,39 +30,14 @@
           "type": "minecraft:item",
           "functions": [
             {
-              "function": "minecraft:copy_name",
-              "source": "block_entity"
-            },
-            {
-              "function": "minecraft:copy_nbt",
-              "ops": [
-                {
-                  "op": "replace",
-                  "source": "Lock",
-                  "target": "BlockEntityTag.Lock"
-                },
-                {
-                  "op": "replace",
-                  "source": "LootTable",
-                  "target": "BlockEntityTag.LootTable"
-                },
-                {
-                  "op": "replace",
-                  "source": "LootTableSeed",
-                  "target": "BlockEntityTag.LootTableSeed"
-                }
+              "function": "minecraft:copy_components",
+              "include": [
+                "minecraft:custom_name",
+                "minecraft:container",
+                "minecraft:lock",
+                "minecraft:container_loot"
               ],
               "source": "block_entity"
-            },
-            {
-              "type": "minecraft:shulker_box",
-              "entries": [
-                {
-                  "type": "minecraft:dynamic",
-                  "name": "minecraft:contents"
-                }
-              ],
-              "function": "minecraft:set_contents"
             }
           ],
           "name": "minecraft:yellow_shulker_box"
@@ -106,8 +83,6 @@
       ]
     }
   ],
-  "random_sequence": "minecraft:blocks/yellow_shulker_box",
-  "type": "minecraft:block",
   "__smithed__": [
     {
       "id": "tcc",

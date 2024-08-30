@@ -7,12 +7,11 @@ from lectern import Document
 from pytest_insta import SnapshotFixture
 
 from smithed.weld import run_weld
+from smithed.type import JsonDict
 
 EXAMPLES = [f for f in os.listdir("examples") if not f.startswith(".")]
 
-TEST_CONFIG = {
-    "require": ["beet.contrib.auto_yaml"],
-}
+TEST_CONFIG: JsonDict = {}
 
 
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
