@@ -23,22 +23,24 @@ from ..errors import InvalidMcmeta, InvalidPack
 
 logger = logging.getLogger("weld")
 
+_Pack = DataPack | ResourcePack
+
 
 class PackWithName(NamedTuple):
-    pack: DataPack | ResourcePack
+    pack: _Pack
     name: str
 
 
 @dataclass
 class PackProcessor:
     ctx: Context
-    file_id_cache: dict[JsonFileBase[JsonDict], str] = field(default_factory=dict)
+    file_id_cache: dict[JsonFileBase[JsonDict], _Pack] = field(default_factory=dict)
     packs: list[PackWithName] = field(default_factory=list)
 
     def __getitem__(self, key: JsonFileBase[JsonDict]):
         return self.file_id_cache[key]
 
-    def __setitem__(self, key: JsonFileBase[JsonDict], value: str):
+    def __setitem__(self, key: JsonFileBase[JsonDict], value: _Pack):
         self.file_id_cache[key] = value
 
     def get_pack_type(self, path: ZipPath | Path) -> DataPack | ResourcePack:
@@ -130,7 +132,7 @@ class PackProcessor:
         for k in (
             PackQuery([pack]).distinct(match="*", extend=JsonFileBase[JsonDict]).keys()
         ):
-            self[k] = pack.mcmeta.data["id"]
+            self[k] = pack
 
         self.packs.append(PackWithName(pack, name))
 

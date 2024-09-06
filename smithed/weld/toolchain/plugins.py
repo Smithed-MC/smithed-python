@@ -5,10 +5,12 @@ from zipfile import ZipFile
 
 from beet import (
     Context,
+    DataPack,
     JsonFile,
     Mcmeta,
     PluginOptions,
     PngFile,
+    ResourcePack,
     configurable,
 )
 from jinja2 import Template
@@ -61,10 +63,23 @@ def weld_handler(ctx: Context):
 
 
 def weld_metadata(ctx: Context):
-    ctx.data.icon = PngFile(DEFAULT_PACK_ICON)
-    ctx.assets.icon = PngFile(DEFAULT_PACK_ICON)
-    ctx.data.mcmeta.data["description"] = "A welded pack"
-    ctx.assets.mcmeta.data["description"] = "A welded pack"
+    processor = ctx.inject(PackProcessor)
+
+    if ctx.data:
+        ctx.data.icon = PngFile(DEFAULT_PACK_ICON)
+        ctx.data.mcmeta.data["pack"]["description"] = "A welded pack"
+        ctx.data.mcmeta.data.setdefault("__smithed__", {})
+        ctx.data.mcmeta.data["__smithed__"]["packs"] = [
+            name for pack, name in processor.packs if type(pack) is DataPack
+        ]
+
+    if ctx.assets:
+        ctx.assets.icon = PngFile(DEFAULT_PACK_ICON)
+        ctx.assets.mcmeta.data["pack"]["description"] = "A welded pack"
+        ctx.assets.mcmeta.data.setdefault("__smithed__", {})
+        ctx.assets.mcmeta.data["__smithed__"]["packs"] = [
+            name for pack, name in processor.packs if type(pack) is ResourcePack
+        ]
 
 
 def weld(ctx: Context):

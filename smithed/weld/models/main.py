@@ -21,7 +21,7 @@ def deserialize(model: BaseModel, defaults: bool = True):
 class SmithedModel(BaseModel, extra="forbid"):
     id: str = ""
     version: int = 1
-    override: bool = False  # only should be set by bundle packs
+    override: bool | None = None  # only should be set by bundle packs
     priority: Priority | None = None
     rules: list[Rule] = []
 

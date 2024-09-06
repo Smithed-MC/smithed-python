@@ -20,6 +20,7 @@
 
 ```json
 {
+  "random_sequence": "minecraft:entities/enderman",
   "pools": [
     {
       "rolls": 1,
@@ -84,7 +85,6 @@
     }
   ],
   "type": "minecraft:entity",
-  "random_sequence": "minecraft:entities/enderman",
   "__smithed__": [
     {
       "id": "pack.append",

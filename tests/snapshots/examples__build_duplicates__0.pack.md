@@ -10,9 +10,14 @@
     "description": "Smithed's Actionbar Pack",
     "pack_format": 48
   },
+  "description": "A welded pack",
   "id": "tacos"
 }
 ```
+
+`@data_pack pack.png`
+
+![data_pack.png](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACABAMAAAAxEHz4AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJUExURTc5TGOm/0dl/z9F6ZkAAAAJcEhZcwAADsIAAA7CARUoSoAAAAD9SURBVGje7ddhDoMwCIZhrsAVuP8ht8Xo2gq1tECzjPev+R5njItClmXZL4Sf9gH4bQeAbbEA8kUB2CsAwMe8gSEDnYGNPwKHDem8y0BzSH31JsCTUR4kL0A2qvU7R4Az2rU7gOL9oit3gDOoLAKoDWoKAk6D7pkDvT8RohAA9gMyMbpfByRDsV8HWEM1NwDuhnJtATSGfm0BlMbU2gK4jNm1BXAYC+tZgNbOaQOsGUZAbahEO+Bcaa/JFCC6nqYEQoHa2AQURiyAzKv9AQye1QLgDBjOCMDeB0cUgOIHRyCA/AeHMyAY5dPtD0C+JzLG1BryPdEQyLLsPwJ4Abkeykf9h286AAAADmVYSWZNTQAqAAAACAAAAAAAAADSU5MAAAAASUVORK5CYII=)
 
 ### minecraft
 
@@ -20,8 +25,6 @@
 
 ```json
 {
-  "type": "minecraft:block",
-  "random_sequence": "minecraft:blocks/yellow_shulker_box",
   "pools": [
     {
       "bonus_rolls": 0.0,
@@ -83,6 +86,8 @@
       ]
     }
   ],
+  "random_sequence": "minecraft:blocks/yellow_shulker_box",
+  "type": "minecraft:block",
   "__smithed__": [
     {
       "id": "tcc",
@@ -141,3 +146,21 @@
   ]
 }
 ```
+
+## Resource pack
+
+`@resource_pack pack.mcmeta`
+
+```json
+{
+  "pack": {
+    "pack_format": 34,
+    "description": ""
+  },
+  "description": "A welded pack"
+}
+```
+
+`@resource_pack pack.png`
+
+![resource_pack.png](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACABAMAAAAxEHz4AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJUExURTc5TGOm/0dl/z9F6ZkAAAAJcEhZcwAADsIAAA7CARUoSoAAAAD9SURBVGje7ddhDoMwCIZhrsAVuP8ht8Xo2gq1tECzjPev+R5njItClmXZL4Sf9gH4bQeAbbEA8kUB2CsAwMe8gSEDnYGNPwKHDem8y0BzSH31JsCTUR4kL0A2qvU7R4Az2rU7gOL9oit3gDOoLAKoDWoKAk6D7pkDvT8RohAA9gMyMbpfByRDsV8HWEM1NwDuhnJtATSGfm0BlMbU2gK4jNm1BXAYC+tZgNbOaQOsGUZAbahEO+Bcaa/JFCC6nqYEQoHa2AQURiyAzKv9AQye1QLgDBjOCMDeB0cUgOIHRyCA/AeHMyAY5dPtD0C+JzLG1BryPdEQyLLsPwJ4Abkeykf9h286AAAADmVYSWZNTQAqAAAACAAAAAAAAADSU5MAAAAASUVORK5CYII=)

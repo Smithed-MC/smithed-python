@@ -170,7 +170,13 @@ class ConflictsHandler:
 
         for model in obj.smithed.entries():
             if model.id == "":
-                model.id = processor[file]
+                model.id = processor[file].mcmeta.data["id"]
+            if model.override is None:
+                model.override = (
+                    processor[file]
+                    .mcmeta.data.get("__smithed__", {})
+                    .get("override", False)
+                )
 
         return obj
 

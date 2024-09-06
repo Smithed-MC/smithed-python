@@ -8,7 +8,7 @@
 {
   "pack": {
     "description": "Smithed's Actionbar Pack",
-    "pack_format": 26
+    "pack_format": 48
   },
   "id": "tacos"
 }
@@ -20,8 +20,8 @@
 
 ```json
 {
-  "type": "minecraft:entity",
   "random_sequence": "minecraft:entities/wither",
+  "type": "minecraft:entity",
   "pools": [
     {
       "rolls": 1,
