@@ -24,7 +24,7 @@ backports-strenum==1.2.8
     # via smithed
 beautifulsoup4==4.12.3
     # via favicon
-beet @ git+https://github.com/rx-modules/beet@869048f888d243f82c75e2133e41aa93a779f182
+beet @ git+https://github.com/Smithed-MC/beet@869048f888d243f82c75e2133e41aa93a779f182
     # via lectern
     # via mecha
     # via smithed

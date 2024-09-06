@@ -3,7 +3,7 @@ authors = [
   {name = "Smithed Team", email = "team@smithed.dev"},
 ]
 dependencies = [
-    "beet @ git+https://github.com/rx-modules/beet@fix/overlay-folder-names",
+    "beet @ git+https://github.com/Smithed-MC/beet@fix/overlay-folder-names",
     "mecha>=0.95.2",
     "typer>=0.9.0",
     "tokenstream>=1.7.0",
