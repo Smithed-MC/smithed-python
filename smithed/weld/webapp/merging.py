@@ -16,9 +16,10 @@ from .log_helpers import init_logger
 from .models import Columns
 
 from . import common
+from smithed.weld import webapp
 
 
-def weld_packs(packs: list[tuple[str, ZipFile]], make_fabric_mod: bool) -> Path | None:
+def weld_packs(packs: list[ZipFile], make_fabric_mod: bool) -> Path | None:
     """Welds a list of zip files. Outputs a path"""
 
     with weld.run_weld(packs, as_fabric_mod=make_fabric_mod) as ctx:
@@ -83,7 +84,7 @@ def upload_flow(ui: DeltaGenerator):
     progress = ui.container()
     raw_packs = ui.file_uploader("Upload packs", accept_multiple_files=True, type="zip")
 
-    packs = [(pack.name, ZipFile(pack)) for pack in raw_packs] if raw_packs else []
+    packs = [ZipFile(pack) for pack in raw_packs] if raw_packs else []
 
     cols = Columns(*ui.columns(3))
     with cols.middle:

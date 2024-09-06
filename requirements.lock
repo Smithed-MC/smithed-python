@@ -14,7 +14,7 @@ annotated-types==0.6.0
     # via pydantic
 backports-strenum==1.2.8
     # via smithed
-beet==0.108.5
+beet @ git+https://github.com/rx-modules/beet@869048f888d243f82c75e2133e41aa93a779f182
     # via mecha
     # via smithed
 click==8.1.7
