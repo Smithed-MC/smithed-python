@@ -43,13 +43,13 @@ def add_fabric_mod_json(ctx: Context, pack_names: list[str] | None = None):
         processor = ctx.inject(PackProcessor)
         pack_names = list(set(pack.name for pack in processor.packs))
 
-    ctx.data.extra["fabric.mod.json"] = JsonFile(
-        FABRIC_MOD_TEMPLATE.render(
-            pack_hash=hash(pack_names),
-            pack_names=pack_names,
-            mc_version=ctx.minecraft_version,
-        )
+    content = FABRIC_MOD_TEMPLATE.render(
+        pack_hash=hash("".join(pack_names)),
+        pack_names=pack_names,
+        mc_version=ctx.minecraft_version,
     )
+
+    ctx.data.extra["fabric.mod.json"] = JsonFile(content)
 
 
 @configurable(validator=WeldOptions)

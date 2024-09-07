@@ -5,6 +5,7 @@ from typing import Iterable
 from zipfile import ZipFile
 
 from beet import (
+    PluginError,
     ProjectCache,
     ProjectConfig,
     run_beet,
@@ -33,7 +34,13 @@ def run_weld(
     with run_beet(config, directory=directory, cache=cache) as ctx:
         ctx.require(weld_handler)
         ctx.require(weld_metadata)
-        ctx.require(partial(weld_loader, packs=list(packs)))
+
+        # Errors from partial/lambda hide the underlying cause leading to bad error messages
+        try:
+            ctx.require(partial(weld_loader, packs=list(packs)))
+        except PluginError as err:
+            raise err.__cause__
+
         ctx.require(weld)
 
         if as_fabric_mod:

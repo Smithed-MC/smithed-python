@@ -1,3 +1,4 @@
+from json import JSONDecodeError
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -107,7 +108,9 @@ class PackProcessor:
 
         except DeserializationError as err:
             if isinstance(err.file, Mcmeta):
-                raise InvalidMcmeta(pack=name, contents=err.file.get_content()) from err  # type: ignore
+                cause = err.__cause__
+                reason = str(cause)
+                raise InvalidMcmeta(pack=name, cause=f"\n{reason}") from err  # type: ignore
             raise err
 
         self.cache_pack(pack, name)

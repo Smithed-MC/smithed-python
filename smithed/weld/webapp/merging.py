@@ -89,7 +89,7 @@ def upload_flow(ui: DeltaGenerator):
     cols = Columns(*ui.columns(3))
     with cols.middle:
         if fabric_mod := toggle_button("Turn into Fabric Mod", key="toggle"):
-            ui.warning(webapp.fabric)
+            ui.warning(common.webapp.fabric)
 
     path = None
     if cols.left.button("Build Packs", disabled=not packs, key="build") and packs:

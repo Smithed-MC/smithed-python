@@ -2,10 +2,10 @@ class WeldError(Exception): ...
 
 
 class InvalidMcmeta(WeldError):
-    def __init__(self, pack: str, contents: str):
-        super().__init__(f"Pack {pack}'s mcmeta file is not valid JSON:\n{contents}")
+    def __init__(self, pack: str, cause: str):
+        super().__init__(f"Pack {pack}'s mcmeta file is not valid JSON:\n{cause}")
         self.pack = pack
-        self.contents = contents
+        self.contents = cause
 
 
 class InvalidPack(WeldError):
