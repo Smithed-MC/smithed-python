@@ -7,13 +7,14 @@
 #   all-features: false
 #   with-sources: false
 #   generate-hashes: false
+#   universal: false
 
 -e file:.
 annotated-types==0.6.0
     # via pydantic
 backports-strenum==1.2.8
     # via smithed
-beet==0.104.1
+beet @ git+https://github.com/Smithed-MC/beet@869048f888d243f82c75e2133e41aa93a779f182
     # via mecha
     # via smithed
 click==8.1.7
@@ -30,7 +31,7 @@ markupsafe==2.1.5
     # via jinja2
 mdurl==0.1.2
     # via markdown-it-py
-mecha==0.90.0
+mecha==0.95.2
     # via smithed
 nbtlib==1.12.1
     # via beet

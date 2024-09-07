@@ -14,7 +14,7 @@ from rich.panel import Panel
 from smithed.theming import console, print
 from smithed.utils import error_handler, path_str
 
-from .main import run_weld
+from .helpers import run_weld
 
 cli = typer.Typer(
     help="🔧 Weld multiple data and resource packs into a single zip!",

@@ -1,12 +1,10 @@
-from . import merging
-from .toolchain import cli, inject_pack_stuff_into_smithed, print_pack_name, run_weld
+from .toolchain import cli, run_weld, weld, weld_handler
 
 __version__ = "0.19.0"
 
 __all__ = [
-    "print_pack_name",
-    "inject_pack_stuff_into_smithed",
     "cli",
     "run_weld",
-    "merging",
+    "weld",
+    "weld_handler",
 ]

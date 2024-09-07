@@ -23,7 +23,8 @@ from beet.contrib.format_json import get_formatter
 from beet.contrib.vanilla import Vanilla
 from pydantic.v1 import ValidationError
 
-from smithed.type import JsonDict, JsonType, JsonTypeT
+from smithed.type import JsonDict, JsonTypeT
+from ..toolchain.process import PackProcessor
 
 from ..models import (
     AppendRule,
@@ -67,6 +68,8 @@ class ConflictsHandler:
     ):
         """Register conflicts.."""
 
+        processor = self.ctx.inject(PackProcessor)
+
         logger.debug(f"Registering conflict: {path!r}")
         if path in self.overrides:
             logger.debug("Skipping due to override")
@@ -74,8 +77,8 @@ class ConflictsHandler:
 
         # Parse the files and handle validation errors. We need to ensure that `current`
         #  is left with a valid file. If a file has an incorrect `smithed` definition.
-        smithed_current = self.parse_smithed_file(current)
-        smithed_conflict = self.parse_smithed_file(conflict)
+        smithed_current = self.parse_smithed_file(current, processor)
+        smithed_conflict = self.parse_smithed_file(conflict, processor)
 
         if smithed_current is False and smithed_conflict is False:
             logger.warn(
@@ -154,20 +157,31 @@ class ConflictsHandler:
 
         return True
 
-    def parse_smithed_file(self, file: JsonFile) -> SmithedJsonFile | Literal[False]:
+    def parse_smithed_file(
+        self, file: JsonFile, processor: PackProcessor
+    ) -> SmithedJsonFile | Literal[False]:
         """Parses a smithed file and returns the parsed file or False if invalid."""
 
         try:
-            return SmithedJsonFile.parse_obj(file.data)
+            obj = SmithedJsonFile.parse_obj(file.data)
         except ValidationError:
             logger.error("Failed to parse smithed file ", exc_info=True)
             return False
 
-    def grab_vanilla(self, path: str, json_file_type: type[NamespaceFile]) -> JsonDict:
-        """Grabs the vanilla file to load as the current file (aka the base).
+        for model in obj.smithed.entries():
+            if model.id == "":
+                model.id = processor[file].mcmeta.data["id"]
+            if model.override is None:
+                model.override = (
+                    processor[file]
+                    .mcmeta.data.get("__smithed__", {})
+                    .get("override", False)
+                )
 
-        ⚠️ Uses the bundled `yellow_shulker_box.json` as an override over vanilla's.
-        """
+        return obj
+
+    def grab_vanilla(self, path: str, json_file_type: type[NamespaceFile]) -> JsonDict:
+        """Grabs the vanilla file to load as the current file (aka the base)."""
 
         vanilla = self.ctx.inject(Vanilla)
         return cast(JsonFile, vanilla.data[json_file_type][path]).data
@@ -182,7 +196,6 @@ class ConflictsHandler:
             smithed_file = SmithedJsonFile.parse_obj(
                 namespace_file[path].data  # type: ignore
             )
-            print(smithed_file.smithed)
 
             if smithed_file.smithed.entries():
                 processed = self.process_file(smithed_file)
@@ -232,8 +245,7 @@ class ConflictsHandler:
                             item["_index"] = index
 
                 return [
-                    self.manage_indexes(item, strip)
-                    for item in value  # type: ignore
+                    self.manage_indexes(item, strip) for item in value  # type: ignore
                 ]
 
             case dict(value):

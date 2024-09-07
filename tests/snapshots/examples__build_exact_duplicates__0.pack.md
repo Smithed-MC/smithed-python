@@ -8,11 +8,16 @@
 {
   "pack": {
     "description": "Smithed's Actionbar Pack",
-    "pack_format": 26
+    "pack_format": 48
   },
+  "description": "A welded pack",
   "id": "tacos"
 }
 ```
+
+`@data_pack pack.png`
+
+![data_pack.png](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACABAMAAAAxEHz4AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJUExURTc5TGOm/0dl/z9F6ZkAAAAJcEhZcwAADsIAAA7CARUoSoAAAAD9SURBVGje7ddhDoMwCIZhrsAVuP8ht8Xo2gq1tECzjPev+R5njItClmXZL4Sf9gH4bQeAbbEA8kUB2CsAwMe8gSEDnYGNPwKHDem8y0BzSH31JsCTUR4kL0A2qvU7R4Az2rU7gOL9oit3gDOoLAKoDWoKAk6D7pkDvT8RohAA9gMyMbpfByRDsV8HWEM1NwDuhnJtATSGfm0BlMbU2gK4jNm1BXAYC+tZgNbOaQOsGUZAbahEO+Bcaa/JFCC6nqYEQoHa2AQURiyAzKv9AQye1QLgDBjOCMDeB0cUgOIHRyCA/AeHMyAY5dPtD0C+JzLG1BryPdEQyLLsPwJ4Abkeykf9h286AAAADmVYSWZNTQAqAAAACAAAAAAAAADSU5MAAAAASUVORK5CYII=)
 
 ### minecraft
 
@@ -29,39 +34,14 @@
           "type": "minecraft:item",
           "functions": [
             {
-              "function": "minecraft:copy_name",
-              "source": "block_entity"
-            },
-            {
-              "function": "minecraft:copy_nbt",
-              "ops": [
-                {
-                  "op": "replace",
-                  "source": "Lock",
-                  "target": "BlockEntityTag.Lock"
-                },
-                {
-                  "op": "replace",
-                  "source": "LootTable",
-                  "target": "BlockEntityTag.LootTable"
-                },
-                {
-                  "op": "replace",
-                  "source": "LootTableSeed",
-                  "target": "BlockEntityTag.LootTableSeed"
-                }
+              "function": "minecraft:copy_components",
+              "include": [
+                "minecraft:custom_name",
+                "minecraft:container",
+                "minecraft:lock",
+                "minecraft:container_loot"
               ],
               "source": "block_entity"
-            },
-            {
-              "type": "minecraft:shulker_box",
-              "entries": [
-                {
-                  "type": "minecraft:dynamic",
-                  "name": "minecraft:contents"
-                }
-              ],
-              "function": "minecraft:set_contents"
             }
           ],
           "name": "minecraft:yellow_shulker_box"
@@ -74,3 +54,21 @@
   "__smithed__": []
 }
 ```
+
+## Resource pack
+
+`@resource_pack pack.mcmeta`
+
+```json
+{
+  "pack": {
+    "pack_format": 34,
+    "description": ""
+  },
+  "description": "A welded pack"
+}
+```
+
+`@resource_pack pack.png`
+
+![resource_pack.png](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACABAMAAAAxEHz4AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJUExURTc5TGOm/0dl/z9F6ZkAAAAJcEhZcwAADsIAAA7CARUoSoAAAAD9SURBVGje7ddhDoMwCIZhrsAVuP8ht8Xo2gq1tECzjPev+R5njItClmXZL4Sf9gH4bQeAbbEA8kUB2CsAwMe8gSEDnYGNPwKHDem8y0BzSH31JsCTUR4kL0A2qvU7R4Az2rU7gOL9oit3gDOoLAKoDWoKAk6D7pkDvT8RohAA9gMyMbpfByRDsV8HWEM1NwDuhnJtATSGfm0BlMbU2gK4jNm1BXAYC+tZgNbOaQOsGUZAbahEO+Bcaa/JFCC6nqYEQoHa2AQURiyAzKv9AQye1QLgDBjOCMDeB0cUgOIHRyCA/AeHMyAY5dPtD0C+JzLG1BryPdEQyLLsPwJ4Abkeykf9h286AAAADmVYSWZNTQAqAAAACAAAAAAAAADSU5MAAAAASUVORK5CYII=)

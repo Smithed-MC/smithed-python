@@ -7,7 +7,7 @@
 ```json
 {
   "pack": {
-    "pack_format": 18,
+    "pack_format": 48,
     "description": ""
   },
   "id": "pack.never2"
@@ -35,8 +35,7 @@
     }
   ],
   "__smithed__": {
-    "override": true,
-    "id": "pack.only"
+    "override": true
   }
 }
 ```

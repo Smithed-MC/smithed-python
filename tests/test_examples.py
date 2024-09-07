@@ -6,13 +6,12 @@ import pytest
 from lectern import Document
 from pytest_insta import SnapshotFixture
 
+from smithed.type import JsonDict
 from smithed.weld import run_weld
 
 EXAMPLES = [f for f in os.listdir("examples") if not f.startswith(".")]
 
-TEST_CONFIG = {
-    "require": ["beet.contrib.auto_yaml"],
-}
+TEST_CONFIG: JsonDict = {}
 
 
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
@@ -31,8 +30,8 @@ def test_build(
         caplog.at_level(logging.DEBUG, logger="weld"),
         run_weld(packs, config=TEST_CONFIG) as ctx,
     ):
-        document = ctx.inject(Document)
-        document.markdown_serializer.flat = True
+        actual = ctx.inject(Document)
+        actual.markdown_serializer.flat = True
 
         # assert no errors
         for record in caplog.records:
@@ -45,10 +44,10 @@ def test_build(
                     ...
 
         # ignore pack format
-        snapshot_doc = snapshot("pack.md")
-        if hasattr(snapshot_doc, "assets"):
-            snapshot_doc.assets.pack_format = document.assets.pack_format
-        if hasattr(snapshot_doc, "data"):
-            snapshot_doc.data.pack_format = document.data.pack_format
+        expected = snapshot("pack.md")
+        if hasattr(expected, "assets"):
+            expected.assets.pack_format = actual.assets.pack_format
+        if hasattr(expected, "data"):
+            expected.data.pack_format = actual.data.pack_format
 
-        assert snapshot_doc == document
+        assert expected == actual

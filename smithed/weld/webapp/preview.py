@@ -44,7 +44,8 @@ def merge_files(
     conflicts(ctx.data, file_path, output, input)
     conflicts.process()
 
-    output.data["__smithed__"] = input.data["__smithed__"]
+    if "__smithed__" in input.data:
+        output.data["__smithed__"] = input.data["__smithed__"]
 
     return output.data
 
