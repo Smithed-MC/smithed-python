@@ -245,7 +245,8 @@ class ConflictsHandler:
                             item["_index"] = index
 
                 return [
-                    self.manage_indexes(item, strip) for item in value  # type: ignore
+                    self.manage_indexes(item, strip)
+                    for item in value  # type: ignore
                 ]
 
             case dict(value):
