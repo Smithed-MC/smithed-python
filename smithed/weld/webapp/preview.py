@@ -1,5 +1,6 @@
 import json
-from beet import Context, DataPack, JsonFile, NamespaceFile
+from beet import Context, DataPack, JsonFile, Mcmeta, NamespaceFile
+from smithed.weld.toolchain.process import PackProcessor
 import streamlit as st
 from streamlit_elements import elements, editor
 from streamlit.delta_generator import DeltaGenerator
@@ -25,10 +26,18 @@ def merge_files(
     file_path: str | None,
     base_json: UploadedFile | None,
 ):
-    output = DataPack()
+    ctx.data.mcmeta = Mcmeta(
+        {"pack": {"pack_format": 48, "description": ""}, "id": "output"}
+    )
+    input_pack = DataPack()
+    input_pack.mcmeta = Mcmeta(
+        {"pack": {"pack_format": 48, "description": ""}, "id": "input"}
+    )
 
     DataType: type[JsonFile] = valid_file_types[file_type][0]
     data_scope = valid_file_types[file_type][1]
+
+    input = DataType(input_json)
 
     if file_origin == "Vanilla":
         query = {data_scope: [file_path]}
@@ -37,8 +46,12 @@ def merge_files(
         file_path = "weld:default"
         ctx.data[DataType][file_path] = DataType(base_json.getvalue().decode("utf-8"))
 
-    input = DataType(input_json)
+    input_pack[DataType][file_path] = input
     output: JsonFile = ctx.data[DataType][file_path]
+
+    processor = ctx.inject(PackProcessor)
+    processor.file_id_cache[input] = input_pack
+    processor.file_id_cache[output] = ctx.data
 
     conflicts = ConflictsHandler(ctx)
     conflicts(ctx.data, file_path, output, input)

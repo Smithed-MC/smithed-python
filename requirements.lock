@@ -7,7 +7,6 @@
 #   all-features: false
 #   with-sources: false
 #   generate-hashes: false
-#   universal: false
 
 -e file:.
 annotated-types==0.6.0
@@ -23,6 +22,9 @@ click==8.1.7
     # via typer
 click-help-colors==0.9.4
     # via beet
+colorama==0.4.6
+    # via beet
+    # via click
 jinja2==3.1.3
     # via beet
 markdown-it-py==3.0.0
