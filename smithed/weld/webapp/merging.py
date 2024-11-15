@@ -74,7 +74,7 @@ def build_packs(
             status.error(f"# `Plugin Error`\n{exc.args}")
         except Exception as exc:
             status.update(label=":red[Error occured. Click to reveal error.]")
-            status.error(f"# `{exc.__class__.__name__}`\n" + "\n".join(exc.args))
+            status.error(f"# `{exc.__class__.__name__}`\n" + "\n".join(str(arg) for arg in exc.args))
             print(traceback.format_exc())
 
     return path
