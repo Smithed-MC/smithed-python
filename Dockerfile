@@ -21,6 +21,7 @@ ENV CARGO_HOME="/opt/cargo"
 ENV PATH="/opt/cargo/bin:$PATH"
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
+RUN pip install uv
 RUN uv venv
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
