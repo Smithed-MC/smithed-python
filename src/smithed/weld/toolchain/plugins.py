@@ -13,7 +13,7 @@ from beet import (
 )
 from jinja2 import Template
 
-from smithed.weld import merging
+from smithed.weld import merging, scripts
 from .process import PackProcessor
 
 
@@ -81,6 +81,7 @@ def weld_metadata(ctx: Context):
 
 def weld(ctx: Context):
     ctx.require(merging.process)
+    ctx.require(scripts.beet_default)
 
 
 def cache_pack_metadata(ctx: Context):

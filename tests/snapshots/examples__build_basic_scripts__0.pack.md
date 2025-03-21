@@ -1,4 +1,4 @@
-a# Lectern snapshot
+# Lectern snapshot
 
 ## Data pack
 
@@ -10,7 +10,18 @@ a# Lectern snapshot
     "pack_format": 48,
     "description": ""
   },
-  "id": "tasty_tacos"
+  "id": "tasty_tacos",
+  "overlays": {
+    "entries": [
+      {
+        "formats": {
+          "min_inclusive": 48,
+          "max_inclusive": 48
+        },
+        "directory": "weld_generated_custom"
+      }
+    ]
+  }
 }
 ```
 
@@ -20,7 +31,13 @@ a# Lectern snapshot
 
 ### custom
 
-[`@data_pack data/custom//weld/scripts/main.bolt`](data:application/octet-stream;base64,cHJpbnQoY3R4Lm1ldGEp)
+`@weld_script custom:main`
+
+```
+function list:functions:
+    for func_name in ctx.data.functions:
+        say func_name
+```
 
 ### fancy_bats
 
@@ -43,3 +60,19 @@ say "the tastiest of tacos"
 ```mcfunction
 give @a taco 64
 ```
+
+## Overlay `weld_generated_custom`
+
+`@overlay weld_generated_custom`
+
+### list
+
+`@function list:functions`
+
+```mcfunction
+say fancy_bats:load
+say tasty_tacos:load
+say tasty_tacos:tacos
+```
+
+`@endoverlay`
