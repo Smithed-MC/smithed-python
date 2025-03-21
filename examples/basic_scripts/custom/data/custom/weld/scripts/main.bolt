@@ -1,1 +1,3 @@
-print(ctx.meta)
+function list:functions:
+    for func_name in ctx.data.functions:
+        say func_name

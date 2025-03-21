@@ -18,6 +18,8 @@ from beet.contrib.auto_yaml import use_auto_yaml
 from beet.contrib.model_merging import model_merging
 from beet.contrib.unknown_files import UnknownAsset, UnknownData
 
+from ..scripts.resources import WeldPyScript, WeldScript
+
 from ...type import JsonDict
 from ..errors import InvalidMcmeta, InvalidPack
 
@@ -47,11 +49,11 @@ class PackProcessor:
         """TODO:"""
         if (path / "data").is_dir():
             pack = DataPack()
-            pack.extend_namespace += [UnknownData]
+            pack.extend_namespace += [UnknownData, WeldScript, WeldPyScript]
 
         elif (path / "assets").is_dir():
             pack = ResourcePack()
-            pack.extend_namespace += [UnknownAsset]
+            pack.extend_namespace += [UnknownAsset, WeldScript, WeldPyScript]
             model_merging(pack)
 
         else:
