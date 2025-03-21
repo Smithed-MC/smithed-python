@@ -9,10 +9,10 @@ from zipfile import ZipFile
 from beet import Context, ProjectCache, ProjectConfig, run_beet, subproject
 from beet.core.utils import FileSystemPath, JsonDict
 
-from smithed.weld import merging, plugins
+from smithed.weld import merging, scripts
 
 from ..errors import WeldError
-from .helper_plugins import add_fabric_mod_json
+from .plugins import add_fabric_mod_json
 
 if sys.version_info >= (3, 11):
     from enum import StrEnum
@@ -96,7 +96,7 @@ def run_weld(
         if as_fabric_mod:
             ctx.require(partial(add_fabric_mod_json, packs=packs))
         ctx.require("mecha")
-        ctx.require(plugins.clear_plugins)
+        ctx.require(scripts.clear_plugins)
         yield ctx
 
 
