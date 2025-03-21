@@ -47,6 +47,7 @@
   "__smithed__": [
     {
       "id": "tcc",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",
@@ -69,6 +70,7 @@
     },
     {
       "id": "tacos",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",

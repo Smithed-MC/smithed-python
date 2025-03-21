@@ -75,7 +75,7 @@ class SmithedJsonFile(BaseModel, extra="allow"):
                     try:
                         rule.source = ValueSource(value=get(values, path))
                     except ValueError:
-                        logger.warn(
+                        logger.warning(
                             f"Source Reference Path: {path} was not found, deleting."
                         )
                         continue

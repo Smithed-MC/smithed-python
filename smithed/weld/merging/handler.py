@@ -24,6 +24,7 @@ from beet.contrib.vanilla import Vanilla
 from pydantic.v1 import ValidationError
 
 from smithed.type import JsonDict, JsonTypeT
+from ..models.main import SmithedModel
 from ..toolchain.process import PackProcessor
 
 from ..models import (
@@ -81,7 +82,7 @@ class ConflictsHandler:
         smithed_conflict = self.parse_smithed_file(conflict, processor)
 
         if smithed_current is False and smithed_conflict is False:
-            logger.warn(
+            logger.warning(
                 "Both the current and conflict files are invalid. Undefined Behavior"
             )
             return False
@@ -96,7 +97,6 @@ class ConflictsHandler:
         dedupe_conflict(smithed_current, smithed_conflict)
 
         current_entries = smithed_current.smithed.entries()
-
         if len(current_entries) > 0 and current_entries[0].override:
             logger.critical(
                 f"Overriding base file at `{path}` with {current_entries[0].id}"
@@ -105,7 +105,7 @@ class ConflictsHandler:
             return True
 
         conflict_entries = smithed_conflict.smithed.entries()
-        if len(conflict_entries) > 0 and conflict_entries[0].override:
+        if len(conflict_entries) > 0 and conflict_entries[0].override is True:
             logger.critical(
                 f"Overriding base file at `{path}` with {conflict_entries[0].id}"
             )
@@ -119,7 +119,9 @@ class ConflictsHandler:
 
         # Handle vanilla paths as the base / current file
         if path.startswith("minecraft:"):
-            if path not in self.vanilla and (data := self.grab_vanilla(path, json_file_type)):
+            if path not in self.vanilla and (
+                data := self.grab_vanilla(path, json_file_type)
+            ):
                 current.data = data
                 self.vanilla.add(path)
 
@@ -136,7 +138,7 @@ class ConflictsHandler:
         elif not smithed_conflict.smithed.entries():
             if not current_entries:
                 if smithed_conflict.dict() != smithed_current.dict():
-                    logger.warn(
+                    logger.warning(
                         f"Conflict unresolved at '{path}'.\nContents are different and"
                         f" contain no smithed rules which is likely unintended."
                     )
@@ -168,19 +170,28 @@ class ConflictsHandler:
             logger.error("Failed to parse smithed file ", exc_info=True)
             return False
 
+        mcmeta_data = processor[file].mcmeta.data
+
+        # if mcmeta has override set, we will *always* apply it to downstream resources
+        #  even if they don't have `__smithed__` defined at all (either False/True)
+        if "override" in (smithed := mcmeta_data.get("__smithed__", {})):
+            obj.smithed.entries().append(SmithedModel(override=smithed["override"]))
+
+        # process each model (if it exists)
         for model in obj.smithed.entries():
+            # if `id` is unset, set from mcmeta
             if model.id == "":
                 model.id = processor[file].mcmeta.data["id"]
+
+            # if `override` is unset, set the default from pack.mcmeta (or False if undefined)
             if model.override is None:
-                model.override = (
-                    processor[file]
-                    .mcmeta.data.get("__smithed__", {})
-                    .get("override", False)
-                )
+                model.override = smithed.get("override", False)
 
         return obj
 
-    def grab_vanilla(self, path: str, json_file_type: type[NamespaceFile]) -> JsonDict|None:
+    def grab_vanilla(
+        self, path: str, json_file_type: type[NamespaceFile]
+    ) -> JsonDict | None:
         """Grabs the vanilla file to load as the current file (aka the base)."""
 
         vanilla = self.ctx.inject(Vanilla)
@@ -250,8 +261,7 @@ class ConflictsHandler:
                             item["_index"] = index
 
                 return [
-                    self.manage_indexes(item, strip)
-                    for item in value  # type: ignore
+                    self.manage_indexes(item, strip) for item in value  # type: ignore
                 ]
 
             case dict(value):
@@ -303,7 +313,7 @@ class ConflictsHandler:
                 if before := rule.priority.before.entries():
                     for id in before:
                         if id not in rules_dict:
-                            logger.warn(
+                            logger.warning(
                                 f"{id} was not found while processing `before` priorities."
                             )
                             continue
@@ -375,7 +385,7 @@ class ConflictsHandler:
                         )
                         processing.remove(id)
                     else:
-                        logger.warn(f"Priority: {id} was not found. Ignoring Rule.")
+                        logger.warning(f"Priority: {id} was not found. Ignoring Rule.")
 
             # dict insertion order for the win
             if current not in processed:

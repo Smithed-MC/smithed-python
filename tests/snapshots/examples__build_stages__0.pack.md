@@ -67,6 +67,7 @@
   "__smithed__": [
     {
       "id": "pack.late",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",
@@ -91,6 +92,7 @@
     },
     {
       "id": "pack1",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",
@@ -113,6 +115,7 @@
     },
     {
       "id": "pack2",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",
@@ -139,6 +142,7 @@
     },
     {
       "id": "pack.early",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",

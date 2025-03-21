@@ -47,6 +47,7 @@
   "__smithed__": [
     {
       "id": "fail1",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",
@@ -75,6 +76,7 @@
     },
     {
       "id": "fail2",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",
@@ -108,6 +110,7 @@
     },
     {
       "id": "main",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",
@@ -130,6 +133,7 @@
     },
     {
       "id": "pass",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",

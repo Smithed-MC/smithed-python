@@ -155,6 +155,7 @@
   "__smithed__": [
     {
       "id": "pack1",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",
@@ -176,6 +177,7 @@
     },
     {
       "id": "pack2",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",
@@ -202,6 +204,7 @@
     },
     {
       "id": "pack3",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",

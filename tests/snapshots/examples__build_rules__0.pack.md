@@ -88,6 +88,7 @@
   "__smithed__": [
     {
       "id": "pack.append",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",
@@ -109,6 +110,7 @@
     },
     {
       "id": "pack.insert",
+      "override": false,
       "rules": [
         {
           "type": "weld:insert",
@@ -131,6 +133,7 @@
     },
     {
       "id": "pack.merge",
+      "override": false,
       "rules": [
         {
           "type": "weld:merge",
@@ -161,6 +164,7 @@
     },
     {
       "id": "pack.prepend",
+      "override": false,
       "rules": [
         {
           "type": "prepend",
@@ -182,6 +186,7 @@
     },
     {
       "id": "pack.remove",
+      "override": false,
       "rules": [
         {
           "type": "weld:remove",
@@ -192,6 +197,7 @@
     },
     {
       "id": "pack.replace",
+      "override": false,
       "rules": [
         {
           "type": "weld:replace",

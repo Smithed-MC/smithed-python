@@ -1,10 +1,6 @@
 from .cli import cli
-from .helper_plugins import (
-    cache_pack_metadata,
-    inject_pack_stuff_into_smithed,
-    print_pack_name,
-)
-from .main import run_weld
+from .helpers import run_weld
+from .plugins import cache_pack_metadata
 
 __all__ = [
     "cli",
