@@ -1,7 +1,6 @@
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import NamedTuple
 from zipfile import Path as ZipPath
 from zipfile import ZipFile
 
@@ -25,28 +24,27 @@ from ..errors import InvalidMcmeta, InvalidPack
 
 logger = logging.getLogger("weld")
 
-_Pack = DataPack | ResourcePack
-
-
-class PackWithName(NamedTuple):
-    pack: _Pack
-    name: str
+Pack = DataPack | ResourcePack
 
 
 @dataclass
 class PackProcessor:
     ctx: Context
-    file_id_cache: dict[JsonFileBase[JsonDict], _Pack] = field(default_factory=dict)
-    packs: list[PackWithName] = field(default_factory=list)
+    file_id_cache: dict[JsonFileBase[JsonDict], Pack] = field(default_factory=dict)
+    packs: dict[str, Pack] = field(default_factory=dict)
+
+    def __post_init__(self):
+        self.ctx.meta["packs"] = self.packs
 
     def __getitem__(self, key: JsonFileBase[JsonDict]):
         return self.file_id_cache[key]
 
-    def __setitem__(self, key: JsonFileBase[JsonDict], value: _Pack):
+    def __setitem__(self, key: JsonFileBase[JsonDict], value: Pack):
         self.file_id_cache[key] = value
 
     def get_pack_type(self, path: ZipPath | Path) -> DataPack | ResourcePack:
         """TODO:"""
+
         if (path / "data").is_dir():
             pack = DataPack()
             pack.extend_namespace += [UnknownData, WeldScript, WeldPyScript]
@@ -138,7 +136,7 @@ class PackProcessor:
         ):
             self[k] = pack
 
-        self.packs.append(PackWithName(pack, name))
+        self.packs[name] = pack
 
     def load_packs(self, packs: list[str] | list[ZipFile]):
         for pack in packs:

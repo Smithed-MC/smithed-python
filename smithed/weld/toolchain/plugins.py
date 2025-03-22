@@ -34,14 +34,34 @@ DEFAULT_PACK_ICON = (
 ).read_bytes()
 
 
-class WeldOptions(PluginOptions, arbitrary_types_allowed=True):
+class WeldLoaderOptions(PluginOptions, arbitrary_types_allowed=True):
+    """Options to configure how weld loads packs before merge time.
+
+    packs - which packs (paths or ZipFile) to load
+    """
+
+    # TODO: change `str` to `PathLike`?
     packs: list[str] | list[ZipFile]
 
 
+class WeldOptions(PluginOptions, arbitrary_types_allowed=True):
+    """Options to configure how weld operates at merge time.
+
+    scripts - determines whether weld scripts run after merging.
+    """
+
+    scripts: bool = True
+
+
 def add_fabric_mod_json(ctx: Context, pack_names: list[str] | None = None):
+    """Generates and adds a fabric mod json for producing value fabric jars.
+
+    Note: Fabric jar is compromised of a renamed `.zip` -> `.jar` and a `fabric.mod.json`.
+    """
+
     if pack_names is None:
         processor = ctx.inject(PackProcessor)
-        pack_names = list(set(pack.name for pack in processor.packs))
+        pack_names = list(processor.packs.keys())
 
     content = FABRIC_MOD_TEMPLATE.render(
         pack_hash=hash("".join(pack_names)),
@@ -52,17 +72,26 @@ def add_fabric_mod_json(ctx: Context, pack_names: list[str] | None = None):
     ctx.data.extra["fabric.mod.json"] = JsonFile(content)
 
 
-@configurable(validator=WeldOptions)
-def weld_loader(ctx: Context, opts: WeldOptions):
+@configurable(validator=WeldLoaderOptions)
+def weld_loader(ctx: Context, opts: WeldLoaderOptions):
+    """Loads packs into weld via the `PackProcessor` class."""
+
     processor = ctx.inject(PackProcessor)
     processor.load_packs(opts.packs)
 
 
 def weld_handler(ctx: Context):
+    """Loads the merging pre-processing pipeline."""
+
     ctx.require(merging.beet_default)
 
 
 def weld_metadata(ctx: Context):
+    """Attaches custom metadata to welded packs.
+
+    TODO: make configurable
+    """
+
     processor = ctx.inject(PackProcessor)
 
     if ctx.data:
@@ -70,7 +99,7 @@ def weld_metadata(ctx: Context):
         ctx.data.mcmeta.data["pack"]["description"] = "A welded pack"
         ctx.data.mcmeta.data.setdefault("__smithed__", {})
         ctx.data.mcmeta.data["__smithed__"]["packs"] = [
-            name for pack, name in processor.packs if type(pack) is DataPack
+            name for name, pack in processor.packs.items() if type(pack) is DataPack
         ]
 
     if ctx.assets:
@@ -78,26 +107,15 @@ def weld_metadata(ctx: Context):
         ctx.assets.mcmeta.data["pack"]["description"] = "A welded pack"
         ctx.assets.mcmeta.data.setdefault("__smithed__", {})
         ctx.assets.mcmeta.data["__smithed__"]["packs"] = [
-            name for pack, name in processor.packs if type(pack) is ResourcePack
+            name for name, pack in processor.packs.items() if type(pack) is ResourcePack
         ]
 
 
-def weld(ctx: Context):
+@configurable(validator=WeldOptions)
+def weld(ctx: Context, opt: WeldOptions):
+    """Beet plugin that runs the main weld processes (merging + scripting)"""
+
     ctx.require(merging.process)
-    ctx.require(scripts.beet_default)
 
-
-def cache_pack_metadata(ctx: Context):
-    ctx.meta.setdefault("loaded_packs", [])
-
-    if ctx.data:
-        ctx.meta["loaded_packs"].append(
-            {"id": ctx.data.mcmeta.data.get("id", "unknown"), "pack.png": ctx.data.icon}
-        )
-    elif ctx.assets:
-        ctx.meta["loaded_packs"].append(
-            {
-                "id": ctx.assets.mcmeta.data.get("id", "unknown"),
-                "pack.png": ctx.assets.icon,
-            }
-        )
+    if opt.scripts:
+        ctx.require(scripts.beet_default)

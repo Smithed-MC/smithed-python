@@ -29,7 +29,10 @@ def run_weld(
     cache: bool | ProjectCache = True,
     as_fabric_mod: bool = False,
 ):
-    """Runs the beet toolchain alongside the weld machinery programmatically."""
+    """Runs the beet toolchain alongside the weld machinery programmatically.
+
+    Matches the beet helper, `run_beet`.
+    """
 
     with run_beet(config, directory=directory, cache=cache) as ctx:
         ctx.require(weld_handler)
