@@ -1,9 +1,5 @@
 from .cli import cli
 from .helpers import run_weld
-from .plugins import cache_pack_metadata
+from .plugins import weld_loader, weld_metadata, weld_handler, weld
 
-__all__ = [
-    "cli",
-    "run_weld",
-    "cache_pack_metadata",
-]
+__all__ = ["cli", "run_weld", "weld_loader", "weld_metadata", "weld_handler", "weld"]
