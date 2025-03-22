@@ -208,6 +208,9 @@ class PackProcessor:
     file_id_cache: dict[JsonFileBase[JsonDict], Pack] = field(default_factory=dict)
     packs: list[PackWithName[Pack]] = field(default_factory=list)
 
+    def __post_init__(self):
+        self.ctx.meta["packs"] = {}
+
     def __getitem__(self, key: JsonFileBase[JsonDict]):
         return self.file_id_cache[key]
 
@@ -347,6 +350,7 @@ class PackProcessor:
 
         if register:
             self.packs.append(pack)
+            self.ctx.meta["packs"][pack.name] = pack.pack
 
     def load_packs(self, files: list[str] | list[ZipFile]):
         """Load a series of packs into `ctx`. Triggers merge policies.
