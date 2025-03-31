@@ -1,6 +1,6 @@
 from typing import ClassVar
 
-from beet import Context, DataPack, Drop, NamespaceFileScope, TextFile
+from beet import DataPack, Drop, NamespaceFileScope, TextFile
 
 
 class WeldScript(TextFile):
@@ -39,6 +39,4 @@ class ResourceDefinition(TextFile):
     extension: ClassVar[str] = ".py"
 
 
-def load_resources(ctx: Context):
-    ctx.data.extend_namespace += [WeldScript, WeldPyScript, ResourceDefinition]
-    ctx.assets.extend_namespace += [WeldScript, WeldPyScript, ResourceDefinition]
+RESOURCES = [WeldScript, WeldPyScript, ResourceDefinition]

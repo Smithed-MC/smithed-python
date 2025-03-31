@@ -118,4 +118,4 @@ def weld(ctx: Context, opt: WeldOptions):
     ctx.require(merging.process)
 
     if opt.scripts:
-        ctx.require(scripts.beet_default)
+        ctx.require(scripts.process_scripting)

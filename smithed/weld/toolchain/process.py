@@ -17,7 +17,8 @@ from beet.contrib.auto_yaml import use_auto_yaml
 from beet.contrib.model_merging import model_merging
 from beet.contrib.unknown_files import UnknownAsset, UnknownData
 
-from ..scripts.resources import WeldPyScript, WeldScript
+from smithed.weld import scripts
+
 
 from ...type import JsonDict
 from ..errors import InvalidMcmeta, InvalidPack
@@ -42,21 +43,22 @@ class PackProcessor:
     def __setitem__(self, key: JsonFileBase[JsonDict], value: Pack):
         self.file_id_cache[key] = value
 
-    def get_pack_type(self, path: ZipPath | Path) -> DataPack | ResourcePack:
+    def get_empty_pack(self, path: ZipPath | Path) -> DataPack | ResourcePack:
         """TODO:"""
 
         if (path / "data").is_dir():
             pack = DataPack()
-            pack.extend_namespace += [UnknownData, WeldScript, WeldPyScript]
+            pack.extend_namespace += [UnknownData]
 
         elif (path / "assets").is_dir():
             pack = ResourcePack()
-            pack.extend_namespace += [UnknownAsset, WeldScript, WeldPyScript]
+            pack.extend_namespace += [UnknownAsset]
             model_merging(pack)
 
         else:
             raise InvalidPack(str(path))
 
+        scripts.load_resources(pack)
         use_auto_yaml(pack)
 
         return pack
@@ -99,7 +101,7 @@ class PackProcessor:
                     return Path(name), name
 
         path, name = match_file(file)
-        pack = self.get_pack_type(path)
+        pack = self.get_empty_pack(path)
 
         try:
             logger.info(f"Loading pack: {name}")
