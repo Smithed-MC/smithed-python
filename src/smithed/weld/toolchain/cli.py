@@ -80,8 +80,8 @@ def weld(
 
     success = False
 
-    logger.debug("Using cache: '%s'", path_str(cache))
-    logger.info("Packs: %s", ", ".join(f"'{pack}'" for pack in packs))
+    logger.debug('Using cache: "%s"', path_str(cache))
+    logger.info("Packs: %s", ", ".join(f'"{pack}"' for pack in packs))
 
     t0 = perf_counter()
     with (

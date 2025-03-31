@@ -43,7 +43,7 @@ from .formats import (
     successor,
 )
 from ..errors import InvalidMcmeta, InvalidPack
-from ..scripts.resources import WeldPyScript, WeldScript
+from smithed.weld import scripts
 from ...type import JsonDict
 
 logger = logging.getLogger("weld")
@@ -154,15 +154,16 @@ def _create_empty_pack[T: (DataPack, ResourcePack)](pack_type: type[T]) -> T:
     """
 
     if pack_type is ResourcePack:
-        pack = pack_type(extend_namespace=[UnknownAsset, WeldScript, WeldPyScript])
+        pack = pack_type(extend_namespace=[UnknownAsset])
         use_auto_yaml(pack)
         model_merging(pack)
     elif pack_type is DataPack:
-        pack = pack_type(extend_namespace=[UnknownData, WeldScript, WeldPyScript])
+        pack = pack_type(extend_namespace=[UnknownData])
         use_auto_yaml(pack)
     else:
         raise ValueError("`pack_type` must be `DataPack` or `ResourcePack`")
 
+    scripts.load_resources(pack)
     return pack
 
 

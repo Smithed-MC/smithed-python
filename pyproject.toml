@@ -12,6 +12,7 @@ dependencies = [
   "pydantic>=2.5.2",
   "lectern>=0.34.0",
   "bolt>=0.38.5",
+  "bolt-expressions>=0.17.0",
 ]
 description = "Smithed's Python client with CLI, Weld and more"
 license = "MIT"

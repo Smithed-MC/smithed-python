@@ -1,3 +1,3 @@
 function list:functions:
-    for func_name in ctx.data.functions:
+    for func_name in sorted(ctx.data.functions):
         say func_name

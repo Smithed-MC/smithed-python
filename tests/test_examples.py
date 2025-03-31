@@ -5,11 +5,26 @@ from pathlib import Path
 from beet.library.test_utils import ignore_name
 import pytest
 from lectern import Document
+from lectern.pytest_plugin import FmtPackMarkdown
 from pytest_insta import SnapshotFixture
 
 
 from smithed.type import JsonDict
-from smithed.weld import run_weld
+from smithed.weld import run_weld, scripts
+
+
+class FmtWeldPackMarkdown(FmtPackMarkdown):
+    def load(self, path: Path) -> Document:
+        document = Document()
+        scripts.load_resources(document.assets)
+        scripts.load_resources(document.data)
+        document.load(path)
+        for pack in (document.assets, document.data):
+            ignore_name(pack)
+            for overlay in pack.overlays.values():
+                ignore_name(overlay)
+        return document
+
 
 EXAMPLES = [f for f in os.listdir("examples") if not f.startswith(".")]
 

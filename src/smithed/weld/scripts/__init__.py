@@ -1,9 +1,11 @@
-from .registry import WeldScript, beet_default, clear_plugins
-from .resources import load_resources
+from .plugins import process_scripting, clear_resources, load_resources
+from .resources import WeldScript, WeldPyScript, ResourceDefinition
 
 __all__ = [
-    "WeldScript",
+    "process_scripting",
+    "clear_resources",
     "load_resources",
-    "beet_default",
-    "clear_plugins",
+    "ResourceDefinition",
+    "WeldPyScript",
+    "WeldScript",
 ]
