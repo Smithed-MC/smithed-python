@@ -81,6 +81,7 @@ def weld_handler(ctx: Context):
     """Loads the merging pre-processing pipeline."""
 
     ctx.require(merging.beet_default)
+    ctx.require(scripts.load_resources)
 
 
 def weld_metadata(ctx: Context):
@@ -115,4 +116,4 @@ def weld(ctx: Context, opt: WeldOptions):
     ctx.require(merging.process)
 
     if opt.scripts:
-        ctx.require(scripts.beet_default)
+        ctx.require(scripts.process_scripting)
