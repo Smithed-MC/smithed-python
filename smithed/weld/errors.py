@@ -11,8 +11,9 @@ class InvalidMcmeta(WeldError):
 class InvalidPack(WeldError):
     def __init__(self, pack: str):
         super().__init__(
-            f"Cannot determine if data or resource pack. Pack '{pack}' has neither assets nor data."
+            f"'{pack}' could not produce a valid data or resource pack with content."
         )
 
 
-class InvalidUpload(WeldError): ...
+class InvalidUpload(WeldError):
+    """Invalid pack was uploaded"""

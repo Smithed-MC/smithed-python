@@ -1,0 +1,13 @@
+{
+    "id": "second",
+    "overlays": {
+        "entries": [
+            {
+                "formats": [
+                    61
+                ],
+                "directory": "overlay"
+            }
+        ]
+    }
+}

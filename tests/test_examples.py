@@ -23,7 +23,7 @@ def test_build(
         [
             f"examples/{directory}/{pack.name}"
             for pack in (Path("examples") / directory).glob("*")
-            if pack.is_dir()
+            if pack.is_dir() or pack.suffix == ".md"
         ]
     )
     with (

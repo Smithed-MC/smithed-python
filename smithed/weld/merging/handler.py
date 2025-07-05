@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from importlib import resources
 from typing import Iterator, Literal, cast
 
-from beet import Context, DataPack, JsonFile, ListOption, NamespaceFile
+from beet import Context, DataPack, JsonFile, ListOption, NamespaceFile, ResourcePack
 from beet.contrib.format_json import get_formatter
 from beet.contrib.vanilla import Vanilla
 from pydantic.v1 import ValidationError
@@ -51,21 +51,24 @@ YELLOW_SHULKER_BOX = (
     resources.files("smithed") / "weld/resources/yellow_shulker_box.json"
 )
 
+Pack = DataPack | ResourcePack
+
 
 @dataclass
 class ConflictsHandler:
     ctx: Context
 
     formatter: Callable[..., str] = get_formatter()
-    cache: defaultdict[type[NamespaceFile], set[str]] = field(
+
+    # our cache keeps track of the final merged pack alongside the type of file
+    # overlays would have it's own final merged pack which would not collide
+    cache: defaultdict[tuple[Pack, type[NamespaceFile]], set[str]] = field(
         default_factory=lambda: defaultdict(set)
     )
     vanilla: set[str] = field(default_factory=set)
     overrides: set[str] = field(default_factory=set)
 
-    def __call__(
-        self, pack: DataPack, path: str, current: JsonFile, conflict: JsonFile, /
-    ):
+    def __call__(self, pack: Pack, path: str, current: JsonFile, conflict: JsonFile, /):
         """Register conflicts.."""
 
         processor = self.ctx.inject(PackProcessor)
@@ -81,7 +84,7 @@ class ConflictsHandler:
         smithed_conflict = self.parse_smithed_file(conflict, processor)
 
         if smithed_current is False and smithed_conflict is False:
-            logger.warn(
+            logger.warning(
                 "Both the current and conflict files are invalid. Undefined Behavior"
             )
             return False
@@ -115,11 +118,13 @@ class ConflictsHandler:
 
         # Cache paths for latest use
         json_file_type = cast(type[NamespaceFile], type(current))
-        self.cache[json_file_type].add(path)
+        self.cache[(pack, json_file_type)].add(path)
 
         # Handle vanilla paths as the base / current file
         if path.startswith("minecraft:"):
-            if path not in self.vanilla and (data := self.grab_vanilla(path, json_file_type)):
+            if path not in self.vanilla and (
+                data := self.grab_vanilla(path, json_file_type)
+            ):
                 current.data = data
                 self.vanilla.add(path)
 
@@ -136,7 +141,7 @@ class ConflictsHandler:
         elif not smithed_conflict.smithed.entries():
             if not current_entries:
                 if smithed_conflict.dict() != smithed_current.dict():
-                    logger.warn(
+                    logger.warning(
                         f"Conflict unresolved at '{path}'.\nContents are different and"
                         f" contain no smithed rules which is likely unintended."
                     )
@@ -180,7 +185,9 @@ class ConflictsHandler:
 
         return obj
 
-    def grab_vanilla(self, path: str, json_file_type: type[NamespaceFile]) -> JsonDict|None:
+    def grab_vanilla(
+        self, path: str, json_file_type: type[NamespaceFile]
+    ) -> JsonDict | None:
         """Grabs the vanilla file to load as the current file (aka the base)."""
 
         vanilla = self.ctx.inject(Vanilla)
@@ -194,8 +201,8 @@ class ConflictsHandler:
     def process(self):
         """Main entrypoint for smithed merge solving"""
 
-        for json_file_type, path in self:
-            logger.info(f"Resolving {json_file_type.__name__}: {path!r}")
+        for pack, json_file_type, path in self:
+            logger.info(f"Resolving '{pack.name}'s {json_file_type.__name__}: {path!r}")
 
             namespace_file = self.ctx.data[json_file_type]
             smithed_file = SmithedJsonFile.parse_obj(
@@ -250,8 +257,7 @@ class ConflictsHandler:
                             item["_index"] = index
 
                 return [
-                    self.manage_indexes(item, strip)
-                    for item in value  # type: ignore
+                    self.manage_indexes(item, strip) for item in value  # type: ignore
                 ]
 
             case dict(value):
@@ -375,7 +381,7 @@ class ConflictsHandler:
                         )
                         processing.remove(id)
                     else:
-                        logger.warn(f"Priority: {id} was not found. Ignoring Rule.")
+                        logger.warning(f"Priority: {id} was not found. Ignoring Rule.")
 
             # dict insertion order for the win
             if current not in processed:
@@ -393,7 +399,7 @@ class ConflictsHandler:
         try:
             get(raw, rule.target, True)
         except ValueError:
-            logger.warn(
+            logger.warning(
                 f"Target Path: {rule.target} was not found. Ignoring...", exc_info=True
             )
             return False
@@ -420,9 +426,9 @@ class ConflictsHandler:
 
         return raw
 
-    def __iter__(self) -> Iterator[tuple[type[NamespaceFile], str]]:
-        for json_file_type, paths in self.cache.items():
-            yield from [(json_file_type, path) for path in paths]
+    def __iter__(self) -> Iterator[tuple[Pack, type[NamespaceFile], str]]:
+        for (pack, json_file_type), paths in self.cache.items():
+            yield from [(pack, json_file_type, path) for path in paths]
 
 
 def dedupe_conflict(current: SmithedJsonFile, conflict: SmithedJsonFile):

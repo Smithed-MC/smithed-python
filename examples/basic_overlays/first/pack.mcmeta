@@ -1,0 +1,13 @@
+{
+    "id": "first",
+    "overlays": {
+        "entries": [
+            {
+                "formats": [
+                    61
+                ],
+                "directory": "overlay"
+            }
+        ]
+    }
+}

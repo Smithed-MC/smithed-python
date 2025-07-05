@@ -1,0 +1,37 @@
+`@loot_table minecraft:entities/wither`
+```json
+{
+  "type": "minecraft:entity",
+  "pools": [
+    {
+      "rolls": 1,
+      "bonus_rolls": 0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:second"
+        }
+      ]
+    }
+  ],
+  "__smithed__": {
+    "rules": [
+      {
+        "type": "smithed:append",
+        "target": "pools",
+        "source": {
+          "type": "smithed:reference",
+          "path": "pools[0]"
+        }
+      }
+    ]
+  }
+}  
+```
+
+`@data_pack pack.mcmeta`
+```json
+{
+    "id": "second"
+}
+```

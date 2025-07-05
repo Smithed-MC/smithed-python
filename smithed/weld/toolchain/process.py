@@ -1,8 +1,9 @@
-from json import JSONDecodeError
+from collections import defaultdict
+from itertools import chain
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import NamedTuple
+from typing import Iterable, NamedTuple
 from zipfile import Path as ZipPath
 from zipfile import ZipFile
 
@@ -15,9 +16,13 @@ from beet import (
     PackQuery,
     ResourcePack,
 )
-from beet.contrib.auto_yaml import use_auto_yaml
-from beet.contrib.model_merging import model_merging
 from beet.contrib.unknown_files import UnknownAsset, UnknownData
+from beet.contrib.model_merging import model_merging
+from beet.contrib.auto_yaml import use_auto_yaml
+from beet.core.utils import SupportedFormats
+from lectern import Document
+
+from ranges import Range, Inf, RangeDict
 
 from ...type import JsonDict
 from ..errors import InvalidMcmeta, InvalidPack
@@ -32,6 +37,24 @@ class PackWithName(NamedTuple):
     name: str
 
 
+def as_range(supported_formats: SupportedFormats | None) -> Range:
+    """Checks whether a pack format is supported for a pack
+
+    Originally adapted from:
+    https://github.com/Gamemode4Dev/GM4_Datapacks/blob/master/gm4/plugins/backwards.py#L168-L177
+    """
+
+    match supported_formats:
+        case int(value):
+            return Range(value, value, include_end=True)
+        case [min, max]:
+            return Range(min, max, include_end=True)
+        case {"min_inclusive": min, "max_inclusive": max}:
+            return Range(min, max, include_end=True)
+        case _:
+            raise ValueError(f"Unexpected supported formats: {supported_formats}")
+
+
 @dataclass
 class PackProcessor:
     ctx: Context
@@ -44,25 +67,7 @@ class PackProcessor:
     def __setitem__(self, key: JsonFileBase[JsonDict], value: _Pack):
         self.file_id_cache[key] = value
 
-    def get_pack_type(self, path: ZipPath | Path) -> DataPack | ResourcePack:
-        """TODO:"""
-        if (path / "data").is_dir():
-            pack = DataPack()
-            pack.extend_namespace += [UnknownData]
-
-        elif (path / "assets").is_dir():
-            pack = ResourcePack()
-            pack.extend_namespace += [UnknownAsset]
-            model_merging(pack)
-
-        else:
-            raise InvalidPack(str(path))
-
-        use_auto_yaml(pack)
-
-        return pack
-
-    def create_pack(self, file: str | ZipFile) -> DataPack | ResourcePack:
+    def create_packs(self, file: str | ZipFile) -> Iterable[PackWithName]:
         """Creates a DataPack or ResourcePack given a file (either ZipFile or str).
 
         1. Determine type of file and it's name to figure out how to load it.
@@ -86,25 +91,41 @@ class PackProcessor:
         actual merging process.
         """
 
-        def match_file(file: str | ZipFile) -> tuple[Path | ZipPath, str]:
-            match file:
-                case ZipFile() as f:
-                    name = f.filename or "<unknown>"
-                    if not name.endswith(".zip"):
-                        name = f"{name}.zip"
-                    return ZipPath(f), name
-
-                case str() as name:
-                    if name.endswith(".zip"):
-                        return match_file(ZipFile(name))
-                    return Path(name), name
-
-        path, name = match_file(file)
-        pack = self.get_pack_type(path)
+        path, name = get_pack_name(file)
+        packs = []
 
         try:
             logger.info(f"Loading pack: {name}")
-            pack.load(file)
+
+            if isinstance(path, Path) and path.suffix in (".txt", ".md"):
+                doc = Document(path=path)
+
+                if len(doc.data):
+                    packs.append(PackWithName(doc.data, name))
+
+                if len(doc.assets):
+                    packs.append(PackWithName(doc.assets, name))
+
+            else:
+                # Empty packs that can handle unknown files
+                data = DataPack(extend_namespace=[UnknownData])
+                assets = ResourcePack(extend_namespace=[UnknownAsset])
+
+                # default plugins
+                use_auto_yaml(data)
+                use_auto_yaml(assets)
+                model_merging(assets)
+
+                # load the files
+                data.load(file)
+                assets.load(file)
+
+                # only yield if there is actually content
+                if len(data):
+                    packs.append(PackWithName(data, name))
+
+                if len(assets):
+                    packs.append(PackWithName(assets, name))
 
         except DeserializationError as err:
             if isinstance(err.file, Mcmeta):
@@ -113,9 +134,10 @@ class PackProcessor:
                 raise InvalidMcmeta(pack=name, cause=f"\n{reason}") from err  # type: ignore
             raise err
 
-        self.cache_pack(pack, name)
+        if packs:
+            return packs
 
-        return pack
+        raise InvalidPack(str(path))
 
     def load_pack(self, pack: DataPack | ResourcePack):
         """Loads a DataPack or ResourcePack into a context by merging it."""
@@ -126,19 +148,79 @@ class PackProcessor:
             case ResourcePack() as rp:
                 self.ctx.assets.merge(rp)
 
-    def cache_pack(self, pack: DataPack | ResourcePack, name: str):
+    def cache_pack(self, pack: PackWithName):
         """Cache some metadata from resource files to be used in later welding."""
 
-        if "id" not in pack.mcmeta.data:
-            pack.mcmeta.data["id"] = self.ctx.generate.format("missing_{incr}")
+        if "id" not in pack.pack.mcmeta.data:
+            pack.pack.mcmeta.data["id"] = self.ctx.generate.format("missing_{incr}")
 
         for k in (
-            PackQuery([pack]).distinct(match="*", extend=JsonFileBase[JsonDict]).keys()
+            PackQuery([pack.pack])
+            .distinct(match="*", extend=JsonFileBase[JsonDict])
+            .keys()
         ):
-            self[k] = pack
+            self[k] = pack.pack
 
-        self.packs.append(PackWithName(pack, name))
+        self.packs.append(pack)
 
-    def load_packs(self, packs: list[str] | list[ZipFile]):
-        for pack in packs:
-            self.load_pack(self.create_pack(pack))
+    def load_packs(self, files: list[str] | list[ZipFile]):
+        """Load a series of packs into `ctx`. Triggers merge policies."""
+
+        all_packs: list[_Pack] = []
+        overlays: defaultdict[_Pack, RangeDict] = defaultdict(lambda: RangeDict(identity=True))  # type: ignore
+
+        for file in files:
+            # merge base packs
+            for pack in (packs := self.create_packs(file)):
+                overlay_for_pack = overlays[pack.pack]
+                self.cache_pack(pack)
+                self.load_pack(pack.pack)
+
+                ## index overlays by their range
+                # first, our base pack composes the entire range
+                overlay_for_pack[Range(0, Inf)] = pack.pack
+
+                # then, insert our overlays. this assumes we have no overlapping overlays
+                for name, overlay in pack.pack.overlays.items():
+                    if overlay.supported_formats is None:
+                        logger.warning(
+                            f"Overlay '{name}' does not contain any supported formats. Ignoring."
+                        )
+                        continue
+
+                    # TODO: currently, if overlay ranges overlap, the behavior here is wrong.
+                    overlay_for_pack[as_range(overlay.supported_formats)] = overlay
+
+            all_packs += (pack.pack for pack in packs)
+
+        # finally, we generate overlaps for every pack that we load.
+        # for each packs' overlays, we check if they overlap with any other pack's overlays.
+        # if there is an overlap, we merge against the overlapping pack/overlay into it's a new overlay.
+        for pack in all_packs:
+            for pack in chain([pack], pack.overlays.values()):
+                for overlay_ranges in overlays.values():
+                    overlaps: list[_Pack] = overlay_ranges.getoverlap(
+                        as_range(pack.supported_formats)
+                    )
+
+                    generated_overlay = pack.__class__()
+                    generated_overlay.merge(pack)  # type: ignore
+
+                    for overlapping_pack in overlaps:
+                        generated_overlay.merge(overlapping_pack)  # type: ignore
+
+
+def get_pack_name(file: str | ZipFile) -> tuple[Path | ZipPath, str]:
+    """Get pack path and name"""
+
+    match file:
+        case ZipFile() as f:
+            name = f.filename or "<unknown>"
+            if not name.endswith(".zip"):
+                name = f"{name}.zip"
+            return ZipPath(f), name
+
+        case str() as name:
+            if name.endswith(".zip"):
+                return get_pack_name(ZipFile(name))
+            return Path(name), name

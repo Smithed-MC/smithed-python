@@ -16,7 +16,6 @@ from .log_helpers import init_logger
 from .models import Columns
 
 from . import common
-from smithed.weld import webapp
 
 
 def weld_packs(packs: list[ZipFile], make_fabric_mod: bool) -> Path | None:
@@ -74,7 +73,10 @@ def build_packs(
             status.error(f"# `Plugin Error`\n{exc.args}")
         except Exception as exc:
             status.update(label=":red[Error occured. Click to reveal error.]")
-            status.error(f"# `{exc.__class__.__name__}`\n" + "\n".join(str(arg) for arg in exc.args))
+            status.error(
+                f"# `{exc.__class__.__name__}`\n"
+                + "\n".join(str(arg) for arg in exc.args)
+            )
             print(traceback.format_exc())
 
     return path
@@ -82,9 +84,17 @@ def build_packs(
 
 def upload_flow(ui: DeltaGenerator):
     progress = ui.container()
-    raw_packs = ui.file_uploader("Upload packs", accept_multiple_files=True, type="zip")
+    raw_packs = ui.file_uploader(
+        "Upload packs", accept_multiple_files=True, type=["zip", "md", "txt"]
+    )
 
-    packs = [ZipFile(pack) for pack in raw_packs] if raw_packs else []
+    if raw_packs:
+        packs = []
+        for pack in raw_packs:
+            if pack.name.endswith("zip"):
+                packs.append(ZipFile(pack))
+            else:
+                packs.append()
 
     cols = Columns(*ui.columns(3))
     with cols.middle:
