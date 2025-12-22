@@ -3,20 +3,20 @@ authors = [
   {name = "Smithed Team", email = "team@smithed.dev"},
 ]
 dependencies = [
-    "beet @ git+https://github.com/Smithed-MC/beet@fix/overlay-folder-names",
-    "mecha>=0.95.2",
+    "beet>=0.113.0b10",
+    "mecha>=0.102.0b2",
     "typer>=0.9.0",
     "tokenstream>=1.7.0",
     "backports-strenum>=1.2.8",
     "rich>=13.6.0",
-    "pydantic>=2.5.2",
+    "pydantic>=2.12.0",
 ]
 description = "Smithed's Python client with CLI, Weld and more"
 license = "MIT"
 name = "smithed"
 readme = "README.md"
-requires-python = ">= 3.10"
-version = "0.19.0"
+requires-python = ">= 3.14"
+version = "0.20.0"
 
 [project.scripts]
 weld = "smithed.weld:cli"

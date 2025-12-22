@@ -1,5 +1,5 @@
 from .conditions import Condition, ConditionInverted, ConditionPackCheck
-from .main import SmithedJsonFile, SmithedModel, deserialize
+from .main import SmithedJsonFile, SmithedModel, deserialize, serialize_list_option
 from .priority import Priority
 from .rules import (
     AdditiveRule,
@@ -14,24 +14,32 @@ from .rules import (
 )
 from .sources import ReferenceSource, Source, ValueSource
 
+# Rebuild models to resolve forward references after all imports
+ConditionInverted.model_rebuild()
+ConditionPackCheck.model_rebuild()
+SmithedModel.model_rebuild()
+SmithedJsonFile.model_rebuild()
+
 __all__ = [
-    "deserialize",
     "AdditiveRule",
-    "MergeRule",
     "AppendRule",
-    "PrependRule",
-    "InsertRule",
-    "ReplaceRule",
-    "RemoveRule",
-    "Rule",
-    "RuleHelper",
     "Condition",
     "ConditionInverted",
     "ConditionPackCheck",
+    "InsertRule",
+    "MergeRule",
+    "PrependRule",
     "Priority",
     "ReferenceSource",
-    "ValueSource",
-    "Source",
-    "SmithedModel",
+    "RemoveRule",
+    "ReplaceRule",
+    "Rule",
+    "RuleHelper",
     "SmithedJsonFile",
+    "SmithedModel",
+    "Source",
+    "ValueSource",
+    "deserialize",
+    "serialize_list_option",
 ]
+

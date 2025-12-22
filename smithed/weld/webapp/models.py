@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import NamedTuple
 
-from pydantic.v1 import BaseModel
+from pydantic import BaseModel
 from streamlit.delta_generator import DeltaGenerator
 
 

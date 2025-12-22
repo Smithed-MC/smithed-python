@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Annotated, Literal
 
-from pydantic.v1 import Field, validator
+from pydantic import Field, field_validator
 
 from .base import BaseModel
 from .conditions import Condition
@@ -19,7 +19,7 @@ class BaseRule(BaseModel):
     conditions: list[Condition] = []
     priority: Priority | None = None
 
-    @validator("type")
+    @field_validator("type")
     def fix_type(cls, value: str):
         if value.startswith("smithed:"):
             return value.replace("smithed:", "weld:")
