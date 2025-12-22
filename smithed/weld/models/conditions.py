@@ -13,6 +13,3 @@ class ConditionPackCheck(BaseModel):
 class ConditionInverted(BaseModel):
     type: Literal["inverted", "weld:inverted", "smithed:inverted"]
     conditions: list["Condition"]
-
-
-ConditionInverted.update_forward_refs()

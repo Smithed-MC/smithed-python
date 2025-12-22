@@ -13,18 +13,17 @@ It uses the beet's merge policies to implement a conflict handler that registers
 
 import logging
 from collections import defaultdict
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from importlib import resources
-from typing import Iterator, Literal, cast
+from typing import Literal, cast
 
 from beet import Context, DataPack, JsonFile, ListOption, NamespaceFile
 from beet.contrib.format_json import get_formatter
 from beet.contrib.vanilla import Vanilla
-from pydantic.v1 import ValidationError
+from pydantic import ValidationError
 
 from smithed.type import JsonDict, JsonTypeT
-from ..toolchain.process import PackProcessor
 
 from ..models import (
     AppendRule,
@@ -38,9 +37,12 @@ from ..models import (
     ReplaceRule,
     Rule,
     SmithedJsonFile,
+    SmithedModel,
     ValueSource,
     deserialize,
+    serialize_list_option,
 )
+from ..toolchain.process import PackProcessor
 from .errors import PriorityError
 from .parser import append, get, insert, merge, prepend, remove, replace
 
@@ -50,6 +52,24 @@ PRIORITY_STAGES = ["early", "standard", "late"]
 YELLOW_SHULKER_BOX = (
     resources.files("smithed") / "weld/resources/yellow_shulker_box.json"
 )
+
+
+def get_override(entry: SmithedModel | dict) -> bool:
+    """ Safely get override attribute from entry that may be dict or model object.
+
+    Due to mixing Pydantic V1 (beet's ListOption) and V2 (SmithedModel),
+    entries may be converted to dicts. This helper handles both cases.
+    """
+    if isinstance(entry, dict):
+        return entry.get("override", False) or False
+    return entry.override or False
+
+
+def get_entry_id(entry: SmithedModel | dict) -> str:
+    """ Safely get id attribute from entry that may be dict or model object. """
+    if isinstance(entry, dict):
+        return entry.get("id", "")
+    return entry.id
 
 
 @dataclass
@@ -97,17 +117,17 @@ class ConflictsHandler:
 
         current_entries = smithed_current.smithed.entries()
 
-        if len(current_entries) > 0 and current_entries[0].override:
+        if len(current_entries) > 0 and get_override(current_entries[0]):
             logger.critical(
-                f"Overriding base file at `{path}` with {current_entries[0].id}"
+                f"Overriding base file at `{path}` with {get_entry_id(current_entries[0])}"
             )
             self.overrides.add(path)
             return True
 
         conflict_entries = smithed_conflict.smithed.entries()
-        if len(conflict_entries) > 0 and conflict_entries[0].override:
+        if len(conflict_entries) > 0 and get_override(conflict_entries[0]):
             logger.critical(
-                f"Overriding base file at `{path}` with {conflict_entries[0].id}"
+                f"Overriding base file at `{path}` with {get_entry_id(conflict_entries[0])}"
             )
             self.overrides.add(path)
             current.data = conflict.data
@@ -150,8 +170,8 @@ class ConflictsHandler:
             current_entries.extend(conflict_entries)
 
         # Save back to current file
-        raw: JsonDict = deserialize(smithed_current)
-        current.data["__smithed__"] = raw["__smithed__"]
+        # Use serialize_list_option to avoid __root__ in the output
+        current.data["__smithed__"] = serialize_list_option(smithed_current.smithed)
 
         current.data = normalize_quotes(current.data)
 
@@ -162,8 +182,12 @@ class ConflictsHandler:
     ) -> SmithedJsonFile | Literal[False]:
         """Parses a smithed file and returns the parsed file or False if invalid."""
 
+        # Preprocess data to remove __root__ fields that may have been created
+        # by ListOption (Pydantic V1) serialization
+        data = self.clean_list_option_data(file.data)
+
         try:
-            obj = SmithedJsonFile.parse_obj(file.data)
+            obj = SmithedJsonFile.model_validate(data)
         except ValidationError:
             logger.error("Failed to parse smithed file ", exc_info=True)
             return False
@@ -179,6 +203,28 @@ class ConflictsHandler:
                 )
 
         return obj
+
+    def clean_list_option_data(self, data: JsonDict) -> JsonDict:
+        """Remove __root__ fields from __smithed__ entries.
+
+        ListOption (Pydantic V1) serializes with __root__ field, which causes
+        validation errors in Pydantic V2 models with extra="forbid".
+        """
+        data = data.copy()
+
+        if "__smithed__" in data:
+            smithed = data["__smithed__"]
+            if isinstance(smithed, list):
+                cleaned = []
+                for entry in smithed:
+                    if isinstance(entry, dict) and "__root__" in entry:
+                        # Extract the actual data from __root__
+                        cleaned.append(entry["__root__"] if entry["__root__"] else {})
+                    else:
+                        cleaned.append(entry)
+                data["__smithed__"] = cleaned
+
+        return data
 
     def grab_vanilla(self, path: str, json_file_type: type[NamespaceFile]) -> JsonDict|None:
         """Grabs the vanilla file to load as the current file (aka the base)."""
@@ -198,9 +244,9 @@ class ConflictsHandler:
             logger.info(f"Resolving {json_file_type.__name__}: {path!r}")
 
             namespace_file = self.ctx.data[json_file_type]
-            smithed_file = SmithedJsonFile.parse_obj(
-                namespace_file[path].data  # type: ignore
-            )
+            # Clean data before parsing to remove __root__ fields
+            data = self.clean_list_option_data(namespace_file[path].data)  # type: ignore
+            smithed_file = SmithedJsonFile.model_validate(data)
 
             if smithed_file.smithed.entries():
                 processed = self.process_file(smithed_file)

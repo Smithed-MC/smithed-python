@@ -2,7 +2,7 @@ import logging
 from typing import Literal
 
 from beet import ListOption
-from pydantic.v1 import validator
+from pydantic import field_validator
 
 from .base import BaseModel
 
@@ -16,6 +16,6 @@ class Priority(BaseModel):
     before: ListOption[str] = ListOption()
     after: ListOption[str] = ListOption()
 
-    @validator("before", "after")
+    @field_validator("before", "after")
     def convert_fields(cls, value: ListOption[str]):
         return ListOption(__root__=list(dict.fromkeys(value.entries())))
