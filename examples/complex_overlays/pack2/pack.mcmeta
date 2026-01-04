@@ -4,6 +4,7 @@
         "entries": [
             {
                 "formats": [
+                    61,
                     61
                 ],
                 "directory": "overlay"

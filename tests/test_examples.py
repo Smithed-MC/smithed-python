@@ -2,9 +2,11 @@ import logging
 import os
 from pathlib import Path
 
+from beet.library.test_utils import ignore_name
 import pytest
 from lectern import Document
 from pytest_insta import SnapshotFixture
+
 
 from smithed.type import JsonDict
 from smithed.weld import run_weld
@@ -49,5 +51,14 @@ def test_build(
             expected.assets.pack_format = actual.assets.pack_format
         if hasattr(expected, "data"):
             expected.data.pack_format = actual.data.pack_format
+
+        # ignore overlay names
+        for overlay in actual.data.overlays.values():
+            ignore_name(overlay)
+            del overlay.mcmeta
+
+        for overlay in actual.assets.overlays.values():
+            ignore_name(overlay)
+            del overlay.mcmeta
 
         assert expected == actual

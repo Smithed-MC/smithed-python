@@ -21,7 +21,7 @@ class ReferenceSource(_Source):
 
 
 class ValueSource(_Source):
-    type: Literal["value", "weld:value", "smithed:value"] = "weld:value"
+    type: Literal["value", "weld:value", "smithed:value"]
     value: Any
 
 

@@ -20,6 +20,7 @@
 
 ```json
 {
+  "type": "minecraft:entity",
   "random_sequence": "minecraft:entities/enderman",
   "pools": [
     {
@@ -84,16 +85,17 @@
       ]
     }
   ],
-  "type": "minecraft:entity",
   "__smithed__": [
     {
       "id": "pack.append",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",
           "target": "pools",
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "entries": [
@@ -109,12 +111,14 @@
     },
     {
       "id": "pack.insert",
+      "override": false,
       "rules": [
         {
           "type": "weld:insert",
           "target": "pools",
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "entries": [
@@ -131,12 +135,14 @@
     },
     {
       "id": "pack.merge",
+      "override": false,
       "rules": [
         {
           "type": "weld:merge",
           "target": "pools[0]",
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "entries": [
@@ -161,12 +167,14 @@
     },
     {
       "id": "pack.prepend",
+      "override": false,
       "rules": [
         {
           "type": "prepend",
           "target": "pools",
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "entries": [
@@ -182,6 +190,7 @@
     },
     {
       "id": "pack.remove",
+      "override": false,
       "rules": [
         {
           "type": "weld:remove",
@@ -192,12 +201,14 @@
     },
     {
       "id": "pack.replace",
+      "override": false,
       "rules": [
         {
           "type": "weld:replace",
           "target": "pools[0].entries[0].type",
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": "weld:replace"
           }
         }

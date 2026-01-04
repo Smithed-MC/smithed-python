@@ -40,6 +40,7 @@
   "__smithed__": [
     {
       "id": "pack2",
+      "override": false,
       "rules": [
         {
           "type": "replace",

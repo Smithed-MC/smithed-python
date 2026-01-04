@@ -20,8 +20,8 @@
 
 ```json
 {
-  "random_sequence": "minecraft:entities/wither",
   "type": "minecraft:entity",
+  "random_sequence": "minecraft:entities/wither",
   "pools": [
     {
       "rolls": 1,
@@ -47,6 +47,7 @@
   "__smithed__": [
     {
       "id": "fail1",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",
@@ -59,6 +60,7 @@
           ],
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "bonus_rolls": 0,
@@ -75,6 +77,7 @@
     },
     {
       "id": "fail2",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",
@@ -92,6 +95,7 @@
           ],
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "bonus_rolls": 0,
@@ -108,12 +112,14 @@
     },
     {
       "id": "main",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",
           "target": "pools",
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "bonus_rolls": 0,
@@ -130,6 +136,7 @@
     },
     {
       "id": "pass",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",
@@ -142,6 +149,7 @@
           ],
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "bonus_rolls": 0,

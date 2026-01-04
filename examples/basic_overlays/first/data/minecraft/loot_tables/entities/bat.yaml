@@ -6,7 +6,7 @@ pools:
     bonus_rolls: 0
     entries:
       - type: minecraft:item
-        name: minecraft:second_overlay
+        name: minecraft:first
 
 __smithed__:
   rules:

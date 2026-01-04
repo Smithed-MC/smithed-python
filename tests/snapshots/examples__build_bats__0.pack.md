@@ -20,8 +20,8 @@
 
 ```json
 {
-  "random_sequence": "minecraft:entities/bat",
   "type": "minecraft:entity",
+  "random_sequence": "minecraft:entities/bat",
   "pools": [
     {
       "rolls": 1,
@@ -123,12 +123,14 @@
   "__smithed__": [
     {
       "id": "gm4_bat_grenades",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",
           "target": "pools",
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "entries": [
@@ -154,6 +156,7 @@
           "target": "pools",
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "entries": [
@@ -220,12 +223,14 @@
     },
     {
       "id": "tcc",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",
           "target": "pools",
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "entries": [

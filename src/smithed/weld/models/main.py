@@ -73,9 +73,11 @@ class SmithedJsonFile(BaseModel, extra="allow"):
             match isinstance(rule, AdditiveRule) and rule.source:
                 case ReferenceSource(path=path):
                     try:
-                        rule.source = ValueSource(value=get(values, path))
+                        rule.source = ValueSource(
+                            type="weld:value", value=get(values, path)
+                        )
                     except ValueError:
-                        logger.warn(
+                        logger.warning(
                             f"Source Reference Path: {path} was not found, deleting."
                         )
                         continue

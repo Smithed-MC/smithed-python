@@ -34,8 +34,13 @@
       ]
     }
   ],
-  "__smithed__": {
-    "override": true
-  }
+  "__smithed__": [
+    {
+      "id": "pack.only",
+      "version": 1,
+      "override": true,
+      "rules": []
+    }
+  ]
 }
 ```

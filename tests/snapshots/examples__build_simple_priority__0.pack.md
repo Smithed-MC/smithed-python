@@ -20,6 +20,7 @@
 
 ```json
 {
+  "type": "minecraft:entity",
   "random_sequence": "minecraft:entities/zombie",
   "pools": [
     {
@@ -151,16 +152,17 @@
       ]
     }
   ],
-  "type": "minecraft:entity",
   "__smithed__": [
     {
       "id": "pack1",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",
           "target": "pools",
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "entries": [
@@ -176,6 +178,7 @@
     },
     {
       "id": "pack2",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",
@@ -187,6 +190,7 @@
             ]
           },
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "entries": [
@@ -202,6 +206,7 @@
     },
     {
       "id": "pack3",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",
@@ -213,6 +218,7 @@
             ]
           },
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "entries": [

@@ -24,6 +24,7 @@ from beet.contrib.vanilla import Vanilla
 from pydantic.v1 import ValidationError
 
 from smithed.type import JsonDict, JsonTypeT
+from ..models.main import SmithedModel
 from ..toolchain.process import PackProcessor
 
 from ..models import (
@@ -65,8 +66,10 @@ class ConflictsHandler:
     cache: defaultdict[tuple[Pack, type[NamespaceFile]], set[str]] = field(
         default_factory=lambda: defaultdict(set)
     )
-    vanilla: set[str] = field(default_factory=set)
-    overrides: set[str] = field(default_factory=set)
+    vanilla: dict[Pack, str] = field(default_factory=dict)
+    overrides: defaultdict[Pack, set[str]] = field(
+        default_factory=lambda: defaultdict(set)
+    )
 
     def __call__(self, pack: Pack, path: str, current: JsonFile, conflict: JsonFile, /):
         """Register conflicts.."""
@@ -74,7 +77,7 @@ class ConflictsHandler:
         processor = self.ctx.inject(PackProcessor)
 
         logger.debug(f"Registering conflict: {path!r}")
-        if path in self.overrides:
+        if path in self.overrides[pack]:
             logger.debug("Skipping due to override")
             return True
 
@@ -104,7 +107,8 @@ class ConflictsHandler:
             logger.critical(
                 f"Overriding base file at `{path}` with {current_entries[0].id}"
             )
-            self.overrides.add(path)
+            self.overrides[pack].add(path)
+            current.data["__smithed__"] = deserialize(smithed_current)["__smithed__"]
             return True
 
         conflict_entries = smithed_conflict.smithed.entries()
@@ -112,7 +116,7 @@ class ConflictsHandler:
             logger.critical(
                 f"Overriding base file at `{path}` with {conflict_entries[0].id}"
             )
-            self.overrides.add(path)
+            self.overrides[pack].add(path)
             current.data = conflict.data
             return True
 
@@ -126,7 +130,7 @@ class ConflictsHandler:
                 data := self.grab_vanilla(path, json_file_type)
             ):
                 current.data = data
-                self.vanilla.add(path)
+                self.vanilla[pack] = path
 
         # Handle non-vanilla paths, swap conflict w/ current if no smithed rules exist
         # This is to ensure that non-vanilla files can work with weld.
@@ -173,15 +177,20 @@ class ConflictsHandler:
             logger.error("Failed to parse smithed file ", exc_info=True)
             return False
 
+        mcmeta_override = (
+            processor[file].mcmeta.data.get("__smithed__", {}).get("override", False)
+        )
+
+        # only set default smithed model if override is specified in mcmeta
+        if mcmeta_override:
+            obj.smithed = ListOption(__root__=[SmithedModel(id="", rules=[])])
+
         for model in obj.smithed.entries():
             if model.id == "":
                 model.id = processor[file].mcmeta.data["id"]
+
             if model.override is None:
-                model.override = (
-                    processor[file]
-                    .mcmeta.data.get("__smithed__", {})
-                    .get("override", False)
-                )
+                model.override = mcmeta_override
 
         return obj
 
@@ -204,7 +213,7 @@ class ConflictsHandler:
         for pack, json_file_type, path in self:
             logger.info(f"Resolving '{pack.name}'s {json_file_type.__name__}: {path!r}")
 
-            namespace_file = self.ctx.data[json_file_type]
+            namespace_file = pack[json_file_type]
             smithed_file = SmithedJsonFile.parse_obj(
                 namespace_file[path].data  # type: ignore
             )
@@ -309,7 +318,7 @@ class ConflictsHandler:
                 if before := rule.priority.before.entries():
                     for id in before:
                         if id not in rules_dict:
-                            logger.warn(
+                            logger.warning(
                                 f"{id} was not found while processing `before` priorities."
                             )
                             continue

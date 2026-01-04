@@ -54,6 +54,7 @@
           "target": "pools",
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "bonus_rolls": 0,
@@ -77,6 +78,7 @@
           "target": "pools",
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "bonus_rolls": 0,
