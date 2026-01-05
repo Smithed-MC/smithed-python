@@ -108,7 +108,7 @@ def weld(
         print(
             Panel(
                 f"[success][bold]✔️[/bold] Welded [bold]{len(packs)}[/bold] packs"
-                f" in [bold]{t1-t0:.3f}s[/bold]"
+                f" in [bold]{t1 - t0:.3f}s[/bold]"
                 f"\n[success]Output: [bold]{path_str((dir / name).resolve())}[/bold]",
                 border_style="accent_light",
             )

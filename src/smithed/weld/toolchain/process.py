@@ -449,7 +449,9 @@ class PackProcessor(Generic[T]):
 
         return sorted(points)
 
-    def _generate_format_segments(self, boundary_points: list[int]) -> list[FormatRange]:
+    def _generate_format_segments(
+        self, boundary_points: list[int]
+    ) -> list[FormatRange]:
         """Generate non-overlapping format segments from boundary points.
 
         Returns list of FormatRange objects covering the entire format space.
@@ -584,7 +586,9 @@ class PackProcessor(Generic[T]):
                 file = namespace[path]
                 # Serialize file data to JSON string (or use str for non-JSON files)
                 if hasattr(file, "data"):
-                    content_parts.append(f"{path}:{json.dumps(file.data, sort_keys=True)}")  # type: ignore
+                    content_parts.append(
+                        f"{path}:{json.dumps(file.data, sort_keys=True)}"
+                    )  # type: ignore
                 else:
                     content_parts.append(f"{path}:{str(file)}")
 
