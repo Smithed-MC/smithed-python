@@ -587,8 +587,8 @@ class PackProcessor(Generic[T]):
                 # Serialize file data to JSON string (or use str for non-JSON files)
                 if hasattr(file, "data"):
                     content_parts.append(
-                        f"{path}:{json.dumps(file.data, sort_keys=True)}"
-                    )  # type: ignore
+                        f"{path}:{json.dumps(file.data, sort_keys=True)}"  # type: ignore
+                    )
                 else:
                     content_parts.append(f"{path}:{str(file)}")
 
