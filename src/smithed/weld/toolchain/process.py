@@ -22,6 +22,7 @@ from beet.contrib.model_merging import model_merging
 from beet.contrib.auto_yaml import use_auto_yaml
 from beet.core.utils import SupportedFormats
 from lectern import Document
+import re
 
 from .bake_overlays import bake_overlays_for_pack_format
 from ..errors import InvalidMcmeta, InvalidPack
@@ -32,6 +33,7 @@ logger = logging.getLogger("weld")
 T = TypeVar("T", DataPack, ResourcePack)
 
 INFINITY_SENTINEL = 2**31 - 1
+FILE_NAME_REGEX = re.compile(r"[^a-z\-_0-9]")
 
 
 @dataclass
@@ -96,8 +98,8 @@ class PackWithName(Generic[T], NamedTuple):
     @property
     def sanitized_name(self) -> str:
         """Get a sanitized version of the pack name suitable for file names."""
-
-        return self.name.replace("/", "_").replace("\\", "_").replace(" ", "_")
+        name = self.name.lower().replace(" ", "_").replace(".", "_")
+        return FILE_NAME_REGEX.sub("", name)
 
 
 def as_range(supported_formats: SupportedFormats) -> FormatRange:
@@ -238,7 +240,9 @@ class PackProcessor(Generic[T]):
 
         # Transfer overlays to unique namespaced versions to avoid conflicts during merge
         for overlay_name, overlay in list(pack.pack.overlays.items()):
-            pack.pack.overlays[f"{pack.sanitized_name}_{overlay_name}"] = overlay  # type: ignore
+            name = f"{pack.sanitized_name}_{overlay_name}"
+            overlay.name = name
+            pack.pack.overlays[name] = overlay  # type: ignore
             del pack.pack.overlays[overlay_name]
 
         # Cache the pack without overlays so file lookups work during merge
