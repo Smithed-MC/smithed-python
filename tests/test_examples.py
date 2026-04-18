@@ -49,8 +49,12 @@ def test_build(
         expected = snapshot("pack.md")
         if hasattr(expected, "assets"):
             expected.assets.pack_format = actual.assets.pack_format
+            expected.assets.min_format = actual.assets.min_format
+            expected.assets.max_format = actual.assets.max_format
         if hasattr(expected, "data"):
             expected.data.pack_format = actual.data.pack_format
+            expected.data.min_format = actual.data.min_format
+            expected.data.max_format = actual.data.max_format
 
         # ignore overlay names
         for overlay in actual.data.overlays.values():

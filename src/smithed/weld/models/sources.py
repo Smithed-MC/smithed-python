@@ -1,28 +1,24 @@
 from typing import Annotated, Any, Literal
 
-from pydantic.v1 import Field, validator
+from pydantic import BeforeValidator, Field
+
+from .validators import normalize_type
 
 from .base import BaseModel
 
 
-class _Source(BaseModel):
-    type: str
-
-    @validator("type")
-    def fix_type(cls, value: str):
-        if value.startswith("smithed:"):
-            return value.replace("smithed:", "weld:")
-        return value
+class _Source(BaseModel): ...
 
 
 class ReferenceSource(_Source):
-    type: Literal["reference", "weld:reference", "smithed:reference"]
+    type: Literal["smithed:reference", "weld:reference", "reference"]
     path: str
 
 
 class ValueSource(_Source):
-    type: Literal["value", "weld:value", "smithed:value"]
+    type: Literal["smithed:value", "weld:value", "value"]
     value: Any
 
 
-Source = Annotated[ValueSource | ReferenceSource, Field(..., discriminator="type")]
+PureSource = Annotated[ValueSource | ReferenceSource, Field(..., discriminator="type")]
+Source = Annotated[PureSource, BeforeValidator(normalize_type)]

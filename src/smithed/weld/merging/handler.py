@@ -14,17 +14,17 @@ It uses the beet's merge policies to implement a conflict handler that registers
 import logging
 from collections import defaultdict
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from importlib import resources
-from typing import Iterator, Literal, cast
+from typing import Any, Iterator, Literal, cast
 
 from beet import Context, DataPack, JsonFile, ListOption, NamespaceFile, ResourcePack
 from beet.contrib.format_json import get_formatter
 from beet.contrib.vanilla import Vanilla
-from pydantic.v1 import ValidationError
+from pydantic import ValidationError
 
-from smithed.type import JsonDict, JsonTypeT
-from ..models.main import SmithedModel
+from smithed.type import JsonDict, JsonType
+from ..models.main import SmithedJsonFile, SmithedModel
 from ..toolchain.process import PackProcessor
 
 from ..models import (
@@ -38,7 +38,6 @@ from ..models import (
     RemoveRule,
     ReplaceRule,
     Rule,
-    SmithedJsonFile,
     ValueSource,
     deserialize,
 )
@@ -142,9 +141,9 @@ class ConflictsHandler:
         #
         # ⚠️ It's important that either the current or conflict files have smithed rules
         #  though it be odd if two packs are writing to the same namespace.
-        elif not smithed_conflict.smithed.entries():
+        elif not smithed_conflict.models:
             if not current_entries:
-                if smithed_conflict.dict() != smithed_current.dict():
+                if smithed_conflict.model_dump() != smithed_current.model_dump():
                     logger.warning(
                         f"Conflict unresolved at '{path}'.\nContents are different and"
                         f" contain no smithed rules which is likely unintended."
@@ -162,7 +161,7 @@ class ConflictsHandler:
         raw: JsonDict = deserialize(smithed_current)
         current.data["__smithed__"] = raw["__smithed__"]
 
-        current.data = normalize_quotes(current.data)
+        current.data = normalize_quotes(cast(JsonDict, current.data))
 
         return True
 
@@ -172,7 +171,7 @@ class ConflictsHandler:
         """Parses a smithed file and returns the parsed file or False if invalid."""
 
         try:
-            obj = SmithedJsonFile.parse_obj(file.data)
+            obj = SmithedJsonFile.model_validate(file.data)
         except ValidationError:
             logger.error("Failed to parse smithed file ", exc_info=True)
             return False
@@ -183,7 +182,7 @@ class ConflictsHandler:
 
         # only set default smithed model if override is specified in mcmeta
         if mcmeta_override:
-            obj.smithed = ListOption(__root__=[SmithedModel(id="", rules=[])])
+            obj.smithed = ListOption([SmithedModel(id="", rules=[])])
 
         for model in obj.smithed.entries():
             if model.id == "":
@@ -214,11 +213,10 @@ class ConflictsHandler:
             logger.info(f"Resolving '{pack.name}'s {json_file_type.__name__}: {path!r}")
 
             namespace_file = pack[json_file_type]
-            smithed_file = SmithedJsonFile.parse_obj(
-                namespace_file[path].data  # type: ignore
-            )
+            data: dict[str, Any] = namespace_file[path].data  # type: ignore - this will have data i promise
+            smithed_file = SmithedJsonFile.process(data)
 
-            if smithed_file.smithed.entries():
+            if smithed_file and smithed_file.models:
                 processed = self.process_file(smithed_file)
 
                 # reorder so `__smithed__` is at the bottom in output
@@ -243,7 +241,7 @@ class ConflictsHandler:
         )
 
         logger.debug("Injecting `_index`")
-        raw = self.manage_indexes(deserialize(file, defaults=False))
+        raw = self.manage_indexes(asdict(file))
 
         logger.debug(f"Pack order: {', '.join(rules_dict)}")
         for id, rules in rules_dict.items():
@@ -253,7 +251,7 @@ class ConflictsHandler:
 
         return self.manage_indexes(raw, strip=True)
 
-    def manage_indexes(self, data: JsonTypeT, strip: bool = False) -> JsonTypeT:
+    def manage_indexes[T: JsonType](self, data: T, strip: bool = False) -> T:
         """Adds / removes `_index` field to every item in a list"""
 
         match data:
@@ -266,8 +264,7 @@ class ConflictsHandler:
                             item["_index"] = index
 
                 return [
-                    self.manage_indexes(item, strip)
-                    for item in value  # type: ignore
+                    self.manage_indexes(item, strip) for item in value  # type: ignore
                 ]
 
             case dict(value):
@@ -300,7 +297,7 @@ class ConflictsHandler:
         """
 
         rules_dict: dict[str, list[Rule]] = defaultdict(list)
-        for model in file.smithed.entries():
+        for model in file.models:
             rules_dict[model.id].extend(model.rules)
 
         removed_ids: set[str] = set()
@@ -447,16 +444,14 @@ def dedupe_conflict(current: SmithedJsonFile, conflict: SmithedJsonFile):
     these lists shouldn't be too large so it's alright. We need to keep the order and
     using sets would require me to make everything hashable."""
 
-    loaded_rules = [rule for model in current.smithed.entries() for rule in model.rules]
-    for model in conflict.smithed.entries():
+    loaded_rules = [rule for model in current.models for rule in model.rules]
+    for model in conflict.models:
         model.rules = [rule for rule in model.rules if rule not in loaded_rules]
 
-    conflict.smithed = ListOption(
-        __root__=[model for model in conflict.smithed.entries() if model.rules]
-    )
+    conflict.models = [model for model in conflict.models if model.rules]
 
 
-def normalize_quotes(current: JsonTypeT) -> JsonTypeT:
+def normalize_quotes[T: JsonType](current: T) -> T:
     """It's a bit odd but we need some normalization"""
 
     match current:

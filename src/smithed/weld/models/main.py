@@ -1,21 +1,24 @@
+from dataclasses import field
 import json
 import logging
-from typing import Any
+from typing import Any, Self
 
-from beet import ListOption
-from pydantic.v1 import Field, root_validator
+from attr import dataclass
+from pydantic import model_validator, SerializeAsAny
 
-from ..merging.parser import get
 from .base import BaseModel
 from .priority import Priority
-from .rules import AdditiveRule, Rule
-from .sources import ReferenceSource, ValueSource
+from .rules import Rule
 
 logger = logging.getLogger(__name__)
 
 
 def deserialize(model: BaseModel, defaults: bool = True):
-    return json.loads(model.json(by_alias=True, exclude_defaults=not defaults))
+    return json.loads(
+        model.model_dump_json(
+            by_alias=True, exclude_defaults=not defaults, exclude_none=True
+        )
+    )
 
 
 class SmithedModel(BaseModel, extra="forbid"):
@@ -23,62 +26,49 @@ class SmithedModel(BaseModel, extra="forbid"):
     version: int = 1
     override: bool | None = None  # only should be set by bundle packs
     priority: Priority | None = None
-    rules: list[Rule] = []
+    rules: list[SerializeAsAny[Rule]] = []
 
-    @root_validator
-    def push_down_priorities(cls, values: dict[str, Any]) -> dict[str, Any]:
+    @model_validator(mode="after")
+    def push_down_priorities(self) -> "SmithedModel":
         """Push down top-level priority to every rule.
 
         If a rule has a priority defined, it will not be overwritten.
         """
 
-        rules: list[Rule] = values.get("rules")  # type: ignore
-        priority: Priority | None = values.get("priority")  # type: ignore
+        if self.priority is None:
+            self.priority = Priority()
 
-        if priority is None:
-            priority = Priority()
-
-        for rule in rules:
+        for rule in self.rules:
             if rule.priority is None:
-                rule.priority = priority
+                rule.priority = self.priority
 
-        values.pop("priority")
+        self.priority = None
 
-        return values
+        return self
 
 
-class SmithedJsonFile(BaseModel, extra="allow"):
+@dataclass
+class SmithedJsonFile:
     """Accepts any standard JSON file from in-game, only needs as `__smithed__` field
     for custom merging logic"""
 
-    smithed: ListOption[SmithedModel] = Field(
-        default_factory=ListOption, alias="__smithed__"
-    )
-
-    @root_validator
-    def convert_type(cls, values: dict[str, ListOption[SmithedModel]]):
-        if smithed := values.get("smithed"):
-            for model in smithed.entries():
-                model.rules = list(cls.convert_rules(model.rules, values))
-
-        return values
+    models: list[SmithedModel] = field(default_factory=list)
 
     @classmethod
-    def convert_rules(cls, rules: list["Rule"], values: dict[str, Any]):
-        """Converts the source field of additive rules to a value source if it is
-        a reference source, essentially "baking" it in for ease of use later.
-        """
+    def process(cls, data: dict[str, Any]) -> Self | None:
+        match data.get("__smithed__"):
+            case list() as smithed_data:
+                return cls(
+                    models=[SmithedModel.model_validate(item) for item in smithed_data]
+                )
+            case dict() as smithed_data:
+                return cls(models=[SmithedModel.model_validate(smithed_data)])
+            case None:
+                return
+            case _:
+                logger.warning(
+                    f"Expected '__smithed__' field to be a list or dict, got {type(data['__smithed__']).__name__!r}"
+                )
+                return
 
-        for rule in rules:
-            match isinstance(rule, AdditiveRule) and rule.source:
-                case ReferenceSource(path=path):
-                    try:
-                        rule.source = ValueSource(
-                            type="weld:value", value=get(values, path)
-                        )
-                    except ValueError:
-                        logger.warning(
-                            f"Source Reference Path: {path} was not found, deleting."
-                        )
-                        continue
-            yield rule
+    def conflict(self, other: Self) -> bool: ...

@@ -7,7 +7,7 @@ from smithed.weld.webapp.models import WebApp
 icon = "https://github.com/Smithed-MC/smithed-python/blob/main/smithed/weld/resources/icon.png?raw=true"
 
 
-webapp = WebApp.parse_obj(
+webapp = WebApp.model_validate(
     yaml.safe_load(
         (resources.files("smithed") / "weld/resources/webapp.yaml").read_text("utf-8")
     )

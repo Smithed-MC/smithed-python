@@ -1,12 +1,13 @@
-from __future__ import annotations
-
 import logging
 from typing import Annotated, Literal
 
-from pydantic.v1 import Field, validator
+from pydantic import BeforeValidator, Field
+
+from .validators import normalize_type
+
 
 from .base import BaseModel
-from .conditions import Condition
+from .conditions import Condition, ConditionInverted, ConditionPackCheck  # noqa: F401
 from .priority import Priority
 from .sources import Source
 
@@ -14,16 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 class BaseRule(BaseModel):
-    type: str
     target: str
     conditions: list[Condition] = []
     priority: Priority | None = None
-
-    @validator("type")
-    def fix_type(cls, value: str):
-        if value.startswith("smithed:"):
-            return value.replace("smithed:", "weld:")
-        return value
 
 
 class AdditiveRule(BaseRule):
@@ -31,35 +25,42 @@ class AdditiveRule(BaseRule):
 
 
 class MergeRule(AdditiveRule):
-    type: Literal["merge", "weld:merge", "smithed:merge"]
+    type: Literal["weld:merge", "smithed:merge", "merge"]
 
 
 class AppendRule(AdditiveRule):
-    type: Literal["append", "weld:append", "smithed:append"]
+    type: Literal["weld:append", "smithed:append", "append"]
 
 
 class PrependRule(AdditiveRule):
-    type: Literal["prepend", "weld:prepend", "smithed:prepend"]
+    type: Literal["weld:prepend", "smithed:prepend", "prepend"]
 
 
 class InsertRule(AdditiveRule):
-    type: Literal["insert", "weld:insert", "smithed:insert"]
+    type: Literal["weld:insert", "smithed:insert", "insert"]
     index: int
 
 
 class ReplaceRule(AdditiveRule):
-    type: Literal["replace", "weld:replace", "smithed:replace"]
+    type: Literal["weld:replace", "smithed:replace", "replace"]
 
 
 class RemoveRule(BaseRule):
-    type: Literal["remove", "weld:remove", "smithed:remove"]
+    type: Literal["weld:remove", "smithed:remove", "remove"]
 
 
-Rule = Annotated[
+PureRule = Annotated[
     MergeRule | AppendRule | PrependRule | InsertRule | ReplaceRule | RemoveRule,
-    Field(..., discriminator="type"),
+    Field(discriminator="type"),
 ]
+Rule = Annotated[PureRule, BeforeValidator(normalize_type)]
 
 
-class RuleHelper(BaseModel):
-    rule: Rule
+# BaseRule.model_rebuild()
+# AdditiveRule.model_rebuild()
+# MergeRule.model_rebuild()
+# AppendRule.model_rebuild()
+# PrependRule.model_rebuild()
+# InsertRule.model_rebuild()
+# ReplaceRule.model_rebuild()
+# RemoveRule.model_rebuild()

@@ -1,8 +1,10 @@
-from typing import Literal, Union
+from typing import Annotated, Literal
+
+from pydantic import BeforeValidator, Field
+
+from .validators import normalize_type
 
 from .base import BaseModel
-
-Condition = Union["ConditionPackCheck", "ConditionInverted"]
 
 
 class ConditionPackCheck(BaseModel):
@@ -15,4 +17,11 @@ class ConditionInverted(BaseModel):
     conditions: list["Condition"]
 
 
-ConditionInverted.update_forward_refs()
+Condition = Annotated[
+    ConditionPackCheck | ConditionInverted,
+    BeforeValidator(normalize_type),
+    Field(discriminator="type"),
+]
+
+# ConditionInverted.model_rebuild()
+# ConditionPackCheck.model_rebuild()
