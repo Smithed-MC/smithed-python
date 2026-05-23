@@ -46,10 +46,10 @@ def error_handler(should_exit: bool = False, format_padding: int = 0) -> Iterato
             exception = exc.__cause__
     except BeetException as exc:
         message = str(exc)
-    except (typer.Abort, KeyboardInterrupt):
+    except typer.Abort, KeyboardInterrupt:
         print()
         message = "Aborted."
-    except (click.ClickException, click.exceptions.Exit):
+    except click.ClickException, click.exceptions.Exit:
         raise
     except Exception as exc:
         message = "An unhandled exception occurred. This could be a bug."

@@ -1,20 +1,31 @@
 from .conditions import Condition, ConditionInverted, ConditionPackCheck
-from .main import SmithedJsonFile, SmithedModel, deserialize
+from .main import (
+    BroadSmithedModel,
+    ResolvedSmithedJsonFile,
+    ResolvedSmithedModel,
+    SmithedJsonFile,
+    SmithedModel,
+    deserialize,
+)
 from .priority import Priority
 from .rules import (
     AdditiveRule,
     AppendRule,
+    BroadRule,
     InsertRule,
     MergeRule,
     PrependRule,
     RemoveRule,
     ReplaceRule,
+    ResolvedRule,
     Rule,
+    RuleOf,
 )
-from .sources import ReferenceSource, Source, ValueSource
+from .sources import BroadSource, ReferenceSource, Source, ValueSource
 
 __all__ = [
     "deserialize",
+    # Rules
     "AdditiveRule",
     "MergeRule",
     "AppendRule",
@@ -22,14 +33,26 @@ __all__ = [
     "InsertRule",
     "ReplaceRule",
     "RemoveRule",
+    "RuleOf",
+    "BroadRule",
+    "ResolvedRule",
     "Rule",
+    # Conditions
     "Condition",
     "ConditionInverted",
     "ConditionPackCheck",
+    # Priority
     "Priority",
+    # Sources
     "ReferenceSource",
     "ValueSource",
-    "Source",
+    "BroadSource",
+    "Source",  # backward-compat alias for BroadSource
+    # Models
     "SmithedModel",
+    "BroadSmithedModel",
+    "ResolvedSmithedModel",
+    # File-level
     "SmithedJsonFile",
+    "ResolvedSmithedJsonFile",
 ]
