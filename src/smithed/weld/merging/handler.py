@@ -96,8 +96,6 @@ class ConflictsHandler:
         elif smithed_conflict is False:
             return True
 
-        dedupe_conflict(smithed_current, smithed_conflict)
-
         # Handle overrides (which completely skip rules and merge conflcits)
         if smithed_current.models and smithed_current.models[0].override:
             logger.critical(
@@ -154,6 +152,10 @@ class ConflictsHandler:
         # conflict.data is always the incoming pack's own data (never replaced).
         resolved_current = smithed_current.resolve()
         resolved_conflict = smithed_conflict.resolve(conflict.data)
+
+        # Dedupe AFTER resolution so ValueSource values (actual pool data) are compared,
+        # not ReferenceSource paths — two packs can both use "pools[0]" to mean different data.
+        dedupe_conflict(resolved_current, resolved_conflict)  # type: ignore[arg-type]
 
         if conflict_entries := resolved_conflict.models:
             resolved_current.models.extend(conflict_entries)  # type: ignore[arg-type]
@@ -258,8 +260,7 @@ class ConflictsHandler:
                             item["_index"] = index
 
                 return [
-                    self.manage_indexes(item, strip)
-                    for item in value  # type: ignore
+                    self.manage_indexes(item, strip) for item in value  # type: ignore
                 ]
 
             case dict(value):
@@ -436,7 +437,7 @@ class ConflictsHandler:
             yield from [(pack, json_file_type, path) for path in paths]
 
 
-def dedupe_conflict(current: SmithedJsonFile, conflict: SmithedJsonFile):
+def dedupe_conflict(current: Any, conflict: Any):
     """This dedupe goes through all of the rules in the conflict file, ditches them if
     it already exists in the currently loaded rules. It looks pretty unperformant but
     these lists shouldn't be too large so it's alright. We need to keep the order and

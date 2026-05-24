@@ -6,36 +6,59 @@
 
 ```json
 {
-  "id": "second",
   "pack": {
-    "pack_format": 48,
+    "min_format": [
+      94,
+      1
+    ],
+    "max_format": [
+      94,
+      1
+    ],
     "description": ""
   },
   "overlays": {
     "entries": [
       {
-        "formats": [
-          61,
-          61
+        "directory": "examples_basic_overlays_first_overlay",
+        "min_format": [
+          94,
+          1
         ],
-        "directory": "examples_basic_overlays_first_overlay"
+        "max_format": [
+          94,
+          1
+        ]
+      },
+      {
+        "directory": "examples_basic_overlays_second_overlay",
+        "min_format": [
+          94,
+          1
+        ],
+        "max_format": [
+          94,
+          1
+        ]
       },
       {
         "formats": [
           61,
           61
         ],
-        "directory": "examples_basic_overlays_second_overlay"
-      },
-      {
-        "formats": [
-          61,
-          61
+        "directory": "smithed_generated_61_61",
+        "min_format": [
+          94,
+          1
         ],
-        "directory": "smithed_generated_61_61"
+        "max_format": [
+          94,
+          1
+        ]
       }
     ]
-  }
+  },
+  "id": "second"
 }
 ```
 
@@ -45,8 +68,8 @@
 
 ```json
 {
-  "random_sequence": "minecraft:entities/bat",
   "type": "minecraft:entity",
+  "random_sequence": "minecraft:entities/bat",
   "pools": [
     {
       "rolls": 1,
@@ -75,7 +98,6 @@
       "override": false,
       "rules": [
         {
-          "type": "weld:append",
           "target": "pools",
           "priority": {},
           "source": {
@@ -90,7 +112,8 @@
                 }
               ]
             }
-          }
+          },
+          "type": "weld:append"
         }
       ]
     },
@@ -99,7 +122,6 @@
       "override": false,
       "rules": [
         {
-          "type": "weld:append",
           "target": "pools",
           "priority": {},
           "source": {
@@ -114,7 +136,8 @@
                 }
               ]
             }
-          }
+          },
+          "type": "weld:append"
         }
       ]
     }
@@ -126,8 +149,8 @@
 
 ```json
 {
-  "random_sequence": "minecraft:entities/wither",
   "type": "minecraft:entity",
+  "random_sequence": "minecraft:entities/wither",
   "pools": [
     {
       "rolls": 1,
@@ -156,7 +179,6 @@
       "override": false,
       "rules": [
         {
-          "type": "weld:append",
           "target": "pools",
           "priority": {},
           "source": {
@@ -171,7 +193,8 @@
                 }
               ]
             }
-          }
+          },
+          "type": "weld:append"
         }
       ]
     },
@@ -180,7 +203,6 @@
       "override": false,
       "rules": [
         {
-          "type": "weld:append",
           "target": "pools",
           "priority": {},
           "source": {
@@ -195,7 +217,8 @@
                 }
               ]
             }
-          }
+          },
+          "type": "weld:append"
         }
       ]
     }
@@ -289,8 +312,8 @@
 
 ```json
 {
-  "random_sequence": "minecraft:entities/wither",
   "type": "minecraft:entity",
+  "random_sequence": "minecraft:entities/wither",
   "pools": [
     {
       "rolls": 1,
@@ -298,7 +321,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:first_overlay"
+          "name": "minecraft:first"
         }
       ]
     },
@@ -308,7 +331,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:second_overlay"
+          "name": "minecraft:second"
         }
       ]
     }
@@ -319,7 +342,6 @@
       "override": false,
       "rules": [
         {
-          "type": "weld:append",
           "target": "pools",
           "priority": {},
           "source": {
@@ -330,11 +352,12 @@
               "entries": [
                 {
                   "type": "minecraft:item",
-                  "name": "minecraft:first_overlay"
+                  "name": "minecraft:first"
                 }
               ]
             }
-          }
+          },
+          "type": "weld:append"
         }
       ]
     },
@@ -343,7 +366,6 @@
       "override": false,
       "rules": [
         {
-          "type": "weld:append",
           "target": "pools",
           "priority": {},
           "source": {
@@ -354,11 +376,12 @@
               "entries": [
                 {
                   "type": "minecraft:item",
-                  "name": "minecraft:second_overlay"
+                  "name": "minecraft:second"
                 }
               ]
             }
-          }
+          },
+          "type": "weld:append"
         }
       ]
     }

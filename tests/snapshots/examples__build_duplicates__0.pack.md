@@ -8,7 +8,14 @@
 {
   "pack": {
     "description": "Smithed's Actionbar Pack",
-    "pack_format": 48
+    "min_format": [
+      94,
+      1
+    ],
+    "max_format": [
+      94,
+      1
+    ]
   },
   "id": "tacos"
 }
@@ -21,7 +28,6 @@
 ```json
 {
   "type": "minecraft:block",
-  "random_sequence": "minecraft:blocks/yellow_shulker_box",
   "pools": [
     {
       "bonus_rolls": 0.0,
@@ -83,13 +89,13 @@
       ]
     }
   ],
+  "random_sequence": "minecraft:blocks/yellow_shulker_box",
   "__smithed__": [
     {
       "id": "tcc",
       "override": false,
       "rules": [
         {
-          "type": "append",
           "target": "pools[0].conditions",
           "priority": {},
           "source": {
@@ -107,10 +113,10 @@
                 }
               }
             }
-          }
+          },
+          "type": "weld:append"
         },
         {
-          "type": "append",
           "target": "pools",
           "priority": {},
           "source": {
@@ -137,7 +143,8 @@
                 }
               ]
             }
-          }
+          },
+          "type": "weld:append"
         }
       ]
     }

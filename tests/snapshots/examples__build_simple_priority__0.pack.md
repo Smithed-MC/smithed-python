@@ -7,7 +7,14 @@
 ```json
 {
   "pack": {
-    "pack_format": 48,
+    "min_format": [
+      94,
+      1
+    ],
+    "max_format": [
+      94,
+      1
+    ],
     "description": ""
   },
   "id": "pack3"
@@ -21,7 +28,6 @@
 ```json
 {
   "type": "minecraft:entity",
-  "random_sequence": "minecraft:entities/zombie",
   "pools": [
     {
       "bonus_rolls": 0.0,
@@ -220,13 +226,13 @@
       ]
     }
   ],
+  "random_sequence": "minecraft:entities/zombie",
   "__smithed__": [
     {
       "id": "pack1",
       "override": false,
       "rules": [
         {
-          "type": "weld:append",
           "target": "pools",
           "priority": {},
           "source": {
@@ -240,7 +246,8 @@
                 }
               ]
             }
-          }
+          },
+          "type": "weld:append"
         }
       ]
     },
@@ -249,12 +256,10 @@
       "override": false,
       "rules": [
         {
-          "type": "weld:append",
           "target": "pools",
           "priority": {
             "after": [
-              "pack1",
-              "pack3"
+              "pack1"
             ]
           },
           "source": {
@@ -268,7 +273,8 @@
                 }
               ]
             }
-          }
+          },
+          "type": "weld:append"
         }
       ]
     },
@@ -277,9 +283,11 @@
       "override": false,
       "rules": [
         {
-          "type": "weld:append",
           "target": "pools",
           "priority": {
+            "before": [
+              "pack2"
+            ],
             "after": [
               "pack1",
               "non-existing-pack"
@@ -296,7 +304,8 @@
                 }
               ]
             }
-          }
+          },
+          "type": "weld:append"
         }
       ]
     }

@@ -7,7 +7,14 @@
 ```json
 {
   "pack": {
-    "pack_format": 48,
+    "min_format": [
+      94,
+      1
+    ],
+    "max_format": [
+      94,
+      1
+    ],
     "description": ""
   },
   "id": "pack.never2"
@@ -37,9 +44,7 @@
   "__smithed__": [
     {
       "id": "pack.only",
-      "version": 1,
-      "override": true,
-      "rules": []
+      "override": true
     }
   ]
 }

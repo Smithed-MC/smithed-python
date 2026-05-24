@@ -98,7 +98,7 @@ class PackWithName(Generic[T], NamedTuple):
     @property
     def sanitized_name(self) -> str:
         """Get a sanitized version of the pack name suitable for file names."""
-        name = self.name.lower().replace(" ", "_").replace(".", "_")
+        name = self.name.lower().replace(" ", "_").replace(".", "_").replace("/", "_").replace("\\", "_")
         return FILE_NAME_REGEX.sub("", name)
 
 
@@ -240,10 +240,10 @@ class PackProcessor(Generic[T]):
 
         # Transfer overlays to unique namespaced versions to avoid conflicts during merge
         for overlay_name, overlay in list(pack.pack.overlays.items()):
-            name = f"{pack.sanitized_name}_{overlay_name}"
+            name = f"{pack.sanitized_name}_{overlay_name.replace(' ', '_')}"
             overlay.name = name
-            pack.pack.overlays[name] = overlay  # type: ignore
             del pack.pack.overlays[overlay_name]
+            pack.pack.overlays[name] = overlay  # type: ignore
 
         # Cache the pack without overlays so file lookups work during merge
         self.cache_pack(PackWithName(pack.pack, pack.name))
