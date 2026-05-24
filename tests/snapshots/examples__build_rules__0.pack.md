@@ -7,7 +7,14 @@
 ```json
 {
   "pack": {
-    "pack_format": 48,
+    "min_format": [
+      94,
+      1
+    ],
+    "max_format": [
+      94,
+      1
+    ],
     "description": ""
   },
   "id": "pack.replace"
@@ -20,7 +27,7 @@
 
 ```json
 {
-  "random_sequence": "minecraft:entities/enderman",
+  "type": "minecraft:entity",
   "pools": [
     {
       "rolls": 1,
@@ -84,16 +91,17 @@
       ]
     }
   ],
-  "type": "minecraft:entity",
+  "random_sequence": "minecraft:entities/enderman",
   "__smithed__": [
     {
       "id": "pack.append",
+      "override": false,
       "rules": [
         {
-          "type": "weld:append",
           "target": "pools",
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "entries": [
@@ -103,18 +111,20 @@
                 }
               ]
             }
-          }
+          },
+          "type": "weld:append"
         }
       ]
     },
     {
       "id": "pack.insert",
+      "override": false,
       "rules": [
         {
-          "type": "weld:insert",
           "target": "pools",
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "entries": [
@@ -125,18 +135,20 @@
               ]
             }
           },
+          "type": "weld:insert",
           "index": 1
         }
       ]
     },
     {
       "id": "pack.merge",
+      "override": false,
       "rules": [
         {
-          "type": "weld:merge",
           "target": "pools[0]",
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "entries": [
@@ -155,18 +167,20 @@
                 }
               ]
             }
-          }
+          },
+          "type": "weld:merge"
         }
       ]
     },
     {
       "id": "pack.prepend",
+      "override": false,
       "rules": [
         {
-          "type": "prepend",
           "target": "pools",
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "entries": [
@@ -176,30 +190,34 @@
                 }
               ]
             }
-          }
+          },
+          "type": "weld:prepend"
         }
       ]
     },
     {
       "id": "pack.remove",
+      "override": false,
       "rules": [
         {
-          "type": "weld:remove",
           "target": "pools[0].entries[0].functions[0]",
-          "priority": {}
+          "priority": {},
+          "type": "weld:remove"
         }
       ]
     },
     {
       "id": "pack.replace",
+      "override": false,
       "rules": [
         {
-          "type": "weld:replace",
           "target": "pools[0].entries[0].type",
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": "weld:replace"
-          }
+          },
+          "type": "weld:replace"
         }
       ]
     }

@@ -1,0 +1,28 @@
+{
+    "id": "pack1",
+    "overlays": {
+        "entries": [
+            {
+                "formats": [
+                    48,
+                    61
+                ],
+                "directory": "overlay_48_61"
+            },
+            {
+                "formats": [
+                    51,
+                    64
+                ],
+                "directory": "overlay_51_64"
+            },
+            {
+                "formats": [
+                    62,
+                    2147483647
+                ],
+                "directory": "overlay_62_inf"
+            }
+        ]
+    }
+}

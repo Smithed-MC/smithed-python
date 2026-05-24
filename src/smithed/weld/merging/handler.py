@@ -1,0 +1,463 @@
+"""This is the main logic for weld's custom merging logic.
+
+It uses the beet's merge policies to implement a conflict handler that registers
+ conflicts, merging all `__smithed__` into a base file (whether it's vanilla or not).
+ In a later invocation, it then processes all of the registered conflicts, determines
+ the ordering via the priority and stage system, and applies each defined rule onto
+ the base file.
+
+ TODO: Likely refactor into multiple files, I can see each file handling being it's own
+  class since several methods based on each file are passing similar parameters with
+  each other.
+"""
+
+import logging
+from collections import defaultdict
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from importlib import resources
+from typing import Any, Iterator, Literal, cast
+
+from beet import Context, DataPack, JsonFile, NamespaceFile, ResourcePack
+from beet.contrib.format_json import get_formatter
+from beet.contrib.vanilla import Vanilla
+from pydantic import ValidationError
+
+from smithed.type import JsonDict, JsonType
+from ..toolchain.process import PackProcessor
+from ..models import (
+    SmithedJsonFile,
+    BroadSmithedModel,
+    ResolvedSmithedJsonFile,
+    AppendRule,
+    Condition,
+    ConditionInverted,
+    ConditionPackCheck,
+    InsertRule,
+    MergeRule,
+    PrependRule,
+    RemoveRule,
+    ReplaceRule,
+    ResolvedRule,
+)
+from .errors import PriorityError
+from .parser import append, get, insert, merge, prepend, remove, replace
+
+logger = logging.getLogger("weld")
+
+PRIORITY_STAGES = ["early", "standard", "late"]
+YELLOW_SHULKER_BOX = (
+    resources.files("smithed") / "weld/resources/yellow_shulker_box.json"
+)
+
+Pack = DataPack | ResourcePack
+
+
+@dataclass
+class ConflictsHandler:
+    ctx: Context
+
+    formatter: Callable[..., str] = get_formatter()
+
+    # our cache keeps track of the final merged pack alongside the type of file
+    # overlays would have it's own final merged pack which would not collide
+    cache: defaultdict[tuple[Pack, type[NamespaceFile]], set[str]] = field(
+        default_factory=lambda: defaultdict(set)
+    )
+    vanilla: dict[Pack, str] = field(default_factory=dict)
+    overrides: defaultdict[Pack, set[str]] = field(
+        default_factory=lambda: defaultdict(set)
+    )
+
+    def __call__(self, pack: Pack, path: str, current: JsonFile, conflict: JsonFile, /):
+        """Register conflicts.."""
+        processor = self.ctx.inject(PackProcessor)
+
+        logger.debug(f"Registering conflict: {path!r}")
+        if path in self.overrides[pack]:
+            logger.debug("Skipping due to override")
+            return True
+
+        # Parse the files and handle validation errors. We need to ensure that `current`
+        #  is left with a valid file. If a file has an incorrect `smithed` definition.
+        smithed_current = self.parse_smithed_file(current, processor)
+        smithed_conflict = self.parse_smithed_file(conflict, processor)
+
+        if smithed_current is False and smithed_conflict is False:
+            logger.warning(
+                "Both the current and conflict files are invalid. Undefined Behavior"
+            )
+            return False
+
+        elif smithed_current is False:
+            current.data = conflict.data
+            return True
+
+        elif smithed_conflict is False:
+            return True
+
+        # Handle overrides (which completely skip rules and merge conflcits)
+        if smithed_current.models and smithed_current.models[0].override:
+            logger.critical(
+                f"Overriding base file at `{path}` with {smithed_current.models[0].id}"
+            )
+            self.overrides[pack].add(path)
+            current.data["__smithed__"] = smithed_current.resolve().dump_models()
+            return True
+
+        if smithed_conflict.models and smithed_conflict.models[0].override:
+            logger.critical(
+                f"Overriding base file at `{path}` with {smithed_conflict.models[0].id}"
+            )
+            self.overrides[pack].add(path)
+            current.data = conflict.data
+            return True
+
+        # Cache paths for latest use
+        json_file_type = cast(type[NamespaceFile], type(current))
+        self.cache[(pack, json_file_type)].add(path)
+
+        # Handle vanilla paths as the base / current file
+        if path.startswith("minecraft:"):
+            if path not in self.vanilla and (
+                data := self.grab_vanilla(path, json_file_type)
+            ):
+                current.data = data
+                self.vanilla[pack] = path
+
+        # Handle non-vanilla paths, swap conflict w/ current if no smithed rules exist
+        # This is to ensure that non-vanilla files can work with weld.
+        # Example:
+        #   TCC has a loot table for iceologer
+        #   Pack B wants to weld the loot table for iceologer
+        #   This will ensure that TCC is the base reference even if Pack B is
+        #    loaded first as TCC will not have any weld rules defined but Pack B will.
+        #
+        # ⚠️ It's important that either the current or conflict files have smithed rules
+        #  though it be odd if two packs are writing to the same namespace.
+        elif not smithed_conflict.models:
+            if not smithed_current.models:
+                if smithed_conflict != smithed_current:
+                    logger.warning(
+                        f"Conflict unresolved at '{path}'.\nContents are different and"
+                        f" contain no smithed rules which is likely unintended."
+                    )
+            else:
+                logger.info(f"Swapping base file at `{path}`")
+                current.data, conflict.data = conflict.data, current.data
+                smithed_current, smithed_conflict = smithed_conflict, smithed_current
+
+        # Resolve references against each pack's own original file data.
+        # smithed_current.data still holds the original pre-vanilla-swap dict.
+        # conflict.data is always the incoming pack's own data (never replaced).
+        resolved_current = smithed_current.resolve()
+        resolved_conflict = smithed_conflict.resolve(conflict.data)
+
+        # Dedupe AFTER resolution so ValueSource values (actual pool data) are compared,
+        # not ReferenceSource paths — two packs can both use "pools[0]" to mean different data.
+        dedupe_conflict(resolved_current, resolved_conflict)  # type: ignore[arg-type]
+
+        if conflict_entries := resolved_conflict.models:
+            resolved_current.models.extend(conflict_entries)  # type: ignore[arg-type]
+
+        current.data["__smithed__"] = resolved_current.dump_models()
+
+        current.data = normalize_quotes(cast(JsonDict, current.data))
+
+        return True
+
+    def parse_smithed_file(
+        self, file: JsonFile, processor: PackProcessor
+    ) -> SmithedJsonFile | Literal[False]:
+        """Parses a smithed file and returns the parsed file or False if invalid."""
+        try:
+            obj = SmithedJsonFile.process(file.data)
+        except ValidationError:
+            logger.error("Failed to parse smithed file ", exc_info=True)
+            return False
+
+        mcmeta_override = (
+            processor[file].mcmeta.data.get("__smithed__", {}).get("override", False)
+        )
+
+        # only set default smithed model if override is specified in mcmeta
+        if mcmeta_override:
+            obj.models = [BroadSmithedModel(id="", rules=[])]
+
+        for model in obj.models:
+            if model.id == "":
+                model.id = processor[file].mcmeta.data["id"]
+
+            if model.override is None:
+                model.override = mcmeta_override
+
+        return obj
+
+    def grab_vanilla(
+        self, path: str, json_file_type: type[NamespaceFile]
+    ) -> JsonDict | None:
+        """Grabs the vanilla file to load as the current file (aka the base)."""
+        vanilla = self.ctx.inject(Vanilla)
+        file = vanilla.data[json_file_type].get(path)
+
+        if file is None:
+            return None
+
+        return cast(JsonFile, file).data
+
+    def process(self):
+        """Main entrypoint for smithed merge solving"""
+        for pack, json_file_type, path in self:
+            logger.info(f"Resolving '{pack.name}'s {json_file_type.__name__}: {path!r}")
+
+            namespace_file = pack[json_file_type]
+            data: dict[str, Any] = namespace_file[path].data  # type: ignore - this will have data i promise
+            smithed_file = SmithedJsonFile.process(data)
+
+            if smithed_file and smithed_file.models:
+                processed = self.process_file(smithed_file.resolve())
+
+                # reorder so `__smithed__` is at the bottom in output
+                temp = processed["__smithed__"]
+                del processed["__smithed__"]
+                processed["__smithed__"] = temp
+
+                namespace_file[path].data = processed  # type: ignore
+
+    def process_file(self, file: ResolvedSmithedJsonFile) -> JsonDict:
+        """Process each file's rules"""
+        logger.debug("Resolving priorities..")
+        rules_dict = self.resolve_priorities(file)
+        logger.debug(
+            "Rules: %s",
+            ", ".join(
+                f"{id} {type(rule).__name__}"
+                for id, rules in rules_dict.items()
+                for rule in rules
+            ),
+        )
+
+        logger.debug("Injecting `_index`")
+        raw = self.manage_indexes(file.data)
+
+        logger.debug(f"Pack order: {', '.join(rules_dict)}")
+        for id, rules in rules_dict.items():
+            for rule in rules:
+                if applied := self.apply_rule(raw, id, rule):
+                    raw = applied
+
+        return self.manage_indexes(raw, strip=True)
+
+    def manage_indexes[T: JsonType](self, data: T, strip: bool = False) -> T:
+        """Adds / removes `_index` field to every item in a list"""
+        match data:
+            case list(value):
+                for index, item in enumerate(value):
+                    if isinstance(item, dict):
+                        if strip:
+                            item.pop("_index", None)
+                        else:
+                            item["_index"] = index
+
+                return [
+                    self.manage_indexes(item, strip) for item in value  # type: ignore
+                ]
+
+            case dict(value):
+                return {
+                    key: self.manage_indexes(val, strip)  # type: ignore
+                    for key, val in value.items()
+                }
+
+            case other:
+                return other
+
+    def pre_process_condition(
+        self, rules: dict[str, list[ResolvedRule]], condition: Condition
+    ) -> bool:
+        """Returns true if all conditions satisfy their criteria."""
+        match condition:
+            case ConditionPackCheck(id=id):
+                return id in rules
+            case ConditionInverted(conditions=conditions):
+                return not all(
+                    self.pre_process_condition(rules, condition)
+                    for condition in conditions
+                )
+
+    def pre_process_rules(
+        self, file: ResolvedSmithedJsonFile
+    ) -> dict[str, list[ResolvedRule]]:
+        """Gathers models by id. Pre-processes models for ease of use.
+
+        Converts each 'before' priority into 'after' (as it's easier to resolve).
+        """
+        rules_dict: dict[str, list[ResolvedRule]] = defaultdict(list)
+        for model in file.models:
+            rules_dict[model.id].extend(model.rules)
+
+        removed_ids: set[str] = set()
+        for current_id, rules in rules_dict.items():
+            for rule in rules:
+                if not all(
+                    self.pre_process_condition(rules_dict, condition)
+                    for condition in rule.conditions
+                ):
+                    logging.info("Skipping rule from %s due to conditions", current_id)
+                    removed_ids.add(current_id)
+                    continue
+
+                assert rule.priority is not None
+
+                if before := rule.priority.before.entries():
+                    for id in before:
+                        if id not in rules_dict:
+                            logger.warning(
+                                f"{id} was not found while processing `before` priorities."
+                            )
+                            continue
+                        for other_rule in rules_dict[id]:
+                            assert other_rule.priority is not None
+                            if current_id not in other_rule.priority.after.entries():
+                                other_rule.priority.after.entries().append(current_id)
+                    before.clear()
+
+        return {id: rules for id, rules in rules_dict.items() if id not in removed_ids}
+
+    def resolve_priorities(
+        self, file: ResolvedSmithedJsonFile
+    ) -> dict[str, list[ResolvedRule]]:
+        """Resolves priorities for each stage."""
+        pre_processed_rules = self.pre_process_rules(file)
+        rules_dict: dict[str, list[ResolvedRule]] = defaultdict(list)
+
+        for stage in PRIORITY_STAGES:
+            logger.debug(f"Stage: `{stage}`")
+            for id, rules in pre_processed_rules.items():
+                for rule in rules:
+                    assert rule.priority is not None
+                    if rule.priority.stage == stage:
+                        self.resolve_stage(
+                            stage, pre_processed_rules, id, rules_dict, []
+                        )
+
+        return rules_dict
+
+    def resolve_stage(
+        self,
+        stage: str,
+        pre_processed_rules: dict[str, list[ResolvedRule]],
+        current: str,
+        processed: dict[str, list[ResolvedRule]],
+        processing: list[str],
+    ):
+        """Resolves priorities within a specific stage.
+
+        ⚠️ Raises PriorityError if a dependency loop is found.
+        ⚠️ Raises PriorityError if a pack depends on another pack from a different stage.
+        ⚠️ Logs warning if a pack depends on a pack that does not exist.
+        """
+        for current_rule in pre_processed_rules[current]:
+            assert current_rule.priority is not None
+            if after := current_rule.priority.after.entries():
+                for id in after:
+                    if id in processing:
+                        raise PriorityError(
+                            "Dependency loop found while resolving"
+                            f" `{current}` in stage `{stage}`.\n"
+                            "The following loop was discovered: "
+                            + " -> ".join(f"`{id}`" for id in processing)
+                            + f" -> `{id}`"
+                        )
+                    if stage != current_rule.priority.stage and id not in processed:
+                        raise PriorityError(
+                            f"Cannot resolve priority for rule during stage `{stage}`."
+                            "\nPacks must only depend on packs in `before` or `after`"
+                            " thah are in the same stage. You likely shouldn't specify"
+                            " both `stage` AND `before/after` unless you know what"
+                            " you are doing."
+                        )
+                    elif id in pre_processed_rules:
+                        processing.append(id)
+                        self.resolve_stage(
+                            stage, pre_processed_rules, id, processed, processing
+                        )
+                        processing.remove(id)
+                    else:
+                        logger.warning(f"Priority: {id} was not found. Ignoring Rule.")
+
+            # dict insertion order for the win
+            if current not in processed:
+                processed[current] = pre_processed_rules[current]
+
+    def apply_rule(
+        self, raw: JsonDict, current: str, rule: ResolvedRule
+    ) -> JsonDict | Literal[False]:
+        """Rule application uses `jsonpath_ng` for parsing target paths.
+
+        TODO: extract outward, maybe bundle rule application with the rule itself
+        """
+        # Handle whether the target path exists or not
+        try:
+            get(raw, rule.target, True)
+        except ValueError:
+            logger.warning(
+                f"Target Path: {rule.target} was not found. Ignoring...", exc_info=True
+            )
+            return False
+
+        # Apply each rule's logic
+        try:
+            match rule:
+                case MergeRule(source=source):
+                    merge(raw, rule.target, source.value)
+
+                case AppendRule(source=source):
+                    append(raw, rule.target, source.value)
+
+                case PrependRule(source=source):
+                    prepend(raw, rule.target, source.value)
+
+                case InsertRule(source=source, index=index):
+                    insert(raw, rule.target, index, source.value)
+
+                case ReplaceRule(source=source):
+                    replace(raw, rule.target, source.value)
+
+                case RemoveRule():
+                    remove(raw, rule.target)
+
+        except ValueError:
+            logger.warning(f"Rule `{rule!r}` failed processing, skipping..")
+
+        return raw
+
+    def __iter__(self) -> Iterator[tuple[Pack, type[NamespaceFile], str]]:
+        for (pack, json_file_type), paths in self.cache.items():
+            yield from [(pack, json_file_type, path) for path in paths]
+
+
+def dedupe_conflict(current: Any, conflict: Any):
+    """This dedupe goes through all of the rules in the conflict file, ditches them if
+    it already exists in the currently loaded rules. It looks pretty unperformant but
+    these lists shouldn't be too large so it's alright. We need to keep the order and
+    using sets would require me to make everything hashable."""
+    loaded_rules = [rule for model in current.models for rule in model.rules]
+    for model in conflict.models:
+        model.rules = [rule for rule in model.rules if rule not in loaded_rules]
+
+    conflict.models = [model for model in conflict.models if model.rules]
+
+
+def normalize_quotes[T: JsonType](current: T) -> T:
+    """It's a bit odd but we need some normalization"""
+    match current:
+        case {**d}:
+            return {
+                key.replace('"', ""): normalize_quotes(value)
+                for key, value in d.items()
+            }
+        case [*l]:
+            return [normalize_quotes(value) for value in l]
+        case item:
+            return item

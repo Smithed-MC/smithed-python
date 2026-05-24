@@ -2,9 +2,11 @@ import logging
 import os
 from pathlib import Path
 
+from beet.library.test_utils import ignore_name
 import pytest
 from lectern import Document
 from pytest_insta import SnapshotFixture
+
 
 from smithed.type import JsonDict
 from smithed.weld import run_weld
@@ -23,7 +25,7 @@ def test_build(
         [
             f"examples/{directory}/{pack.name}"
             for pack in (Path("examples") / directory).glob("*")
-            if pack.is_dir()
+            if pack.is_dir() or pack.suffix == ".md"
         ]
     )
     with (
@@ -47,7 +49,20 @@ def test_build(
         expected = snapshot("pack.md")
         if hasattr(expected, "assets"):
             expected.assets.pack_format = actual.assets.pack_format
+            expected.assets.min_format = actual.assets.min_format
+            expected.assets.max_format = actual.assets.max_format
         if hasattr(expected, "data"):
             expected.data.pack_format = actual.data.pack_format
+            expected.data.min_format = actual.data.min_format
+            expected.data.max_format = actual.data.max_format
+
+        # ignore overlay names
+        for overlay in actual.data.overlays.values():
+            ignore_name(overlay)
+            del overlay.mcmeta
+
+        for overlay in actual.assets.overlays.values():
+            ignore_name(overlay)
+            del overlay.mcmeta
 
         assert expected == actual

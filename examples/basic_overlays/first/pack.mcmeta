@@ -1,0 +1,17 @@
+{
+    "id": "first",
+    "pack": {
+        "pack_format": 60
+    },
+    "overlays": {
+        "entries": [
+            {
+                "formats": [
+                    61,
+                    61
+                ],
+                "directory": "overlay"
+            }
+        ]
+    }
+}

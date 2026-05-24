@@ -7,7 +7,14 @@
 ```json
 {
   "pack": {
-    "pack_format": 48,
+    "min_format": [
+      94,
+      1
+    ],
+    "max_format": [
+      94,
+      1
+    ],
     "description": ""
   },
   "id": "pack3"
@@ -20,7 +27,7 @@
 
 ```json
 {
-  "random_sequence": "minecraft:entities/zombie",
+  "type": "minecraft:entity",
   "pools": [
     {
       "bonus_rolls": 0.0,
@@ -48,6 +55,47 @@
             }
           ],
           "name": "minecraft:rotten_flesh"
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "condition": "minecraft:entity_properties",
+              "entity": "this",
+              "predicate": {
+                "vehicle": {
+                  "type": "minecraft:zombie_horse"
+                }
+              }
+            }
+          ],
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 1.0,
+                "min": 0.0
+              },
+              "function": "minecraft:set_count"
+            },
+            {
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 1.0,
+                "min": 0.0
+              },
+              "enchantment": "minecraft:looting",
+              "function": "minecraft:enchanted_count_increase"
+            }
+          ],
+          "name": "minecraft:red_mushroom"
         }
       ],
       "rolls": 1.0
@@ -124,6 +172,33 @@
       "rolls": 1.0
     },
     {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:killed_by_player"
+        },
+        {
+          "condition": "minecraft:entity_properties",
+          "entity": "this",
+          "predicate": {
+            "flags": {
+              "is_baby": true
+            },
+            "vehicle": {
+              "type": "minecraft:chicken"
+            }
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:music_disc_lava_chicken"
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
       "rolls": 1,
       "entries": [
         {
@@ -151,16 +226,17 @@
       ]
     }
   ],
-  "type": "minecraft:entity",
+  "random_sequence": "minecraft:entities/zombie",
   "__smithed__": [
     {
       "id": "pack1",
+      "override": false,
       "rules": [
         {
-          "type": "weld:append",
           "target": "pools",
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "entries": [
@@ -170,23 +246,24 @@
                 }
               ]
             }
-          }
+          },
+          "type": "weld:append"
         }
       ]
     },
     {
       "id": "pack2",
+      "override": false,
       "rules": [
         {
-          "type": "weld:append",
           "target": "pools",
           "priority": {
             "after": [
-              "pack1",
-              "pack3"
+              "pack1"
             ]
           },
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "entries": [
@@ -196,23 +273,28 @@
                 }
               ]
             }
-          }
+          },
+          "type": "weld:append"
         }
       ]
     },
     {
       "id": "pack3",
+      "override": false,
       "rules": [
         {
-          "type": "weld:append",
           "target": "pools",
           "priority": {
+            "before": [
+              "pack2"
+            ],
             "after": [
               "pack1",
               "non-existing-pack"
             ]
           },
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "entries": [
@@ -222,7 +304,8 @@
                 }
               ]
             }
-          }
+          },
+          "type": "weld:append"
         }
       ]
     }

@@ -7,7 +7,14 @@
 ```json
 {
   "pack": {
-    "pack_format": 48,
+    "min_format": [
+      94,
+      1
+    ],
+    "max_format": [
+      94,
+      1
+    ],
     "description": ""
   },
   "id": "pack2"
@@ -40,33 +47,34 @@
   "__smithed__": [
     {
       "id": "pack2",
+      "override": false,
       "rules": [
         {
-          "type": "replace",
           "target": "foo[0].bar.taco",
           "priority": {},
           "source": {
-            "type": "value",
+            "type": "weld:value",
             "value": "not bell"
-          }
+          },
+          "type": "weld:replace"
         },
         {
-          "type": "replace",
           "target": "foo[1].minecraft:bar.taco",
           "priority": {},
           "source": {
-            "type": "value",
+            "type": "weld:value",
             "value": "not bell"
-          }
+          },
+          "type": "weld:replace"
         },
         {
-          "type": "replace",
           "target": "foo[2].\"minecraft:bar\".taco",
           "priority": {},
           "source": {
-            "type": "value",
+            "type": "weld:value",
             "value": "not bell"
-          }
+          },
+          "type": "weld:replace"
         }
       ]
     }

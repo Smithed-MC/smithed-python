@@ -20,8 +20,8 @@
 
 ```json
 {
-  "random_sequence": "minecraft:entities/wither",
   "type": "minecraft:entity",
+  "random_sequence": "minecraft:entities/wither",
   "pools": [
     {
       "rolls": 1,
@@ -47,12 +47,14 @@
   "__smithed__": [
     {
       "id": "tcc",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",
           "target": "pools",
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "bonus_rolls": 0,
@@ -69,12 +71,14 @@
     },
     {
       "id": "tacos",
+      "override": false,
       "rules": [
         {
           "type": "weld:append",
           "target": "pools",
           "priority": {},
           "source": {
+            "type": "weld:value",
             "value": {
               "rolls": 1,
               "bonus_rolls": 0,
