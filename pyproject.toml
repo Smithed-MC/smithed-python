@@ -3,8 +3,8 @@ authors = [
   {name = "Smithed Team", email = "team@smithed.dev"},
 ]
 dependencies = [
-  "beet>=0.114.1",
-  "mecha>=0.95.2",
+  "beet>=0.119.0",
+  "mecha>=0.106.0",
   "typer>=0.9.0",
   "tokenstream>=1.7.0",
   "backports-strenum>=1.2.8",

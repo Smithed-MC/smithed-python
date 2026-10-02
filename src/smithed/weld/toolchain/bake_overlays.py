@@ -1,15 +1,12 @@
 import logging
 from dataclasses import replace
-from typing import TypeVar
 
 from beet.core.utils import SupportedFormats
-from beet.library.data_pack import DataPack
-from beet.library.resource_pack import ResourcePack
 from beet.toolchain.context import PluginOptions
 
-logger = logging.getLogger(__name__)
+from smithed.weld.toolchain.process import Pack
 
-T = TypeVar("T", DataPack, ResourcePack)
+logger = logging.getLogger(__name__)
 
 
 class BakeOverlayOptions(PluginOptions):
@@ -17,7 +14,7 @@ class BakeOverlayOptions(PluginOptions):
     selected_assets_format: int | None = None
 
 
-def bake_overlay(pack: T, overlay: T):
+def bake_overlay[T: Pack](pack: T, overlay: T):
     """Bake an overlay onto an original pack."""
 
     original_policy = pack.merge_policy
@@ -31,7 +28,7 @@ def bake_overlay(pack: T, overlay: T):
     pack.merge_policy = original_policy
 
 
-def bake_overlays_for_pack_format(pack: T, pack_format: int):
+def bake_overlays_for_pack_format[T: Pack](pack: T, pack_format: int):
     """Procedurally bake overlays conditionally based on a specific pack format that is supported.
     All overlays are then cleared from the original pack.
     """

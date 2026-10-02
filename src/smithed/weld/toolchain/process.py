@@ -4,7 +4,7 @@ import itertools
 import logging
 import json
 from pathlib import Path
-from typing import Generic, Iterable, NamedTuple, TypeVar
+from typing import Iterable, NamedTuple
 from zipfile import Path as ZipPath
 from zipfile import ZipFile
 
@@ -17,6 +17,8 @@ from beet import (
     PackQuery,
     ResourcePack,
 )
+
+type Pack = DataPack | ResourcePack
 from beet.contrib.unknown_files import UnknownAsset, UnknownData
 from beet.contrib.model_merging import model_merging
 from beet.contrib.auto_yaml import use_auto_yaml
@@ -29,8 +31,6 @@ from ..errors import InvalidMcmeta, InvalidPack
 from ...type import JsonDict
 
 logger = logging.getLogger("weld")
-
-T = TypeVar("T", DataPack, ResourcePack)
 
 INFINITY_SENTINEL = 2**31 - 1
 FILE_NAME_REGEX = re.compile(r"[^a-z\-_0-9]")
@@ -75,7 +75,7 @@ class FormatRange:
 
 # Structure to track packs and their overlays by format range
 @dataclass
-class PackInfo(Generic[T]):
+class PackInfo[T: Pack]:
     base_pack: T
     overlays_by_range: dict[FormatRange, T]
     # Keeps overlays in declaration order for "last wins"
@@ -84,14 +84,14 @@ class PackInfo(Generic[T]):
 
 
 @dataclass
-class SegmentResult(Generic[T]):
+class SegmentResult[T: Pack]:
     """Stores the merged overlay content for a format segment."""
 
     segment: FormatRange
     overlay_pack: T  # The merged DataPack or ResourcePack for this segment
 
 
-class PackWithName(Generic[T], NamedTuple):
+class PackWithName[T: Pack](NamedTuple):
     pack: T
     name: str
 
@@ -120,7 +120,7 @@ def as_range(supported_formats: SupportedFormats) -> FormatRange:
             raise ValueError(f"Unexpected supported formats: {supported_formats}")
 
 
-def _create_empty_pack(pack_type: type[T]) -> T:
+def _create_empty_pack[T: Pack](pack_type: type[T]) -> T:
     """Create an empty DataPack or ResourcePack with default plugins configured.
 
     Default plugins:
@@ -149,7 +149,7 @@ def _create_empty_pack(pack_type: type[T]) -> T:
 
 
 @dataclass
-class PackProcessor(Generic[T]):
+class PackProcessor[T: Pack]:
     ctx: Context
     file_id_cache: dict[JsonFileBase[JsonDict], T] = field(default_factory=dict)
     packs: list[PackWithName[T]] = field(default_factory=list)

@@ -24,7 +24,7 @@ from beet.contrib.vanilla import Vanilla
 from pydantic import ValidationError
 
 from smithed.type import JsonDict, JsonType
-from ..toolchain.process import PackProcessor
+from ..toolchain.process import PackProcessor, Pack
 from ..models import (
     SmithedJsonFile,
     BroadSmithedModel,
@@ -49,8 +49,6 @@ PRIORITY_STAGES = ["early", "standard", "late"]
 YELLOW_SHULKER_BOX = (
     resources.files("smithed") / "weld/resources/yellow_shulker_box.json"
 )
-
-Pack = DataPack | ResourcePack
 
 
 @dataclass

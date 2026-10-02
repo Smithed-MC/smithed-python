@@ -1,9 +1,4 @@
-from typing import TypeVar
-
 from pydantic import BaseModel as _BaseModel
-
-T = TypeVar("T")
-
 
 class BaseModel(_BaseModel): ...
 

@@ -1,13 +1,11 @@
-from typing import TypeVar
-from beet import Context, DataPack, JsonFileBase, ResourcePack, TagFile
+from beet import Context, JsonFileBase, TagFile
 from beet.contrib import model_merging
+
+from smithed.weld.toolchain.process import Pack
 
 from .handler import ConflictsHandler
 
-T = TypeVar("T", DataPack, ResourcePack)
-
-
-def apply_merging(handler: ConflictsHandler, pack: T):
+def apply_merging[T: Pack](handler: ConflictsHandler, pack: T):
     for (_, extension), file_type in pack.resolve_scope_map().items():
         if (
             extension == ".json"

@@ -1,6 +1,5 @@
 import logging
 from importlib import resources
-from typing import TypeVar
 from zipfile import ZipFile
 
 from beet import (
@@ -22,7 +21,6 @@ from .process import PackProcessor
 DESCRIPTION = "Merged by Smithed Weld"
 
 logger = logging.getLogger("weld")
-MetaFileT = TypeVar("MetaFileT", bound=Mcmeta | PngFile)
 
 
 FABRIC_MOD_TEMPLATE = Template(
