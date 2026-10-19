@@ -1,0 +1,110 @@
+name: Release
+
+on:
+  workflow_call:
+    secrets:
+      PYPI_TOKEN:
+        required: true
+    outputs:
+      released:
+        description: Whether semantic-release created a new version
+        value: ${{ jobs.version.outputs.released }}
+      version:
+        description: Released package version
+        value: ${{ jobs.version.outputs.version }}
+      tag:
+        description: Released Git tag
+        value: ${{ jobs.version.outputs.tag }}
+      sha:
+        description: Release commit SHA
+        value: ${{ jobs.version.outputs.sha }}
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    name: Version and build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      released: ${{ steps.version.outputs.released }}
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      sha: ${{ steps.version.outputs.commit_sha }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+
+      - name: Attach the tested commit to main
+        run: git switch -C main
+
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          python-version: "3.14"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install release dependencies
+        run: uv sync --locked --no-default-groups --group github-workflows
+
+      - name: Calculate version, build, and create release
+        id: version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: uv run --locked --no-default-groups --group github-workflows semantic-release version
+
+      - name: Store release distributions
+        if: steps.version.outputs.released == 'true'
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: dist-${{ steps.version.outputs.version }}
+          path: dist/*
+          if-no-files-found: error
+
+  publish-github:
+    name: Publish to GitHub
+    needs: version
+    if: needs.version.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.version.outputs.sha }}
+
+      - name: Attach the release commit to main
+        run: git switch -C main
+
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          name: dist-${{ needs.version.outputs.version }}
+          path: dist/
+
+      - name: Upload distributions to GitHub release
+        uses: python-semantic-release/publish-action@v10.5.3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ needs.version.outputs.tag }}
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: version
+    if: needs.version.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          name: dist-${{ needs.version.outputs.version }}
+          path: dist/
+
+      - name: Publish release distributions
+        uses: pypa/gh-action-pypi-publish@v1.14.2
+        with:
+          password: ${{ secrets.PYPI_TOKEN }}
+          attestations: false

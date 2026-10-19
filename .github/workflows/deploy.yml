@@ -1,0 +1,37 @@
+name: Deploy
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: Released package version
+        required: true
+        type: string
+      tag:
+        description: Released Git tag
+        required: true
+        type: string
+      sha:
+        description: Release commit SHA
+        required: true
+        type: string
+    secrets:
+      PAT:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Update DevOps
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch released version to DevOps
+        uses: peter-evans/repository-dispatch@v4.0.1
+        with:
+          token: ${{ secrets.PAT }}
+          repository: Smithed-MC/DevOps
+          event-type: update
+          client-payload: >-
+            {"ref": "refs/tags/${{ inputs.tag }}", "sha": "${{ inputs.sha }}", "version": "${{ inputs.version }}", "tag": "${{ inputs.tag }}", "module": "weld", "branch": "${{ inputs.tag }}"}

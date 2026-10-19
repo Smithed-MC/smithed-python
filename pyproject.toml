@@ -24,32 +24,52 @@ weld = "smithed.weld:cli"
 
 [dependency-groups]
 dev = [
-  "ruff>=0.0.292",
+  "ruff>=0.17.1",
+  "pyright>=1.1.414",
   "streamlit>=1.55.0",
   "pytest>=7.4.2",
   "pytest-insta>=0.2.0",
   "lectern>=0.29.1",
   "devtools>=0.12.2",
   "streamlit-extras>=0.4.0",
-  "python-semantic-release>=9.1.1",
+  {include-group = "github-workflows"},
   "ipython>=8.16.1",
   "twine>=5.0.0",
   "streamlit-elements>=0.1.0",
   "streamlit-router>=0.1.8",
 ]
 
+github-workflows = [
+  "python-semantic-release>=10.7.0,<11",
+]
+
 [tool.semantic_release]
-branch = "main"
-build_command = "uv build"
+assets = ["uv.lock"]
+build_command = """
+uv lock --upgrade-package smithed
+uv build
+"""
+allow_zero_version = true
 major_on_zero = false
 version_toml = ["pyproject.toml:project.version"]
-version_variables = ["smithed/__init__.py:__version__", "smithed/weld/__init__.py:__version__"]
+version_variables = ["src/smithed/__init__.py:__version__", "src/smithed/weld/__init__.py:__version__"]
+
+[tool.semantic_release.branches.main]
+match = "main"
+prerelease = false
 
 [tool.uv]
 no-build-package = ["pyarrow"]
 
 [tool.pyright]
-mode = "strict"
+include = ["src", "app", "tests"]
+pythonVersion = "3.14"
+typeCheckingMode = "basic"
+venvPath = "."
+venv = ".venv"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "smithed/weld" = "weld"
