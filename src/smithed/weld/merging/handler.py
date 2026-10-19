@@ -14,11 +14,12 @@ It uses the beet's merge policies to implement a conflict handler that registers
 import logging
 from collections import defaultdict
 from collections.abc import Callable
+from copy import deepcopy
 from dataclasses import dataclass, field
 from importlib import resources
 from typing import Any, Iterator, Literal, cast
 
-from beet import Context, DataPack, JsonFile, NamespaceFile, ResourcePack
+from beet import Context, JsonFile, NamespaceFile
 from beet.contrib.format_json import get_formatter
 from beet.contrib.vanilla import Vanilla
 from pydantic import ValidationError
@@ -63,16 +64,18 @@ class ConflictsHandler:
         default_factory=lambda: defaultdict(set)
     )
     vanilla: dict[Pack, str] = field(default_factory=dict)
-    overrides: defaultdict[Pack, set[str]] = field(
+    overrides: defaultdict[Pack, set[tuple[type[NamespaceFile], str]]] = field(
         default_factory=lambda: defaultdict(set)
     )
 
     def __call__(self, pack: Pack, path: str, current: JsonFile, conflict: JsonFile, /):
         """Register conflicts.."""
         processor = self.ctx.inject(PackProcessor)
+        json_file_type = cast(type[NamespaceFile], type(current))
+        physical_file = json_file_type, path
 
         logger.debug(f"Registering conflict: {path!r}")
-        if path in self.overrides[pack]:
+        if physical_file in self.overrides[pack]:
             logger.debug("Skipping due to override")
             return True
 
@@ -99,7 +102,9 @@ class ConflictsHandler:
             logger.critical(
                 f"Overriding base file at `{path}` with {smithed_current.models[0].id}"
             )
-            self.overrides[pack].add(path)
+            self.overrides[pack].add(physical_file)
+            if (pending := self.cache.get((pack, json_file_type))) is not None:
+                pending.discard(path)
             current.data["__smithed__"] = smithed_current.resolve().dump_models()
             return True
 
@@ -107,12 +112,13 @@ class ConflictsHandler:
             logger.critical(
                 f"Overriding base file at `{path}` with {smithed_conflict.models[0].id}"
             )
-            self.overrides[pack].add(path)
+            self.overrides[pack].add(physical_file)
+            if (pending := self.cache.get((pack, json_file_type))) is not None:
+                pending.discard(path)
             current.data = conflict.data
             return True
 
         # Cache paths for latest use
-        json_file_type = cast(type[NamespaceFile], type(current))
         self.cache[(pack, json_file_type)].add(path)
 
         # Handle vanilla paths as the base / current file
@@ -120,7 +126,7 @@ class ConflictsHandler:
             if path not in self.vanilla and (
                 data := self.grab_vanilla(path, json_file_type)
             ):
-                current.data = data
+                current.data = deepcopy(data)
                 self.vanilla[pack] = path
 
         # Handle non-vanilla paths, swap conflict w/ current if no smithed rules exist
@@ -203,24 +209,32 @@ class ConflictsHandler:
 
         return cast(JsonFile, file).data
 
-    def process(self):
-        """Main entrypoint for smithed merge solving"""
-        for pack, json_file_type, path in self:
-            logger.info(f"Resolving '{pack.name}'s {json_file_type.__name__}: {path!r}")
+    def process(self, pack: Pack | None = None):
+        """Resolve pending conflicts once, optionally for one merged pack."""
+        for (current_pack, json_file_type), paths in list(self.cache.items()):
+            if pack is not None and current_pack is not pack:
+                continue
 
-            namespace_file = pack[json_file_type]
-            data: dict[str, Any] = namespace_file[path].data  # type: ignore - this will have data i promise
-            smithed_file = SmithedJsonFile.process(data)
+            for path in paths:
+                logger.info(
+                    f"Resolving '{current_pack.name}'s {json_file_type.__name__}: {path!r}"
+                )
 
-            if smithed_file and smithed_file.models:
-                processed = self.process_file(smithed_file.resolve())
+                namespace_file = current_pack[json_file_type]
+                data: dict[str, Any] = namespace_file[path].data  # type: ignore - this will have data i promise
+                smithed_file = SmithedJsonFile.process(data)
 
-                # reorder so `__smithed__` is at the bottom in output
-                temp = processed["__smithed__"]
-                del processed["__smithed__"]
-                processed["__smithed__"] = temp
+                if smithed_file and smithed_file.models:
+                    processed = self.process_file(smithed_file.resolve())
 
-                namespace_file[path].data = processed  # type: ignore
+                    # reorder so `__smithed__` is at the bottom in output
+                    temp = processed["__smithed__"]
+                    del processed["__smithed__"]
+                    processed["__smithed__"] = temp
+
+                    namespace_file[path].data = processed  # type: ignore
+
+            del self.cache[(current_pack, json_file_type)]
 
     def process_file(self, file: ResolvedSmithedJsonFile) -> JsonDict:
         """Process each file's rules"""
@@ -258,7 +272,8 @@ class ConflictsHandler:
                             item["_index"] = index
 
                 return [
-                    self.manage_indexes(item, strip) for item in value  # type: ignore
+                    self.manage_indexes(item, strip)
+                    for item in value  # type: ignore
                 ]
 
             case dict(value):

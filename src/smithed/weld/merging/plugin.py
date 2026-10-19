@@ -5,7 +5,8 @@ from smithed.weld.toolchain.process import Pack
 
 from .handler import ConflictsHandler
 
-def apply_merging[T: Pack](handler: ConflictsHandler, pack: T):
+
+def apply_merging(handler: ConflictsHandler, pack: Pack):
     for (_, extension), file_type in pack.resolve_scope_map().items():
         if (
             extension == ".json"

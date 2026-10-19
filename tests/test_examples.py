@@ -13,7 +13,26 @@ from smithed.weld import run_weld
 
 EXAMPLES = [f for f in os.listdir("examples") if not f.startswith(".")]
 
-TEST_CONFIG: JsonDict = {}
+# Keep vanilla contents stable when beet updates its default Minecraft version.
+TEST_CONFIG: JsonDict = {"minecraft": "1.21.11"}
+
+OVERLAY_EXPECTATIONS = {
+    "basic_overlays": [
+        (60, ["first", "second"]),
+        (61, ["first_overlay", "second_overlay"]),
+        (62, ["first", "second"]),
+    ],
+    "complex_overlays": [
+        (47, ["data", "second"]),
+        (48, ["overlay_48_61", "second"]),
+        (50, ["overlay_48_61", "second"]),
+        (51, ["overlay_51_64", "second"]),
+        (61, ["overlay_51_64", "second"]),
+        (62, ["overlay_62_inf", "second"]),
+        (65, ["overlay_62_inf", "second"]),
+        (2**31 - 1, ["overlay_62_inf", "second"]),
+    ],
+}
 
 
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
@@ -32,6 +51,20 @@ def test_build(
         caplog.at_level(logging.DEBUG, logger="weld"),
         run_weld(packs, config=TEST_CONFIG) as ctx,
     ):
+        # Check effective files independently of baking and snapshot acceptance.
+        # A snapshot update must not hide a wrong format boundary or contribution.
+        for pack_format, names in OVERLAY_EXPECTATIONS.get(directory, []):
+            table = ctx.data.loot_tables["minecraft:entities/wither"]
+            for entry in ctx.data.mcmeta.data.get("overlays", {}).get("entries", []):
+                lower, upper = entry["formats"]
+                if lower <= pack_format <= upper:
+                    table = ctx.data.overlays[entry["directory"]].loot_tables.get(
+                        "minecraft:entities/wither", table
+                    )
+            assert [
+                item["name"] for pool in table.data["pools"] for item in pool["entries"]
+            ] == [f"minecraft:{name}" for name in names]
+
         actual = ctx.inject(Document)
         actual.markdown_serializer.flat = True
 
@@ -51,12 +84,17 @@ def test_build(
             expected.assets.pack_format = actual.assets.pack_format
             expected.assets.min_format = actual.assets.min_format
             expected.assets.max_format = actual.assets.max_format
+            for overlay in expected.assets.overlays.values():
+                del overlay.mcmeta
         if hasattr(expected, "data"):
             expected.data.pack_format = actual.data.pack_format
             expected.data.min_format = actual.data.min_format
             expected.data.max_format = actual.data.max_format
+            for overlay in expected.data.overlays.values():
+                del overlay.mcmeta
 
-        # ignore overlay names
+        # Ignore names and synthetic overlay-local metadata on both sides.
+        # The actual range metadata in the root pack.mcmeta remains compared.
         for overlay in actual.data.overlays.values():
             ignore_name(overlay)
             del overlay.mcmeta

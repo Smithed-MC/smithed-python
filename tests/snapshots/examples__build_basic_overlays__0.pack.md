@@ -8,39 +8,18 @@
 {
   "pack": {
     "min_format": [
-      94,
-      1
+      121,
+      0
     ],
     "max_format": [
-      94,
-      1
+      121,
+      0
     ],
     "description": ""
   },
+  "id": "second",
   "overlays": {
     "entries": [
-      {
-        "directory": "examples_basic_overlays_first_overlay",
-        "min_format": [
-          94,
-          1
-        ],
-        "max_format": [
-          94,
-          1
-        ]
-      },
-      {
-        "directory": "examples_basic_overlays_second_overlay",
-        "min_format": [
-          94,
-          1
-        ],
-        "max_format": [
-          94,
-          1
-        ]
-      },
       {
         "formats": [
           61,
@@ -48,17 +27,13 @@
         ],
         "directory": "smithed_generated_61_61",
         "min_format": [
-          94,
-          1
+          61,
+          0
         ],
-        "max_format": [
-          94,
-          1
-        ]
+        "max_format": 61
       }
     ]
-  },
-  "id": "second"
+  }
 }
 ```
 
@@ -226,82 +201,6 @@
 }
 ```
 
-## Overlay `examples_basic_overlays_first_overlay`
-
-`@overlay examples_basic_overlays_first_overlay`
-
-### minecraft
-
-`@loot_table minecraft:entities/wither`
-
-```json
-{
-  "type": "minecraft:entity",
-  "pools": [
-    {
-      "rolls": 1,
-      "bonus_rolls": 0,
-      "entries": [
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:first_overlay"
-        }
-      ]
-    }
-  ],
-  "__smithed__": {
-    "rules": [
-      {
-        "type": "smithed:append",
-        "target": "pools",
-        "source": {
-          "type": "smithed:reference",
-          "path": "pools[0]"
-        }
-      }
-    ]
-  }
-}
-```
-
-## Overlay `examples_basic_overlays_second_overlay`
-
-`@overlay examples_basic_overlays_second_overlay`
-
-### minecraft
-
-`@loot_table minecraft:entities/wither`
-
-```json
-{
-  "type": "minecraft:entity",
-  "pools": [
-    {
-      "rolls": 1,
-      "bonus_rolls": 0,
-      "entries": [
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:second_overlay"
-        }
-      ]
-    }
-  ],
-  "__smithed__": {
-    "rules": [
-      {
-        "type": "smithed:append",
-        "target": "pools",
-        "source": {
-          "type": "smithed:reference",
-          "path": "pools[0]"
-        }
-      }
-    ]
-  }
-}
-```
-
 ## Overlay `smithed_generated_61_61`
 
 `@overlay smithed_generated_61_61`
@@ -321,7 +220,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:first"
+          "name": "minecraft:first_overlay"
         }
       ]
     },
@@ -331,7 +230,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:second"
+          "name": "minecraft:second_overlay"
         }
       ]
     }
@@ -352,7 +251,7 @@
               "entries": [
                 {
                   "type": "minecraft:item",
-                  "name": "minecraft:first"
+                  "name": "minecraft:first_overlay"
                 }
               ]
             }
@@ -376,7 +275,7 @@
               "entries": [
                 {
                   "type": "minecraft:item",
-                  "name": "minecraft:second"
+                  "name": "minecraft:second_overlay"
                 }
               ]
             }
@@ -390,3 +289,23 @@
 ```
 
 `@endoverlay`
+
+## Resource pack
+
+`@resource_pack pack.mcmeta`
+
+```json
+{
+  "pack": {
+    "min_format": [
+      75,
+      0
+    ],
+    "max_format": [
+      75,
+      0
+    ],
+    "description": ""
+  }
+}
+```

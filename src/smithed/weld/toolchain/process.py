@@ -1,10 +1,10 @@
 from dataclasses import dataclass, field
-import hashlib
+from copy import deepcopy
 import itertools
 import logging
 import json
 from pathlib import Path
-from typing import Iterable, NamedTuple
+from typing import Iterable, NamedTuple, cast
 from zipfile import Path as ZipPath
 from zipfile import ZipFile
 
@@ -14,11 +14,13 @@ from beet import (
     DeserializationError,
     JsonFileBase,
     Mcmeta,
+    NamespaceFile,
+    PackFile,
     PackQuery,
     ResourcePack,
+    get_output_scope,
 )
 
-type Pack = DataPack | ResourcePack
 from beet.contrib.unknown_files import UnknownAsset, UnknownData
 from beet.contrib.model_merging import model_merging
 from beet.contrib.auto_yaml import use_auto_yaml
@@ -27,6 +29,18 @@ from lectern import Document
 import re
 
 from .bake_overlays import bake_overlays_for_pack_format
+from .formats import (
+    FormatInput,
+    MINOR_MAX,
+    Pack,
+    PackFormat,
+    get_overlay_bounds,
+    legacy_bounds,
+    legacy_overlay_threshold,
+    normalize_format,
+    predecessor,
+    successor,
+)
 from ..errors import InvalidMcmeta, InvalidPack
 from ...type import JsonDict
 
@@ -36,12 +50,18 @@ INFINITY_SENTINEL = 2**31 - 1
 FILE_NAME_REGEX = re.compile(r"[^a-z\-_0-9]")
 
 
-@dataclass
+@dataclass(init=False)
 class FormatRange:
     """Represents a pack format range [min, max]."""
 
-    min: int
-    max: int
+    min: PackFormat
+    max: PackFormat
+
+    def __init__(self, min: FormatInput, max: FormatInput):
+        self.min = normalize_format(min)
+        self.max = normalize_format(max, upper=True)
+        if self.min > self.max:
+            raise ValueError(f"Invalid format range: {min} to {max}")
 
     def overlaps(self, other: "FormatRange") -> bool:
         """Check if this range overlaps with another range."""
@@ -61,14 +81,12 @@ class FormatRange:
         """String representation for overlay name generation."""
 
         min_str = (
-            str(int(self.min))
-            if self.min != float("inf") and self.min != float("-inf")
-            else ""
+            str(self.min[0]) if self.min[1] == 0 else f"{self.min[0]}m{self.min[1]}"
         )
         max_str = (
-            str(int(self.max))
-            if self.max != float("inf") and self.max != float("-inf")
-            else ""
+            str(self.max[0])
+            if self.max[1] == MINOR_MAX
+            else f"{self.max[0]}m{self.max[1]}"
         )
         return f"{min_str}_{max_str}"
 
@@ -98,7 +116,13 @@ class PackWithName[T: Pack](NamedTuple):
     @property
     def sanitized_name(self) -> str:
         """Get a sanitized version of the pack name suitable for file names."""
-        name = self.name.lower().replace(" ", "_").replace(".", "_").replace("/", "_").replace("\\", "_")
+        name = (
+            self.name.lower()
+            .replace(" ", "_")
+            .replace(".", "_")
+            .replace("/", "_")
+            .replace("\\", "_")
+        )
         return FILE_NAME_REGEX.sub("", name)
 
 
@@ -109,15 +133,7 @@ def as_range(supported_formats: SupportedFormats) -> FormatRange:
     https://github.com/Gamemode4Dev/GM4_Datapacks/blob/master/gm4/plugins/backwards.py#L168-L177
     """
 
-    match supported_formats:
-        case int(value):
-            return FormatRange(value, value)
-        case [min, max]:
-            return FormatRange(min, max)
-        case {"min_inclusive": min, "max_inclusive": max}:
-            return FormatRange(min, max)
-        case _:
-            raise ValueError(f"Unexpected supported formats: {supported_formats}")
+    return FormatRange(*legacy_bounds(supported_formats))
 
 
 def _create_empty_pack[T: Pack](pack_type: type[T]) -> T:
@@ -146,6 +162,42 @@ def _create_empty_pack[T: Pack](pack_type: type[T]) -> T:
         raise ValueError("`pack_type` must be `DataPack` or `ResourcePack`")
 
     return pack
+
+
+def _copy_pack[T: Pack](pack: T) -> T:
+    """Copy files without replacing authored overlay bounds with beet defaults."""
+    copied = pack.copy()
+    if pack.overlay_parent is None:
+        copied.mcmeta.data.pop("overlays", None)
+        if "overlays" in pack.mcmeta.data:
+            copied.mcmeta.data["overlays"] = deepcopy(pack.mcmeta.data["overlays"])
+    return copied
+
+
+def _has_namespaced_content(pack: Pack) -> bool:
+    return any(pack.values()) or any(
+        any(overlay.values()) for overlay in pack.overlays.values()
+    )
+
+
+def _file_content(file: PackFile | NamespaceFile) -> str | bytes:
+    copied = file.copy()
+    return (
+        json.dumps(copied.data, sort_keys=True)
+        if isinstance(copied, JsonFileBase)
+        else copied.ensure_serialized()
+    )
+
+
+def _same_file(
+    file: PackFile | NamespaceFile, other: PackFile | NamespaceFile | None
+) -> bool:
+    if other is None or type(file) is not type(other):
+        return False
+    # Python dict equality conflates JSON booleans, integers, and floats.
+    if isinstance(file, JsonFileBase):
+        return _file_content(file) == _file_content(other)
+    return file == other
 
 
 @dataclass
@@ -193,13 +245,20 @@ class PackProcessor[T: Pack]:
             if isinstance(path, Path) and path.suffix in (".txt", ".md"):
                 doc = Document(path=path)
 
-                if len(doc.data):
+                if _has_namespaced_content(doc.data):
                     packs.append(PackWithName(doc.data, name))
 
-                if len(doc.assets):
+                if _has_namespaced_content(doc.assets):
                     packs.append(PackWithName(doc.assets, name))
 
             else:
+                mcmeta_path = path / "pack.mcmeta"
+                source_mcmeta = (
+                    Mcmeta(mcmeta_path.read_text()).data
+                    if mcmeta_path.is_file()
+                    else {}
+                )
+
                 # Create empty packs with default plugins
                 data = _create_empty_pack(DataPack)
                 assets = _create_empty_pack(ResourcePack)
@@ -208,11 +267,27 @@ class PackProcessor[T: Pack]:
                 data.load(file)
                 assets.load(file)
 
+                # Beet creates overlays with the parent's default format bounds.
+                # Restore authored entries so legacy ranges and undeclared
+                # directories don't acquire synthetic modern bounds.
+                for loaded in (data, assets):
+                    loaded.mcmeta.data.pop("overlays", None)
+                    if "overlays" in source_mcmeta:
+                        loaded.mcmeta.data["overlays"] = deepcopy(
+                            source_mcmeta["overlays"]
+                        )
+                    for overlay in loaded.overlays.values():
+                        # Minecraft ignores these inside overlay directories.
+                        # Keeping beet's synthetic mcmeta would reintroduce its
+                        # defaults when the overlay is copied and rebound.
+                        overlay.extra.pop("pack.mcmeta", None)
+                        overlay.extra.pop("pack.png", None)
+
                 # Only yield if there is actually content
-                if len(data):
+                if _has_namespaced_content(data):
                     packs.append(PackWithName(data, name))
 
-                if len(assets):
+                if _has_namespaced_content(assets):
                     packs.append(PackWithName(assets, name))
 
         except DeserializationError as err:
@@ -230,31 +305,30 @@ class PackProcessor[T: Pack]:
     def load_pack(self, pack: PackWithName[T]):
         """Loads a DataPack or ResourcePack into a context by merging it.
 
-        NOTE: We only merge the BASE pack content, not overlays. Overlays will be
-        processed separately in the overlay merging algorithm.
+        Keep an isolated source for provenance and segment baking, then merge a
+        separate copy of its base content. Beet adopts incoming file objects, so
+        merging the source itself would let conflict handling mutate later segments.
 
-        Returns a copy of the pack without overlays that was used for merging.
+        Returns the isolated source, including its original overlays.
         """
 
         logger.debug(f"Loading pack '{pack.name}' base content")
 
-        # Transfer overlays to unique namespaced versions to avoid conflicts during merge
-        for overlay_name, overlay in list(pack.pack.overlays.items()):
-            name = f"{pack.sanitized_name}_{overlay_name.replace(' ', '_')}"
-            overlay.name = name
-            del pack.pack.overlays[overlay_name]
-            pack.pack.overlays[name] = overlay  # type: ignore
+        source = _copy_pack(pack.pack)
+        self.cache_pack(PackWithName(source, pack.name))
+        base = _copy_pack(source)
+        base.overlays.clear()
+        self.cache_pack(PackWithName(base, pack.name), register=False)
 
-        # Cache the pack without overlays so file lookups work during merge
-        self.cache_pack(PackWithName(pack.pack, pack.name))
-
-        match pack.pack:
+        match base:
             case DataPack() as dp:
                 self.ctx.data.merge(dp)
             case ResourcePack() as rp:
                 self.ctx.assets.merge(rp)
 
-    def cache_pack(self, pack: PackWithName[T]):
+        return source
+
+    def cache_pack(self, pack: PackWithName[T], *, register: bool = True):
         """Cache some metadata from resource files to be used in later welding."""
 
         if "id" not in pack.pack.mcmeta.data:
@@ -267,7 +341,8 @@ class PackProcessor[T: Pack]:
         ):
             self[k] = pack.pack
 
-        self.packs.append(pack)
+        if register:
+            self.packs.append(pack)
 
     def load_packs(self, files: list[str] | list[ZipFile]):
         """Load a series of packs into `ctx`. Triggers merge policies.
@@ -282,6 +357,24 @@ class PackProcessor[T: Pack]:
 
         # Step 1: Load all base packs and index their overlays, separated by type
         data_pack_info, resource_pack_info = self._load_and_index_packs(files)
+
+        # Keep each output's format metadata from its newest input pack.
+        for pack_info, output in (
+            (data_pack_info, self.ctx.data),
+            (resource_pack_info, self.ctx.assets),
+        ):
+            if not pack_info:
+                continue
+            newest = max(
+                (info.base_pack.mcmeta.data["pack"] for info in reversed(pack_info)),
+                key=lambda metadata: normalize_format(
+                    metadata.get("min_format", metadata.get("pack_format", 0))
+                ),
+            )
+            for key in ("pack_format", "supported_formats", "min_format", "max_format"):
+                output.mcmeta.data["pack"].pop(key, None)
+                if key in newest:
+                    output.mcmeta.data["pack"][key] = deepcopy(newest[key])
 
         # Remove pack-specific 'id' field from merged pack.mcmeta
         # The 'id' field is specific to individual packs and shouldn't appear in merged output
@@ -315,6 +408,8 @@ class PackProcessor[T: Pack]:
 
         for file in files:
             for pack in self.create_packs(file):
+                source = self.load_pack(pack)
+                pack = PackWithName(source, pack.name)
                 # Index overlays by their format ranges
                 overlays_by_range, overlays_in_order = self._index_overlays_by_range(
                     pack
@@ -332,9 +427,6 @@ class PackProcessor[T: Pack]:
                     data_pack_info.append(pack_info)
                 else:
                     resource_pack_info.append(pack_info)
-
-                # Finally, load the pack
-                self.load_pack(pack)
 
         return data_pack_info, resource_pack_info
 
@@ -355,14 +447,15 @@ class PackProcessor[T: Pack]:
         overlays_in_order: list[tuple[FormatRange, T]] = []
 
         for overlay_name, overlay in pack.pack.overlays.items():
-            if overlay.supported_formats is None:
+            bounds = get_overlay_bounds(overlay)
+            if bounds is None:
                 logger.warning(
                     f"Overlay '{overlay_name}' in pack '{pack.name}' does not contain "
                     f"any supported formats. Ignoring."
                 )
                 continue
 
-            format_range = as_range(overlay.supported_formats)
+            format_range = FormatRange(*bounds)
 
             # Store the overlay reference - actual baking happens later during segment processing
             overlays_by_range[format_range] = overlay  # type: ignore
@@ -379,18 +472,22 @@ class PackProcessor[T: Pack]:
         Phase 1: Segment format space at all boundaries
         Phase 2: Use merged base pack (already in base_pack parameter)
         Phase 3: Compute effective states and diff against base
-        Phase 4: Deduplicate and assemble final overlays
+        Phase 4: Coalesce equal files across adjacent segments and assemble overlays
 
         Args:
             pack_info_list: List of PackInfo objects for this pack type
             base_pack: The base pack (ctx.data or ctx.assets) to store overlays in
         """
 
+        from ..merging.handler import ConflictsHandler
+
         # We need to find the boundary of all of the overlay ranges so that we can find the
         #  most efficient segmentation for all of the overlays. Essentially, which overlays
         #  are related to which ranges so we can compute which final merged overlays we need.
         boundary_points = self._compute_boundary_points(pack_info_list)
         segments = self._generate_format_segments(boundary_points)
+        if segments:
+            self.ctx.inject(ConflictsHandler).process(base_pack)
 
         logger.info(
             f"Generated {len(segments)} format segments from {len(boundary_points)} boundary points"
@@ -408,25 +505,33 @@ class PackProcessor[T: Pack]:
 
         logger.info(f"Created {len(segment_results)} non-empty segment overlays")
 
-        # After computing all of the segment overlays, we need to deduplicate them.
-        # This ensures that we don't create multiple overlays with identical content.
-        grouped = self._group_segments_by_content(segment_results)
+        # Unrelated files can change at different boundaries. Join each file's
+        # equal runs before grouping ranges, so those changes don't duplicate it.
+        assembled = self._coalesce_segment_files(segment_results, type(base_pack))
 
-        logger.info(f"Deduplicated to {len(grouped)} unique overlay groups")
+        logger.info(f"Compacted to {len(assembled)} overlay ranges")
 
-        for _, (overlay_pack, segment_list) in grouped.items():
-            # Merge adjacent/overlapping segments if possible
-            merged_segments = self._merge_adjacent_segments(segment_list)
+        # Minecraft versions using legacy metadata require formats on every entry,
+        # including entries whose modern bounds cover newer versions only.
+        threshold = legacy_overlay_threshold(base_pack)
+        legacy_required = any(segment.min[0] < threshold for segment in assembled)
 
-            # Create one overlay entry per merged segment range
-            for merged_segment in merged_segments:
-                overlay_name = f"smithed_generated_{merged_segment}"
-                overlay_pack.name = overlay_name
-                overlay_pack.supported_formats = [
-                    merged_segment.min,
-                    merged_segment.max,
-                ]
-                base_pack.overlays[overlay_name] = overlay_pack  # type: ignore
+        for segment, overlay_pack in sorted(
+            assembled.items(), key=lambda item: (item[0].min, item[0].max)
+        ):
+            overlay_name = f"smithed_generated_{segment}"
+            # Each range needs its own object: binding an overlay changes its
+            # parent/name, and later bounds must not overwrite an earlier entry.
+            overlay = overlay_pack.copy()
+            overlay.name = overlay_name
+            overlay.min_format = list(segment.min)
+            overlay.max_format = (
+                segment.max[0] if segment.max[1] == MINOR_MAX else list(segment.max)
+            )
+            overlay.supported_formats = (
+                [segment.min[0], segment.max[0]] if legacy_required else None
+            )
+            base_pack.overlays[overlay_name] = overlay  # type: ignore
 
         logger.info(f"Generated {len(base_pack.overlays)} final overlays")
 
@@ -434,27 +539,29 @@ class PackProcessor[T: Pack]:
     # Phase 1: Format Space Segmentation
     # ============================================================================
 
-    def _compute_boundary_points(self, pack_info_list: list[PackInfo[T]]) -> list[int]:
+    def _compute_boundary_points(
+        self, pack_info_list: list[PackInfo[T]]
+    ) -> list[PackFormat]:
         """Compute all format boundary points from overlays.
 
         Returns sorted list of boundary points where behavior might change.
         """
 
-        points: set[int] = set()
+        points: set[PackFormat] = set()
 
         for pack_info in pack_info_list:
             for format_range, _ in pack_info.overlays_in_order:
                 # Add the min boundary
                 points.add(format_range.min)
 
-                # Add max+1 boundary (unless it's the infinity sentinel)
-                if format_range.max < INFINITY_SENTINEL:
-                    points.add(format_range.max + 1)
+                # Python integers can represent the exclusive endpoint even for
+                # the sentinel. Omitting it would drop the final active segment.
+                points.add(successor(format_range.max))
 
         return sorted(points)
 
     def _generate_format_segments(
-        self, boundary_points: list[int]
+        self, boundary_points: list[PackFormat]
     ) -> list[FormatRange]:
         """Generate non-overlapping format segments from boundary points.
 
@@ -468,27 +575,15 @@ class PackProcessor[T: Pack]:
 
         # Create segments between consecutive boundary points
         for i in range(len(boundary_points) - 1):
-            segments.append(FormatRange(boundary_points[i], boundary_points[i + 1] - 1))
+            segments.append(
+                FormatRange(boundary_points[i], predecessor(boundary_points[i + 1]))
+            )
 
         return segments
 
     # ============================================================================
     # Phase 3: Effective State Merging
     # ============================================================================
-
-    def _get_active_overlay(
-        self, pack_info: PackInfo[T], segment: FormatRange
-    ) -> T | None:
-        """Find the last (winning) overlay that overlaps with the given segment.
-
-        Implements "last entry wins" rule from Minecraft's overlay system.
-        """
-        # Iterate in reverse order (last overlay wins)
-        for overlay_range, overlay_pack in reversed(pack_info.overlays_in_order):
-            if overlay_range.overlaps(segment):
-                return overlay_pack
-
-        return None
 
     def _compute_merged_state_for_segment(
         self,
@@ -498,60 +593,30 @@ class PackProcessor[T: Pack]:
     ) -> T | None:
         """Compute the merged state for a segment across all packs.
 
-        For each pack, computes effective state by merging overlay files with base files.
-        Files present in the active overlay take precedence over base files.
+        Apply each pack's matching overlays in declaration order before welding.
+        Fresh copies keep rule resolution and execution isolated from other segments.
         """
 
         from ..merging.handler import ConflictsHandler
         from ..merging.plugin import apply_merging
 
-        # Create empty pack for merged result
+        if not any(
+            overlay_range.overlaps(segment)
+            for pack_info in pack_info_list
+            for overlay_range, _ in pack_info.overlays_in_order
+        ):
+            return None
+
         merged = _create_empty_pack(pack_type)
         merged.name = f"smithed_welded_{segment}"
         apply_merging(self.ctx.inject(ConflictsHandler), merged)
-        active_paths = set()
-        active_overlays = []
 
-        # Gather the active paths
         for pack_info in pack_info_list:
-            active_overlays.append(
-                active_overlay := self._get_active_overlay(pack_info, segment)
-            )
-
-            if active_overlay is not None:
-                active_paths |= set(path for (path, _) in active_overlay.all())
-
-        # For each pack, merge its effective state for this segment
-        for active_overlay, pack_info in zip(active_overlays, pack_info_list):
-            # Check if any overlays are active for this segment
-            active_overlay = self._get_active_overlay(pack_info, segment)
-
-            if active_overlay is not None:
-                # Bake the pack at this segment's format (this applies all overlays in order)
-                baked = pack_info.base_pack.copy()
-                baked.name = pack_info.name
-                self.cache_pack(PackWithName(baked, baked.name))  # type: ignore
-                # Use segment.min as the representative format for this range
-                logger.debug(f"Baking pack '{pack_info.name}' for segment {segment}")
-                bake_overlays_for_pack_format(baked, segment.min)
-
-                for path, file_type in baked.all():
-                    if path not in active_paths:
-                        logger.debug(
-                            f"Removing inactive file: {path} from baked overlay in pack '{baked.name}'"
-                        )
-                        baked[type(file_type)].pop(path)
-
-                merged.merge(baked)  # type: ignore
-            else:
-                # No overlays active for this segment - use base pack as-is
-                logger.debug(
-                    f"No active overlay for pack '{pack_info.name}' in segment {segment}"
-                )
-                merged.merge(pack_info.base_pack)
-
-        if len(merged) <= 0:
-            return None
+            baked = _copy_pack(pack_info.base_pack)
+            baked.name = pack_info.name
+            bake_overlays_for_pack_format(baked, segment.min)
+            self.cache_pack(PackWithName(baked, pack_info.name), register=False)
+            merged.merge(baked)  # type: ignore
 
         return merged
 
@@ -569,9 +634,33 @@ class PackProcessor[T: Pack]:
             segment, pack_info_list, pack_type
         )
 
-        if merged_state is not None:
-            merged_state.name = f"smithed_generated_{segment}"
-            merged_state.supported_formats = [segment.min, segment.max]
+        if merged_state is None:
+            return None
+
+        from ..merging.handler import ConflictsHandler
+
+        self.ctx.inject(ConflictsHandler).process(merged_state)
+
+        # Compare resolved outputs, not pending rules. Minecraft overlays replace
+        # individual files, so an unchanged physical resource needs no overlay copy.
+        for path, file in list(merged_state.all()):
+            if _same_file(file, base_pack[type(file)].get(path)):
+                del merged_state[type(file)][path]
+        for namespace_name, namespace in merged_state.items():
+            base_namespace = base_pack.get(namespace_name)
+            for path, file in list(namespace.extra.items()):
+                if base_namespace is not None and _same_file(
+                    file, base_namespace.extra.get(path)
+                ):
+                    del namespace.extra[path]
+        for path, file in list(merged_state.extra.items()):
+            if path != "pack.mcmeta" and _same_file(file, base_pack.extra.get(path)):
+                del merged_state.extra[path]
+
+        if not merged_state:
+            return None
+
+        merged_state.name = f"smithed_generated_{segment}"
 
         return merged_state
 
@@ -579,72 +668,80 @@ class PackProcessor[T: Pack]:
     # Phase 4: Deduplication & Assembly
     # ============================================================================
 
-    def _compute_pack_hash(self, pack: T) -> str:
-        """Compute a hash of pack contents for deduplication."""
+    def _coalesce_segment_files(
+        self, segment_results: list[SegmentResult[T]], pack_type: type[T]
+    ) -> dict[FormatRange, T]:
+        """Join adjacent equal resolved files, then group files sharing a range.
 
-        # Collect all files sorted by path for deterministic hashing
-        content_parts = []
-        for file_type in pack.get_file_types():
-            namespace = pack[file_type]
-            for path in sorted(namespace.keys()):
-                file = namespace[path]
-                # Serialize file data to JSON string (or use str for non-JSON files)
-                if hasattr(file, "data"):
-                    content_parts.append(
-                        f"{path}:{json.dumps(file.data, sort_keys=True)}"  # type: ignore
-                    )
-                else:
-                    content_parts.append(f"{path}:{str(file)}")
-
-        # Hash the combined content
-        content_str = "||".join(content_parts)
-        return hashlib.sha256(content_str.encode()).hexdigest()
-
-    def _group_segments_by_content(
-        self, segment_results: list[SegmentResult[T]]
-    ) -> dict[str, tuple[T, list[FormatRange]]]:
-        """Group segments with identical content.
-
-        Returns: Dict mapping content hash to (overlay_pack, list of segments)
+        A missing/base-equal file breaks its run. Overlays may overlap, but each
+        physical file has at most one active definition at any format.
         """
+        type FileKey = tuple[
+            str | None, type[NamespaceFile] | None, str, tuple[str, ...]
+        ]
+        versions: dict[FileKey, list[tuple[FormatRange, PackFile | NamespaceFile]]] = {}
 
-        groups: dict[str, tuple[T, list[FormatRange]]] = {}
+        for result in sorted(segment_results, key=lambda item: item.segment.min):
+            segment, pack = result.segment, result.overlay_pack
+            # Match the metadata after beet attaches an overlay and drops its
+            # local mcmeta. Range bounds can change a type's physical directory.
+            layout = pack_type()
+            layout.pack_format = None
+            layout.max_format = (
+                segment.max[0] if segment.max[1] == MINOR_MAX else list(segment.max)
+            )
+            layout.supported_formats = [segment.min[0], segment.max[0]]
+            for namespace_name, namespace in pack.items():
+                for file_type, files in namespace.items():
+                    scope = get_output_scope(file_type.scope, layout)
+                    for path, file in files.items():
+                        key = namespace_name, file_type, path, scope
+                        versions.setdefault(key, []).append((segment, file))
+                for path, file in namespace.extra.items():
+                    key = namespace_name, None, path, ()
+                    versions.setdefault(key, []).append((segment, file))
+            for path, file in pack.extra.items():
+                if path not in ("pack.mcmeta", "pack.png"):
+                    versions.setdefault((None, None, path, ()), []).append(
+                        (segment, file)
+                    )
 
-        for result in segment_results:
-            content_hash = self._compute_pack_hash(result.overlay_pack)
+        assembled: dict[FormatRange, T] = {}
+        for (namespace_name, file_type, path, _scope), entries in versions.items():
+            runs: list[tuple[FormatRange, PackFile | NamespaceFile, str | bytes]] = []
+            for segment, file in entries:
+                content = _file_content(file)
+                if runs:
+                    previous, previous_file, previous_content = runs[-1]
+                    if (
+                        successor(previous.max) == segment.min
+                        and type(previous_file) is type(file)
+                        and previous_content == content
+                    ):
+                        runs[-1] = (
+                            FormatRange(previous.min, segment.max),
+                            previous_file,
+                            previous_content,
+                        )
+                        continue
+                runs.append((segment, file, content))
 
-            if content_hash in groups:
-                # Add segment to existing group
-                groups[content_hash][1].append(result.segment)
-            else:
-                # Create new group
-                groups[content_hash] = (result.overlay_pack, [result.segment])
+            for segment, file, _content in runs:
+                if segment not in assembled:
+                    assembled[segment] = _create_empty_pack(pack_type)
+                target = assembled[segment]
+                # These files are already welded. Assign copies directly so tags,
+                # models, and Weld rules aren't merged or executed again.
+                if namespace_name is None:
+                    target.extra[path] = cast(PackFile, file.copy())
+                elif file_type is None:
+                    target[namespace_name].extra[path] = cast(PackFile, file.copy())
+                else:
+                    target[namespace_name][file_type][path] = cast(
+                        NamespaceFile, file.copy()
+                    )
 
-        return groups
-
-    def _merge_adjacent_segments(
-        self, segments: list[FormatRange]
-    ) -> list[FormatRange]:
-        """Merge adjacent or overlapping segments into continuous ranges."""
-        if not segments:
-            return []
-
-        # Sort by min value
-        sorted_segments = sorted(segments, key=lambda s: s.min)
-
-        merged = [sorted_segments[0]]
-        for segment in sorted_segments[1:]:
-            last = merged[-1]
-
-            # Check if adjacent or overlapping (adjacent means max + 1 == min)
-            if last.max + 1 >= segment.min:
-                # Merge by extending the last segment
-                merged[-1] = FormatRange(last.min, max(last.max, segment.max))
-            else:
-                # Not adjacent, keep separate
-                merged.append(segment)
-
-        return merged
+        return assembled
 
 
 def get_pack_name(file: str | ZipFile) -> tuple[Path | ZipPath, str]:
