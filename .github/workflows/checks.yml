@@ -8,20 +8,8 @@ permissions:
 
 jobs:
   checks:
-    name: ${{ matrix.check.name }}
+    name: Checks
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        check:
-          - name: Lint
-            command: ruff check .
-          - name: Format
-            command: ruff format --check .
-          - name: Typecheck
-            command: ty check
-          - name: Tests
-            command: pytest -v
     steps:
       - uses: actions/checkout@v7.0.1
 
@@ -32,7 +20,20 @@ jobs:
           cache-dependency-glob: uv.lock
 
       - name: Install dependencies
+        id: dependencies
         run: uv sync --locked
 
-      - name: Run ${{ matrix.check.name }}
-        run: uv run --locked ${{ matrix.check.command }}
+      - name: Lint
+        run: uv run --locked ruff check .
+
+      - name: Format
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: uv run --locked ruff format --check .
+
+      - name: Typecheck
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: uv run --locked ty check
+
+      - name: Tests
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: uv run --locked pytest -v
