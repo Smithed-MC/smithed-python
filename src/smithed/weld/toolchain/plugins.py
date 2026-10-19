@@ -58,6 +58,7 @@ def add_fabric_mod_json(ctx: Context, pack_names: list[str] | None = None):
 
     if pack_names is None:
         processor = ctx.inject(PackProcessor)
+        # deduplicate names while preserving pack loading order for Fabric metadata.
         pack_names = list(dict.fromkeys(pack.name for pack in processor.packs))
 
     content = FABRIC_MOD_TEMPLATE.render(
