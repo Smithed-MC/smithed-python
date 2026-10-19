@@ -1,5 +1,7 @@
 import json
-from beet import Context, DataPack, JsonFile, Mcmeta, NamespaceFile
+from contextlib import AbstractContextManager
+from typing import cast
+from beet import Context, DataPack, JsonFile, Mcmeta
 from smithed.weld.toolchain.process import PackProcessor
 import streamlit as st
 from streamlit_elements import elements, editor
@@ -10,10 +12,10 @@ from smithed.weld.merging.handler import ConflictsHandler
 
 from . import common
 from smithed.weld import run_weld
-from beet.contrib.vanilla import Vanilla, load_vanilla
+from beet.contrib.vanilla import load_vanilla
 from beet import LootTable
 
-valid_file_types: dict[str, tuple[type[JsonFile], str]] = {
+valid_file_types: dict[str, tuple[type[LootTable], str]] = {
     "Loot Table": (LootTable, "loot_table")
 }
 
@@ -22,8 +24,8 @@ def merge_files(
     ctx: Context,
     input_json: str,
     file_origin: str,
-    file_type: str | None,
-    file_path: str | None,
+    file_type: str,
+    file_path: str,
     base_json: UploadedFile | None,
 ):
     ctx.data.mcmeta = Mcmeta(
@@ -34,15 +36,19 @@ def merge_files(
         {"pack": {"pack_format": 48, "description": ""}, "id": "input"}
     )
 
-    DataType: type[JsonFile] = valid_file_types[file_type][0]
+    DataType = valid_file_types[file_type][0]
     data_scope = valid_file_types[file_type][1]
 
     input = DataType(input_json)
 
     if file_origin == "Vanilla":
+        if not file_path:
+            raise ValueError("A vanilla data path is required.")
         query = {data_scope: [file_path]}
         ctx.require(load_vanilla(match=query))
     else:
+        if base_json is None:
+            raise ValueError("A custom base JSON file is required.")
         file_path = "weld:default"
         ctx.data[DataType][file_path] = DataType(base_json.getvalue().decode("utf-8"))
 
@@ -70,7 +76,7 @@ def upload_flow(ui: DeltaGenerator):
     )
 
     file_origin = ui.selectbox("Base File", ("Vanilla", "Custom"))
-    file_path = None
+    file_path = ""
     base_json = None
 
     if file_origin == "Vanilla":
@@ -87,9 +93,14 @@ def upload_flow(ui: DeltaGenerator):
         or (file_origin == "Vanilla" and len(file_path) == 0),
     )
 
-    if merge_clicked and input_json:
+    if (
+        merge_clicked
+        and input_json
+        and file_type is not None
+        and file_origin is not None
+    ):
         input_json = input_json.getvalue().decode("utf-8")
-        with run_weld({}) as ctx:
+        with run_weld([]) as ctx:
             output = merge_files(
                 ctx, input_json, file_origin, file_type, file_path, base_json
             )
@@ -111,7 +122,8 @@ def main():
     )
     # st.write('<span style="text-align: center; width: 100%">View how your weld rules will run with a nicely formatted diff.</span>', unsafe_allow_html=True)
 
-    with elements("editor"):
+    # streamlit-elements annotates this context manager as returning None.
+    with cast(AbstractContextManager[None], elements("editor")):
         res = upload_flow(st.container())
 
         if res:

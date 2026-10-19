@@ -1,12 +1,14 @@
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from zipfile import ZipFile
 import traceback
 
 from beet import PluginError
 import streamlit as st
 from streamlit.delta_generator import DeltaGenerator
+from streamlit.runtime.uploaded_file_manager import UploadedFile
 from streamlit_extras.stateful_button import button as toggle_button
 from streamlit_extras.streaming_write import write as streaming_write
 
@@ -18,29 +20,39 @@ from .models import Columns
 from . import common
 
 
-def weld_packs(packs: list[ZipFile], make_fabric_mod: bool) -> Path | None:
-    """Welds a list of zip files. Outputs a path"""
+def weld_packs(packs: list[UploadedFile], make_fabric_mod: bool) -> Path | None:
+    """Weld uploaded ZIP packs or Lectern documents and return the output path."""
 
-    with weld.run_weld(packs, as_fabric_mod=make_fabric_mod) as ctx:
-        if make_fabric_mod:
-            with ZipFile("output.jar", "w") as jar:
-                ctx.data.dump(jar)
-                ctx.assets.dump(jar)
-                output = Path(str(jar.filename))
+    with TemporaryDirectory(prefix="weld-") as directory:
+        paths: list[str] = []
+        for index, pack in enumerate(packs):
+            folder = Path(directory) / str(index)
+            folder.mkdir()
+            path = folder / Path(pack.name).name
+            path.write_bytes(pack.getvalue())
+            paths.append(str(path))
 
-        # TODO: figure out what to do if user uploads both data and resource packs
-        # prolly merge and download UNZIP ME or something
-        if ctx.data:
-            output = ctx.data.save(path="output", zipped=True, overwrite=True)
+        with weld.run_weld(paths, as_fabric_mod=make_fabric_mod) as ctx:
+            if make_fabric_mod:
+                with ZipFile("output.jar", "w") as jar:
+                    ctx.data.dump(jar)
+                    ctx.assets.dump(jar)
+                return Path("output.jar")
 
-        if ctx.assets:
-            output = ctx.assets.save(path="output", zipped=True, overwrite=True)
+            # TODO: figure out what to do if user uploads both data and resource packs
+            # prolly merge and download UNZIP ME or something
+            output = None
+            if ctx.data:
+                output = ctx.data.save(path="output", zipped=True, overwrite=True)
 
-        return output  # type: ignore ikkk TODO
+            if ctx.assets:
+                output = ctx.assets.save(path="output", zipped=True, overwrite=True)
+
+            return output
 
 
 def build_packs(
-    packs: list[tuple[str, ZipFile]], cols: Columns, make_fabric_mod: bool = False
+    packs: list[UploadedFile], cols: Columns, make_fabric_mod: bool = False
 ) -> Path | None:
     path = None
 
@@ -84,17 +96,9 @@ def build_packs(
 
 def upload_flow(ui: DeltaGenerator):
     progress = ui.container()
-    raw_packs = ui.file_uploader(
+    packs = ui.file_uploader(
         "Upload packs", accept_multiple_files=True, type=["zip", "md", "txt"]
     )
-
-    if raw_packs:
-        packs = []
-        for pack in raw_packs:
-            if pack.name.endswith("zip"):
-                packs.append(ZipFile(pack))
-            else:
-                packs.append()
 
     cols = Columns(*ui.columns(3))
     with cols.middle:

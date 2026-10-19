@@ -12,32 +12,25 @@ pip install smithed
 
 ## Contributing
 
-We use [rye](https://rye-up.com/) to manage this project's dependencies. This will handle every aspect from grabbing the correct python, downloading dependencies, and managing a virtual environment.
+We use [uv](https://docs.astral.sh/uv/getting-started/installation/) to manage Python and project dependencies, [Ruff](https://docs.astral.sh/ruff/) for linting and formatting, and [ty](https://docs.astral.sh/ty/) for type checking.
 
-To get started, install rye:
-- [smithed-python](#smithed-python)
-  - [Weld](#weld)
-  - [Contributing](#contributing)
-    - [MacOS and Linux](#macos-and-linux)
-    - [Windows](#windows)
-  - [Developer Setup](#developer-setup)
-
-### MacOS and Linux
-
-```bash
-curl -sSf https://rye-up.com/get | bash
-```
-
-### Windows
-
-Check the guide [here](https://rye-up.com/guide/installation/#installing-rye) for an in-depth explanation.
-
-## Developer Setup
+### Developer Setup
 
 Once installed, you can sync the project to generate a virtual environment and you'll be set!
 
 ```bash
 git clone https://github.com/Smithed-MC/smithed-python
 cd smithed-python
-rye sync
+uv sync --locked
+```
+
+Add dependencies with `uv add <package>` or `uv add --dev <package>` for development tools. Commit both `pyproject.toml` and `uv.lock` when dependencies change.
+
+Run the same checks used by CI:
+
+```bash
+uv run --locked ruff check .
+uv run --locked ruff format --check .
+uv run --locked ty check
+uv run --locked pytest -v
 ```

@@ -1,6 +1,5 @@
 import logging
 from contextlib import contextmanager
-from functools import partial
 from typing import Iterable
 from zipfile import ZipFile
 
@@ -37,8 +36,10 @@ def run_weld(
 
         # Errors from partial/lambda hide the underlying cause leading to bad error messages
         try:
-            ctx.require(partial(weld_loader, packs=list(packs)))
+            ctx.require(weld_loader(packs=list(packs)))
         except PluginError as err:
+            if err.__cause__ is None:
+                raise
             raise err.__cause__
 
         ctx.require(weld)

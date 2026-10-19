@@ -16,8 +16,9 @@ from collections import defaultdict
 from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import dataclass, field
+from functools import partial
 from importlib import resources
-from typing import Any, Iterator, Literal, cast
+from typing import Iterator, Literal, cast, overload
 
 from beet import Context, JsonFile, NamespaceFile
 from beet.contrib.format_json import get_formatter
@@ -61,11 +62,11 @@ class ConflictsHandler:
     # our cache keeps track of the final merged pack alongside the type of file
     # overlays would have it's own final merged pack which would not collide
     cache: defaultdict[tuple[Pack, type[NamespaceFile]], set[str]] = field(
-        default_factory=lambda: defaultdict(set)
+        default_factory=partial(defaultdict, set)
     )
     vanilla: dict[Pack, str] = field(default_factory=dict)
     overrides: defaultdict[Pack, set[tuple[type[NamespaceFile], str]]] = field(
-        default_factory=lambda: defaultdict(set)
+        default_factory=partial(defaultdict, set)
     )
 
     def __call__(self, pack: Pack, path: str, current: JsonFile, conflict: JsonFile, /):
@@ -91,7 +92,7 @@ class ConflictsHandler:
             return False
 
         elif smithed_current is False:
-            current.data = conflict.data
+            current.set_content(conflict.data)
             return True
 
         elif smithed_conflict is False:
@@ -115,7 +116,7 @@ class ConflictsHandler:
             self.overrides[pack].add(physical_file)
             if (pending := self.cache.get((pack, json_file_type))) is not None:
                 pending.discard(path)
-            current.data = conflict.data
+            current.set_content(conflict.data)
             return True
 
         # Cache paths for latest use
@@ -126,7 +127,7 @@ class ConflictsHandler:
             if path not in self.vanilla and (
                 data := self.grab_vanilla(path, json_file_type)
             ):
-                current.data = deepcopy(data)
+                current.set_content(deepcopy(data))
                 self.vanilla[pack] = path
 
         # Handle non-vanilla paths, swap conflict w/ current if no smithed rules exist
@@ -148,7 +149,9 @@ class ConflictsHandler:
                     )
             else:
                 logger.info(f"Swapping base file at `{path}`")
-                current.data, conflict.data = conflict.data, current.data
+                current_data = current.data
+                current.set_content(conflict.data)
+                conflict.set_content(current_data)
                 smithed_current, smithed_conflict = smithed_conflict, smithed_current
 
         # Resolve references against each pack's own original file data.
@@ -159,14 +162,14 @@ class ConflictsHandler:
 
         # Dedupe AFTER resolution so ValueSource values (actual pool data) are compared,
         # not ReferenceSource paths — two packs can both use "pools[0]" to mean different data.
-        dedupe_conflict(resolved_current, resolved_conflict)  # type: ignore[arg-type]
+        dedupe_conflict(resolved_current, resolved_conflict)
 
         if conflict_entries := resolved_conflict.models:
-            resolved_current.models.extend(conflict_entries)  # type: ignore[arg-type]
+            resolved_current.models.extend(conflict_entries)
 
         current.data["__smithed__"] = resolved_current.dump_models()
 
-        current.data = normalize_quotes(cast(JsonDict, current.data))
+        current.set_content(normalize_quotes(cast(JsonDict, current.data)))
 
         return True
 
@@ -221,7 +224,7 @@ class ConflictsHandler:
                 )
 
                 namespace_file = current_pack[json_file_type]
-                data: dict[str, Any] = namespace_file[path].data  # type: ignore - this will have data i promise
+                data = cast(JsonFile, namespace_file[path]).data
                 smithed_file = SmithedJsonFile.process(data)
 
                 if smithed_file and smithed_file.models:
@@ -232,7 +235,7 @@ class ConflictsHandler:
                     del processed["__smithed__"]
                     processed["__smithed__"] = temp
 
-                    namespace_file[path].data = processed  # type: ignore
+                    namespace_file[path].set_content(processed)
 
             del self.cache[(current_pack, json_file_type)]
 
@@ -260,7 +263,13 @@ class ConflictsHandler:
 
         return self.manage_indexes(raw, strip=True)
 
-    def manage_indexes[T: JsonType](self, data: T, strip: bool = False) -> T:
+    @overload
+    def manage_indexes(self, data: JsonDict, strip: bool = False) -> JsonDict: ...
+
+    @overload
+    def manage_indexes(self, data: JsonType, strip: bool = False) -> JsonType: ...
+
+    def manage_indexes(self, data: JsonType, strip: bool = False) -> JsonType:
         """Adds / removes `_index` field to every item in a list"""
         match data:
             case list(value):
@@ -271,15 +280,11 @@ class ConflictsHandler:
                         else:
                             item["_index"] = index
 
-                return [
-                    self.manage_indexes(item, strip)
-                    for item in value  # type: ignore
-                ]
+                return [self.manage_indexes(item, strip) for item in value]
 
             case dict(value):
                 return {
-                    key: self.manage_indexes(val, strip)  # type: ignore
-                    for key, val in value.items()
+                    key: self.manage_indexes(val, strip) for key, val in value.items()
                 }
 
             case other:
@@ -450,7 +455,9 @@ class ConflictsHandler:
             yield from [(pack, json_file_type, path) for path in paths]
 
 
-def dedupe_conflict(current: Any, conflict: Any):
+def dedupe_conflict(
+    current: ResolvedSmithedJsonFile, conflict: ResolvedSmithedJsonFile
+):
     """This dedupe goes through all of the rules in the conflict file, ditches them if
     it already exists in the currently loaded rules. It looks pretty unperformant but
     these lists shouldn't be too large so it's alright. We need to keep the order and
@@ -462,15 +469,23 @@ def dedupe_conflict(current: Any, conflict: Any):
     conflict.models = [model for model in conflict.models if model.rules]
 
 
-def normalize_quotes[T: JsonType](current: T) -> T:
+@overload
+def normalize_quotes(current: JsonDict) -> JsonDict: ...
+
+
+@overload
+def normalize_quotes(current: JsonType) -> JsonType: ...
+
+
+def normalize_quotes(current: JsonType) -> JsonType:
     """It's a bit odd but we need some normalization"""
     match current:
-        case {**d}:
+        case dict() as d:
             return {
                 key.replace('"', ""): normalize_quotes(value)
                 for key, value in d.items()
             }
-        case [*l]:
+        case list() as l:
             return [normalize_quotes(value) for value in l]
         case item:
             return item

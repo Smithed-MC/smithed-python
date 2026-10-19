@@ -15,6 +15,7 @@ from beet import (
     JsonFileBase,
     Mcmeta,
     NamespaceFile,
+    OverlayContainer,
     PackFile,
     PackQuery,
     ResourcePack,
@@ -136,7 +137,7 @@ def as_range(supported_formats: SupportedFormats) -> FormatRange:
     return FormatRange(*legacy_bounds(supported_formats))
 
 
-def _create_empty_pack[T: Pack](pack_type: type[T]) -> T:
+def _create_empty_pack[T: (DataPack, ResourcePack)](pack_type: type[T]) -> T:
     """Create an empty DataPack or ResourcePack with default plugins configured.
 
     Default plugins:
@@ -154,7 +155,7 @@ def _create_empty_pack[T: Pack](pack_type: type[T]) -> T:
     if pack_type is ResourcePack:
         pack = pack_type(extend_namespace=[UnknownAsset])
         use_auto_yaml(pack)
-        model_merging(pack)  # type:  ignore
+        model_merging(pack)
     elif pack_type is DataPack:
         pack = pack_type(extend_namespace=[UnknownData])
         use_auto_yaml(pack)
@@ -164,7 +165,7 @@ def _create_empty_pack[T: Pack](pack_type: type[T]) -> T:
     return pack
 
 
-def _copy_pack[T: Pack](pack: T) -> T:
+def _copy_pack[T: (DataPack, ResourcePack)](pack: T) -> T:
     """Copy files without replacing authored overlay bounds with beet defaults."""
     copied = pack.copy()
     if pack.overlay_parent is None:
@@ -201,18 +202,18 @@ def _same_file(
 
 
 @dataclass
-class PackProcessor[T: Pack]:
+class PackProcessor:
     ctx: Context
-    file_id_cache: dict[JsonFileBase[JsonDict], T] = field(default_factory=dict)
-    packs: list[PackWithName[T]] = field(default_factory=list)
+    file_id_cache: dict[JsonFileBase[JsonDict], Pack] = field(default_factory=dict)
+    packs: list[PackWithName[Pack]] = field(default_factory=list)
 
     def __getitem__(self, key: JsonFileBase[JsonDict]):
         return self.file_id_cache[key]
 
-    def __setitem__(self, key: JsonFileBase[JsonDict], value: T):
+    def __setitem__(self, key: JsonFileBase[JsonDict], value: Pack):
         self.file_id_cache[key] = value
 
-    def create_packs(self, file: str | ZipFile) -> Iterable[PackWithName]:
+    def create_packs(self, file: str | ZipFile) -> Iterable[PackWithName[Pack]]:
         """Creates a DataPack or ResourcePack given a file (either ZipFile or str).
 
         1. Determine type of file and it's name to figure out how to load it.
@@ -237,7 +238,7 @@ class PackProcessor[T: Pack]:
         """
 
         path, name = get_pack_name(file)
-        packs = []
+        packs: list[PackWithName[Pack]] = []
 
         try:
             logger.info(f"Loading pack: {name}")
@@ -294,7 +295,7 @@ class PackProcessor[T: Pack]:
             if isinstance(err.file, Mcmeta):
                 cause = err.__cause__
                 reason = str(cause)
-                raise InvalidMcmeta(pack=name, cause=f"\n{reason}") from err  # type: ignore
+                raise InvalidMcmeta(pack=name, cause=f"\n{reason}") from err
             raise err
 
         if packs:
@@ -302,7 +303,7 @@ class PackProcessor[T: Pack]:
 
         raise InvalidPack(str(path))
 
-    def load_pack(self, pack: PackWithName[T]):
+    def load_pack[T: (DataPack, ResourcePack)](self, pack: PackWithName[T]) -> T:
         """Loads a DataPack or ResourcePack into a context by merging it.
 
         Keep an isolated source for provenance and segment baking, then merge a
@@ -328,7 +329,9 @@ class PackProcessor[T: Pack]:
 
         return source
 
-    def cache_pack(self, pack: PackWithName[T], *, register: bool = True):
+    def cache_pack[T: (DataPack, ResourcePack)](
+        self, pack: PackWithName[T], *, register: bool = True
+    ):
         """Cache some metadata from resource files to be used in later welding."""
 
         if "id" not in pack.pack.mcmeta.data:
@@ -383,10 +386,10 @@ class PackProcessor[T: Pack]:
 
         # Step 3: Generate merged overlays for each pack type separately
         if data_pack_info:
-            self._generate_overlays_for_pack_type(data_pack_info, self.ctx.data)  # type: ignore
+            self._generate_overlays_for_pack_type(data_pack_info, self.ctx.data)
 
         if resource_pack_info:
-            self._generate_overlays_for_pack_type(resource_pack_info, self.ctx.assets)  # type: ignore
+            self._generate_overlays_for_pack_type(resource_pack_info, self.ctx.assets)
 
         # remove id from all overlays
         for overlay in itertools.chain(
@@ -403,34 +406,29 @@ class PackProcessor[T: Pack]:
             Tuple of (data_pack_info, resource_pack_info)
         """
 
-        data_pack_info: list[PackInfo] = []
-        resource_pack_info: list[PackInfo] = []
+        data_pack_info: list[PackInfo[DataPack]] = []
+        resource_pack_info: list[PackInfo[ResourcePack]] = []
+
+        def load_and_index[T: (DataPack, ResourcePack)](
+            pack: T, name: str
+        ) -> PackInfo[T]:
+            source = self.load_pack(PackWithName(pack, name))
+            overlays_by_range, overlays_in_order = self._index_overlays_by_range(
+                PackWithName(source, name)
+            )
+            return PackInfo(source, overlays_by_range, overlays_in_order, name)
 
         for file in files:
             for pack in self.create_packs(file):
-                source = self.load_pack(pack)
-                pack = PackWithName(source, pack.name)
-                # Index overlays by their format ranges
-                overlays_by_range, overlays_in_order = self._index_overlays_by_range(
-                    pack
-                )
-
-                pack_info = PackInfo(
-                    base_pack=pack.pack,
-                    overlays_by_range=overlays_by_range,
-                    overlays_in_order=overlays_in_order,
-                    name=pack.name,
-                )
-
                 # Separate by pack type
                 if isinstance(pack.pack, DataPack):
-                    data_pack_info.append(pack_info)
+                    data_pack_info.append(load_and_index(pack.pack, pack.name))
                 else:
-                    resource_pack_info.append(pack_info)
+                    resource_pack_info.append(load_and_index(pack.pack, pack.name))
 
         return data_pack_info, resource_pack_info
 
-    def _index_overlays_by_range(
+    def _index_overlays_by_range[T: (DataPack, ResourcePack)](
         self, pack: PackWithName[T]
     ) -> tuple[dict[FormatRange, T], list[tuple[FormatRange, T]]]:
         """Index a pack's overlays by their format ranges.
@@ -446,7 +444,8 @@ class PackProcessor[T: Pack]:
         overlays_by_range: dict[FormatRange, T] = {}
         overlays_in_order: list[tuple[FormatRange, T]] = []
 
-        for overlay_name, overlay in pack.pack.overlays.items():
+        for overlay_name, raw_overlay in pack.pack.overlays.items():
+            overlay = cast(T, raw_overlay)
             bounds = get_overlay_bounds(overlay)
             if bounds is None:
                 logger.warning(
@@ -458,12 +457,12 @@ class PackProcessor[T: Pack]:
             format_range = FormatRange(*bounds)
 
             # Store the overlay reference - actual baking happens later during segment processing
-            overlays_by_range[format_range] = overlay  # type: ignore
-            overlays_in_order.append((format_range, overlay))  # type: ignore
+            overlays_by_range[format_range] = overlay
+            overlays_in_order.append((format_range, overlay))
 
         return overlays_by_range, overlays_in_order
 
-    def _generate_overlays_for_pack_type(
+    def _generate_overlays_for_pack_type[T: (DataPack, ResourcePack)](
         self, pack_info_list: list[PackInfo[T]], base_pack: T
     ):
         """Generate merged overlays using the 4-phase overlay-aware algorithm.
@@ -515,6 +514,7 @@ class PackProcessor[T: Pack]:
         # including entries whose modern bounds cover newer versions only.
         threshold = legacy_overlay_threshold(base_pack)
         legacy_required = any(segment.min[0] < threshold for segment in assembled)
+        overlays = cast(OverlayContainer[T], base_pack.overlays)
 
         for segment, overlay_pack in sorted(
             assembled.items(), key=lambda item: (item[0].min, item[0].max)
@@ -524,14 +524,14 @@ class PackProcessor[T: Pack]:
             # parent/name, and later bounds must not overwrite an earlier entry.
             overlay = overlay_pack.copy()
             overlay.name = overlay_name
-            overlay.min_format = list(segment.min)
+            overlay.min_format = segment.min
             overlay.max_format = (
-                segment.max[0] if segment.max[1] == MINOR_MAX else list(segment.max)
+                segment.max[0] if segment.max[1] == MINOR_MAX else segment.max
             )
             overlay.supported_formats = (
                 [segment.min[0], segment.max[0]] if legacy_required else None
             )
-            base_pack.overlays[overlay_name] = overlay  # type: ignore
+            overlays[overlay_name] = overlay
 
         logger.info(f"Generated {len(base_pack.overlays)} final overlays")
 
@@ -539,7 +539,7 @@ class PackProcessor[T: Pack]:
     # Phase 1: Format Space Segmentation
     # ============================================================================
 
-    def _compute_boundary_points(
+    def _compute_boundary_points[T: (DataPack, ResourcePack)](
         self, pack_info_list: list[PackInfo[T]]
     ) -> list[PackFormat]:
         """Compute all format boundary points from overlays.
@@ -585,7 +585,7 @@ class PackProcessor[T: Pack]:
     # Phase 3: Effective State Merging
     # ============================================================================
 
-    def _compute_merged_state_for_segment(
+    def _compute_merged_state_for_segment[T: (DataPack, ResourcePack)](
         self,
         segment: FormatRange,
         pack_info_list: list[PackInfo[T]],
@@ -616,11 +616,11 @@ class PackProcessor[T: Pack]:
             baked.name = pack_info.name
             bake_overlays_for_pack_format(baked, segment.min)
             self.cache_pack(PackWithName(baked, pack_info.name), register=False)
-            merged.merge(baked)  # type: ignore
+            merged.merge(baked)
 
         return merged
 
-    def _create_overlay_for_segment(
+    def _create_overlay_for_segment[T: (DataPack, ResourcePack)](
         self,
         segment: FormatRange,
         pack_info_list: list[PackInfo[T]],
@@ -668,7 +668,7 @@ class PackProcessor[T: Pack]:
     # Phase 4: Deduplication & Assembly
     # ============================================================================
 
-    def _coalesce_segment_files(
+    def _coalesce_segment_files[T: (DataPack, ResourcePack)](
         self, segment_results: list[SegmentResult[T]], pack_type: type[T]
     ) -> dict[FormatRange, T]:
         """Join adjacent equal resolved files, then group files sharing a range.
@@ -688,7 +688,7 @@ class PackProcessor[T: Pack]:
             layout = pack_type()
             layout.pack_format = None
             layout.max_format = (
-                segment.max[0] if segment.max[1] == MINOR_MAX else list(segment.max)
+                segment.max[0] if segment.max[1] == MINOR_MAX else segment.max
             )
             layout.supported_formats = [segment.min[0], segment.max[0]]
             for namespace_name, namespace in pack.items():

@@ -21,7 +21,7 @@ def beet_default(ctx: Context):
     handler = ctx.inject(ConflictsHandler)
 
     for pack in ctx.packs:
-        apply_merging(handler, pack)  # type: ignore
+        apply_merging(handler, pack)
 
 
 def process(ctx: Context):

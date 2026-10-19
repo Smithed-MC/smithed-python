@@ -132,7 +132,7 @@ def traverse(obj: JsonDict, path: str, convert_index: bool = False):
                     if not isinstance(parent, dict):
                         raise ValueError
                     current = []
-                    parent[last_token.value] = current  # type: ignore
+                    parent[last_token.value] = current
 
                 for item in current:
                     if not isinstance(item, dict):
@@ -209,7 +209,10 @@ def merge(obj: JsonDict, path: str, value: JsonType):
 
         else:
             # logger.warn("Deprecated. Use `smithed:replace` instead.")
-            parent[key] = to_merge  # TODO: this might error !!
+            if isinstance(parent, list):
+                parent[int(key)] = to_merge
+            else:
+                parent[key] = to_merge
 
     _merge(parent, current, value, key)
 

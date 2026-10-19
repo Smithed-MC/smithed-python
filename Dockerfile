@@ -1,4 +1,6 @@
-FROM python:3.11-bookworm as uv
+FROM python:3.14-bookworm AS uv
+
+COPY --from=ghcr.io/astral-sh/uv:0.12.11 /uv /uvx /bin/
 
 # Prevents Python from writing pyc files.
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -7,7 +9,9 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # the application crashes without emitting any logs due to buffering.
 ENV PYTHONUNBUFFERED=1
 
-ENV PYTHONPATH="/app/src:$PYTHONPATH"
+ENV UV_LINK_MODE=copy
+ENV UV_PYTHON_DOWNLOADS=0
+ENV PATH="/app/.venv/bin:$PATH"
 
 WORKDIR /app
 
@@ -17,25 +21,14 @@ RUN \
   apt-get update \
   && apt-get install -y --no-install-recommends build-essential
 
-ENV CARGO_HOME="/opt/cargo"
-ENV PATH="/opt/cargo/bin:$PATH"
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-
-RUN pip install uv
-RUN uv venv
-
 # Download dependencies as a separate step to take advantage of Docker's caching.
-# Leverage a bind mount to some files to avoid having to copy them into
-# into this layer.
-# TODO: use uv
-RUN --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    --mount=type=bind,source=requirements.lock,target=requirements.lock \
-    --mount=type=bind,source=requirements-dev.lock,target=requirements-dev.lock \
+# Bind the project metadata without copying application sources into this layer.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=.python-version,target=.python-version \
     --mount=type=bind,source=README.md,target=README.md \
-    uv pip install -r requirements-dev.lock
-
-RUN . .venv/bin/activate
+    uv sync --locked --no-install-project
 
 FROM uv AS run
 
@@ -55,6 +48,8 @@ FROM uv AS run
 # USER appuser
 
 COPY . .
+
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked
 
 EXPOSE ${PORT}
 

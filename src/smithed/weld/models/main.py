@@ -84,16 +84,17 @@ def _resolve_rule(rule: BroadRule, raw: JsonDict) -> ResolvedRule | None:
     """
     if isinstance(rule, AdditiveRule):
         try:
-            resolved_source = _resolve_source(cast(BroadSource, rule.source), raw)  # type: ignore[arg-type]
+            resolved_source = _resolve_source(rule.source, raw)
         except ValueError:
+            assert isinstance(rule.source, ReferenceSource)
             logger.warning(
-                f"Source Reference Path: {rule.source.path!r} was not found, skipping rule."  # type: ignore[union-attr]
+                f"Source Reference Path: {rule.source.path!r} was not found, skipping rule."
             )
             return None
-        return rule.model_copy(update={"source": resolved_source})  # type: ignore[return-value]
+        return cast(ResolvedRule, rule.model_copy(update={"source": resolved_source}))
 
     # RemoveRule has no source, so we return that directly
-    return rule  # type: ignore[return-value]
+    return rule
 
 
 def _resolve_model(model: BroadSmithedModel, raw: JsonDict) -> ResolvedSmithedModel:
@@ -102,7 +103,9 @@ def _resolve_model(model: BroadSmithedModel, raw: JsonDict) -> ResolvedSmithedMo
         for rule in model.rules
         if (resolved := _resolve_rule(rule, raw)) is not None
     ]
-    return model.model_copy(update={"rules": resolved_rules})  # type: ignore[return-value]
+    return cast(
+        ResolvedSmithedModel, model.model_copy(update={"rules": resolved_rules})
+    )
 
 
 # ---------------------------------------------------------------------------

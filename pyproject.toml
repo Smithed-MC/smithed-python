@@ -25,7 +25,6 @@ weld = "smithed.weld:cli"
 [dependency-groups]
 dev = [
   "ruff>=0.17.1",
-  "pyright>=1.1.414",
   "streamlit>=1.55.0",
   "pytest>=7.4.2",
   "pytest-insta>=0.2.0",
@@ -37,6 +36,7 @@ dev = [
   "twine>=5.0.0",
   "streamlit-elements>=0.1.0",
   "streamlit-router>=0.1.8",
+  "ty>=0.0.89",
 ]
 
 github-workflows = [
@@ -61,12 +61,8 @@ prerelease = false
 [tool.uv]
 no-build-package = ["pyarrow"]
 
-[tool.pyright]
+[tool.ty.src]
 include = ["src", "app", "tests"]
-pythonVersion = "3.14"
-typeCheckingMode = "basic"
-venvPath = "."
-venv = ".venv"
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F"]

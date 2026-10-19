@@ -1,5 +1,5 @@
 import logging
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -34,7 +34,9 @@ def format_error(
 
 
 @contextmanager
-def error_handler(should_exit: bool = False, format_padding: int = 0) -> Iterator[None]:
+def error_handler(
+    should_exit: bool = False, format_padding: int = 0
+) -> Generator[None]:
     """Context manager that catches and displays exceptions."""
     exception = None
 

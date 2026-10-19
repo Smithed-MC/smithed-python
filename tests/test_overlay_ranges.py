@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 import re
+from typing import cast
 
 from beet import (
     BinaryFile,
@@ -9,12 +10,14 @@ from beet import (
     Function,
     Language,
     LootTable,
+    NamespaceFile,
     Predicate,
     ResourcePack,
     run_beet,
 )
 import pytest
 
+from smithed.weld.toolchain.formats import normalize_format
 from smithed.weld.toolchain.plugins import weld_handler
 from smithed.weld.toolchain.process import (
     INFINITY_SENTINEL,
@@ -24,8 +27,8 @@ from smithed.weld.toolchain.process import (
 )
 
 
-def weld_and_export(
-    pack: DataPack | ResourcePack,
+def weld_and_export[T: (DataPack, ResourcePack)](
+    pack: T,
     output: Path,
     *,
     root_min_format: int | None = None,
@@ -38,11 +41,15 @@ def weld_and_export(
         indexed, ordered = processor._index_overlays_by_range(
             PackWithName(source, "ranges")
         )
-        target = ctx.data if isinstance(pack, DataPack) else ctx.assets
+        target = cast(T, ctx.data if isinstance(pack, DataPack) else ctx.assets)
         if root_min_format is not None:
             target.min_format = root_min_format
             target.pack_format = root_min_format
-            target.supported_formats = [root_min_format, target.max_format[0]]
+            assert target.max_format is not None
+            target.supported_formats = [
+                root_min_format,
+                normalize_format(target.max_format, upper=True)[0],
+            ]
         processor._generate_overlays_for_pack_type(
             [PackInfo(source, indexed, ordered, "ranges")], target
         )
@@ -73,14 +80,14 @@ def exported_overrides_at(
 def test_equal_files_span_other_files_boundaries(tmp_path: Path):
     pack = DataPack()
     pack[Predicate]["test:changing"] = Predicate({"marker": None})
-    stable = pack.overlays.setdefault("stable", min_format=[82, 1], max_format=[82, 6])
+    stable = pack.overlays.setdefault("stable", min_format=(82, 1), max_format=(82, 6))
     stable[Predicate]["test:stable"] = Predicate({"marker": "stable"})
     stable["test"].extra["custom.bin"] = BinaryFile(b"namespace")
     stable.extra["custom-root.bin"] = BinaryFile(b"root")
     # Python considers 1, True, and 1.0 equal; their exported JSON types differ.
     for first, last, marker in [(1, 2, 1), (3, 4, True), (5, 6, 1.0)]:
         overlay = pack.overlays.setdefault(
-            f"changing_{first}", min_format=[82, first], max_format=[82, last]
+            f"changing_{first}", min_format=(82, first), max_format=(82, last)
         )
         overlay[Predicate]["test:changing"] = Predicate({"marker": marker})
 
@@ -120,7 +127,7 @@ def test_json_type_changes_from_base_are_not_discarded(tmp_path: Path):
     pack[Predicate]["test:main"] = Predicate({"marker": 1})
     for minor, marker in [(1, True), (2, 1.0), (3, 1)]:
         overlay = pack.overlays.setdefault(
-            f"minor_{minor}", min_format=[82, minor], max_format=[82, minor]
+            f"minor_{minor}", min_format=(82, minor), max_format=(82, minor)
         )
         overlay[Predicate]["test:main"] = Predicate({"marker": marker})
 
@@ -140,14 +147,14 @@ def test_base_equal_and_inactive_gaps_break_file_runs(tmp_path: Path):
     pack = DataPack()
     for path in ("test:main", "test:other"):
         pack[Function][path] = Function("say base")
-    broad = pack.overlays.setdefault("broad", min_format=[82, 1], max_format=[82, 3])
+    broad = pack.overlays.setdefault("broad", min_format=(82, 1), max_format=(82, 3))
     broad[Function]["test:main"] = Function("say active")
     broad[Function]["test:other"] = Function("say other")
     restore = pack.overlays.setdefault(
-        "restore", min_format=[82, 2], max_format=[82, 2]
+        "restore", min_format=(82, 2), max_format=(82, 2)
     )
     restore[Function]["test:main"] = Function("say base")
-    far = pack.overlays.setdefault("far", min_format=[82, 5], max_format=[82, 5])
+    far = pack.overlays.setdefault("far", min_format=(82, 5), max_format=(82, 5))
     far[Function]["test:main"] = Function("say active")
 
     output, entries = weld_and_export(pack, tmp_path / "output")
@@ -199,7 +206,7 @@ def test_terminal_sentinel_and_modern_minor_bounds_export(tmp_path: Path):
         "terminal", supported_formats=[62, INFINITY_SENTINEL]
     )
     terminal[Function]["test:main"] = Function("say terminal")
-    minor = pack.overlays.setdefault("minor", min_format=[82, 1], max_format=[82, 3])
+    minor = pack.overlays.setdefault("minor", min_format=(82, 1), max_format=(82, 3))
     minor[Function]["test:main"] = Function("say minor")
 
     output, entries = weld_and_export(pack, tmp_path / "output")
@@ -224,11 +231,12 @@ def test_terminal_sentinel_and_modern_minor_bounds_export(tmp_path: Path):
 def test_deduplication_preserves_resource_scope_and_extra_bytes(tmp_path: Path):
     pack = DataPack()
     pack[Function]["test:main"] = Function("say base")
-    for version, file_type, payload in (
+    cases: list[tuple[int, type[NamespaceFile], bytes]] = [
         (10, LootTable, b"first"),
         (11, Predicate, b"first"),
         (12, Predicate, b"second"),
-    ):
+    ]
+    for version, file_type, payload in cases:
         overlay = pack.overlays.setdefault(str(version), supported_formats=version)
         overlay[file_type]["test:shared"] = file_type({})
         overlay["test"].extra["custom.bin"] = BinaryFile(payload)
@@ -259,8 +267,8 @@ def test_equal_resources_keep_their_exported_physical_scopes(tmp_path: Path):
     pack = ResourcePack()
     pack[Equipment]["test:shared"] = Equipment({"marker": "base"})
     for name, lower, upper in [
-        ("old", [45, 1], [45, 2]),
-        ("new", [45, 3], [46, 1]),
+        ("old", (45, 1), (45, 2)),
+        ("new", (45, 3), (46, 1)),
     ]:
         overlay = pack.overlays.setdefault(name, min_format=lower, max_format=upper)
         overlay[Equipment]["test:shared"] = Equipment({"marker": "same"})
@@ -283,16 +291,16 @@ def test_equal_resources_keep_their_exported_physical_scopes(tmp_path: Path):
 
 
 @pytest.mark.parametrize("pack_type,major", [(DataPack, 82), (ResourcePack, 65)])
-def test_modern_only_output_uses_exact_bounds_without_legacy_formats(
-    tmp_path: Path, pack_type: type[DataPack] | type[ResourcePack], major: int
-):
+def test_modern_only_output_uses_exact_bounds_without_legacy_formats[
+    T: (DataPack, ResourcePack)
+](tmp_path: Path, pack_type: type[T], major: int):
     pack = pack_type()
     if isinstance(pack, DataPack):
         pack[Function]["test:main"] = Function("say base")
     else:
         pack[Language]["test:main"] = Language({"value": "base"})
     overlay = pack.overlays.setdefault(
-        "minor", min_format=[major, 1], max_format=[major, 3]
+        "minor", min_format=(major, 1), max_format=(major, 3)
     )
     if isinstance(pack, DataPack):
         overlay[Function]["test:main"] = Function("say minor")

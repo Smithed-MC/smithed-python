@@ -22,8 +22,6 @@ class Columns(NamedTuple):
     left: DeltaGenerator
     middle: DeltaGenerator
     right: DeltaGenerator
-    middle: DeltaGenerator
-    right: DeltaGenerator
 
 
 @dataclass

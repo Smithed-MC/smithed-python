@@ -19,7 +19,7 @@ jobs:
           - name: Format
             command: ruff format --check .
           - name: Typecheck
-            command: pyright
+            command: ty check
           - name: Tests
             command: pytest -v
     steps:

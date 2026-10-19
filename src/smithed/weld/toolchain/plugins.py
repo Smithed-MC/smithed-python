@@ -6,7 +6,6 @@ from beet import (
     Context,
     DataPack,
     JsonFile,
-    Mcmeta,
     PluginOptions,
     PngFile,
     ResourcePack,
