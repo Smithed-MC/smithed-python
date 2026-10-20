@@ -14,10 +14,34 @@ from smithed.weld import run_weld, scripts
 
 
 class FmtWeldPackMarkdown(FmtPackMarkdown):
+    def dump(self, path: Path, value: Document):
+        if any(
+            pack[scripts.WeldScript]
+            for pack in (value.assets, *value.assets.overlays.values())
+        ):
+            # Lectern's shared @weld_script directive always loads into data.
+            value.directives.add_resolver(
+                lambda registry: registry.pop("weld_script", None)
+            )
+        super().dump(path, value)
+
     def load(self, path: Path) -> Document:
         document = Document()
         scripts.load_resources(document.assets)
         scripts.load_resources(document.data)
+
+        pack_directives = {
+            name: document.directives[name] for name in ("data_pack", "resource_pack")
+        }
+
+        def load_pack_fragment(fragment, assets, data):
+            scripts.load_resources(assets)
+            scripts.load_resources(data)
+            pack_directives[fragment.directive](fragment, assets, data)
+
+        for name in pack_directives:
+            document.directives[name] = load_pack_fragment
+
         document.load(path)
         for pack in (document.assets, document.data):
             ignore_name(pack)
@@ -117,5 +141,53 @@ def test_build(
         for overlay in actual.assets.overlays.values():
             ignore_name(overlay)
             del overlay.mcmeta
+
+        assert expected == actual
+
+
+def test_script_reads_do_not_replace_generated_resources(
+    snapshot: SnapshotFixture, tmp_path: Path, caplog: pytest.LogCaptureFixture
+):
+    pack = tmp_path / "pack"
+    files = {
+        "pack.mcmeta": """{
+            "id": "sandbox",
+            "pack": {"min_format": [101, 0], "max_format": [101, 0]}
+        }""",
+        "data/sandbox/function/input.mcfunction": "say Original input\n",
+        "data/sandbox/function/untouched.mcfunction": "say Untouched input\n",
+        "data/sandbox/loot_table/input.json": '{"pools": []}',
+        "data/sandbox/weld/script/main.bolt": """
+for name, source in ctx.data.functions.items():
+    lines = list(source.lines)
+    text = source.text
+table = ctx.data.loot_tables["sandbox:input"].data
+
+function sandbox:input:
+    say Regenerated after reading
+
+loot_table sandbox:input {"type": "minecraft:generic", "pools": []}
+""",
+    }
+    for relative, content in files.items():
+        path = pack / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content)
+
+    with (
+        caplog.at_level(logging.ERROR, logger="weld"),
+        run_weld([str(pack)], config=TEST_CONFIG) as ctx,
+    ):
+        assert not caplog.records
+        actual = ctx.inject(Document)
+        actual.markdown_serializer.flat = True
+        expected = snapshot("pack.md")
+        for document in (actual, expected):
+            if hasattr(document, "data"):
+                for root in (document.assets, document.data):
+                    ignore_name(root)
+                    for overlay in root.overlays.values():
+                        ignore_name(overlay)
+                        del overlay.mcmeta
 
         assert expected == actual

@@ -1,0 +1,20 @@
+from beet import FunctionTag
+
+give_functions = []
+
+for table in sorted(ctx.data.loot_tables):
+    namespace, path = table.split(":", 1)
+    if path.startswith("items/"):
+        entry = f"catalog:give/{namespace}/{path[6:]}"
+        give_functions.append(entry)
+
+        function entry:
+            loot give @s loot table
+
+function catalog:give_all:
+    for entry in give_functions:
+        function entry
+
+ctx.data.function_tags["catalog:items"] = FunctionTag({
+    "values": give_functions
+})
