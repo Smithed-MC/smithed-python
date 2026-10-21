@@ -1,7 +1,7 @@
 from .toolchain import cli, run_weld, weld_loader, weld_metadata, weld_handler, weld
 from .scripts import WeldScript, WeldPyScript, ResourceDefinition
 
-__version__ = "0.22.0"
+__version__ = "0.22.1"
 
 __all__ = [
     "cli",
