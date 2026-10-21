@@ -1,9 +1,8 @@
-from dataclasses import field
+from dataclasses import dataclass, field
 import json
 import logging
 from typing import Self, cast
 
-from attr import dataclass
 from pydantic import model_validator, SerializeAsAny
 
 from smithed.type import JsonDict, JsonList
