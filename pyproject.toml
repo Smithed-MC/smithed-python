@@ -10,7 +10,7 @@ dependencies = [
   "backports-strenum>=1.2.8",
   "rich>=13.6.0",
   "pydantic>=2.5.2",
-  "lectern>=0.34.0",
+  "lectern>=0.37.0",
   "bolt>=0.38.5",
   "bolt-expressions>=0.17.0",
 ]
