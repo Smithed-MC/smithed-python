@@ -20,7 +20,7 @@ from functools import partial
 from importlib import resources
 from typing import Iterator, Literal, cast, overload
 
-from beet import Context, JsonFile, NamespaceFile
+from beet import Context, JsonFile, Language, NamespaceFile
 from beet.contrib.format_json import get_formatter
 from beet.contrib.vanilla import Vanilla
 from pydantic import ValidationError
@@ -76,6 +76,10 @@ class ConflictsHandler:
         physical_file = json_file_type, path
 
         logger.debug(f"Registering conflict: {path!r}")
+        if json_file_type is Language:
+            current.data.update(conflict.data)
+            return True
+
         if physical_file in self.overrides[pack]:
             logger.debug("Skipping due to override")
             return True
