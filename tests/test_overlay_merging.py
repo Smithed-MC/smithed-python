@@ -2,7 +2,7 @@
 
 from copy import deepcopy
 
-from beet import DataPack, Function, LootTable, Predicate
+from beet import DataPack, Function, Language, LootTable, Predicate, ResourcePack
 import pytest
 
 from smithed.weld import run_weld
@@ -172,3 +172,16 @@ def test_override_skips_queued_rules_only_for_its_physical_file(
             predicate = _file_at_format(ctx.data, Predicate, path, pack_format)
             assert [pool["name"] for pool in loot.data["pools"]] == ["override"]
             assert [pool["name"] for pool in predicate.data["pools"]] == expected
+
+
+def test_language_files_merge_by_key_in_pack_order(monkeypatch):
+    first, second = ResourcePack(), ResourcePack()
+    first[Language]["minecraft:en_us"] = Language({"a": "first", "b": "first"})
+    second[Language]["minecraft:en_us"] = Language({"b": "second", "c": "second"})
+
+    with _weld_sources(monkeypatch, {"first": first, "second": second}) as ctx:
+        assert ctx.assets[Language]["minecraft:en_us"].data == {
+            "a": "first",
+            "b": "second",
+            "c": "second",
+        }
